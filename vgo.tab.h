@@ -15,7 +15,6 @@
 #define LDEFAULT 267
 #define LDEFER 268
 #define LELSE 269
-#define LFALL 270	/* fallthrough */
 #define LFOR 271
 #define LFUNC 272
 #define LGO 273
