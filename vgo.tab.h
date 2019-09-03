@@ -1,10 +1,12 @@
 /* adapted from the go 1.2.2 distribution */
 
 /* Tokens.  */
-#define LLITERAL 258	/* string literal */
+#define LLITERAL 258    /* string literal */
+#define LINT 400    // Integer
+#define LDOUBLE 401 // Double
 #define LASOP 259	/* = */
 #define LCOLAS 260	/* := */
-#define LBREAK 261
+#define LBREAK 261  // Linebreak?
 #define LCASE 262
 #define LCHAN 263
 #define LCONST 264
@@ -28,7 +30,6 @@
 #define LRETURN 282
 #define LSELECT 283
 #define LSTRUCT 284
-#define LSWITCH 285
 #define LTYPE 286
 #define LVAR 287
 #define LANDAND 288	/* && */
