@@ -5,15 +5,17 @@
 #include "token.h"
 #include "vgo.tab.h"
 
+// Exit codes:
+// -1: Memory Error
+
 struct token *tokenNew(int category,
                        char* text,
                        int lineno,
                        char* filename) {
 
-    
 	struct token *t = malloc(sizeof(*t));
 	if (t == NULL)
-		handle_error("token create");
+		exit(-1);
 
     // Copy ints
 	t->category = category;

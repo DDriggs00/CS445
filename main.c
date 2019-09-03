@@ -2,13 +2,15 @@
 
 
 #include <stdlib.h>
-#include <stdio.h>      // For printf
-#include <string.h>
-#include <stdbool.h>
+#include <stdio.h>      // printf
+#include <string.h>     // strlen, strcpy
+#include <stdbool.h>    // Adds boolean support
 
-struct token *yytoken = NULL;
-struct list *tokens = NULL;
-struct list *filenames = NULL;
+#include "token.h"
+
+struct token* yytoken;
+struct tokenList* tokens;
+char** filenames;
 
 // Return Codes:
 // 0: Success
@@ -49,9 +51,8 @@ int main(int argc, char* argv[]) {
             strcpy(fileNames[i - 1], argv[i]);
             fileNames[i - 1] = strcat(fileNames[i - 1], ".go");
         }
+        printf("%s\n", fileNames[i - 1]);
 	}
-
-
 
     return 0;
 }
