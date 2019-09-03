@@ -1,0 +1,11 @@
+# Editor stuff
+.vscode/
+
+# object files
+*.o
+
+# Editor debugger
+main
+
+# Executable
+vgo
