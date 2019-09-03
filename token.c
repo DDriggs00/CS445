@@ -39,7 +39,7 @@ struct token *tokenNew(int category,
     if (category == LLITERAL) {
         // TODO correct string
         t->sval = malloc(strlen(text) * sizeof(char));
-	    strcpy(t->sval, text);
+	    sprintf(t->sval, "%s", text);
     }
 
 	return t;

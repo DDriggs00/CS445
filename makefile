@@ -14,5 +14,5 @@ token.o: token.c
 # lex.yy.o: lex.yy.c
 # 	$(CC) $(CFLAGS) lex.yy.c
 
-# lex.yy.c: clex.l ytab.h
-# 	flex clex.l
+# lex.yy.c: vgolex.l vgo.tab.h
+# 	flex voglex.l
