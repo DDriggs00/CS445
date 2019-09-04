@@ -30,8 +30,8 @@ bool endsWith(const char *str, const char *suffix)
 }
 
 // derived from https://stackoverflow.com/questions/5309471/
-bool hasExtention(const char *filename) {
-    const char *dot = strrchr(filename, '.');
+bool hasExtention(const char* filename) {
+    const char* dot = strrchr(filename, '.');
     if(!dot || dot == filename) return false;
     char* pPosition = strchr(dot + 1, '/');
     if(pPosition) return false;
@@ -41,7 +41,7 @@ bool hasExtention(const char *filename) {
 int main(int argc, char* argv[]) {
     
     if(argc == 1){
-		printf(stderr, "No files were given");
+		fprintf(stderr, "No files were given\n");
 		return 1;
 	}
 
@@ -56,8 +56,8 @@ int main(int argc, char* argv[]) {
         }
         else {
             // does not have .go extention
-            if (hasExtention(fileNames[i - 1])) {
-                printf(stderr, "Only files with a .go extention are allowed");
+            if (hasExtention(argv[i])) {
+                fprintf(stderr, "Only files with a .go extention are allowed\n");
                 return -1;
             }
             fileNames[i - 1] = (char*)malloc(sizeof(char) * (strlen(argv[i]) + 3)); // Allocate memory for individual string (+3 chars for )
