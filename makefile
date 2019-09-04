@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-c -g -Wall
+CFLAGS=-c -g -std=c99 -Wall
 OBJ=main.o token.o #lex.yy.o
 
 vgo: $(OBJ)

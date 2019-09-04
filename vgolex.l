@@ -1,14 +1,12 @@
-/* Based on the version for c++ here: */
+/* Based on the version for c++ here: https://github.com/andschwa/partial-cpp-compiler */
 %option warn nounput noinput
 %option header-file="vgolex.h"
 %option yylineno noyywrap
-%x COMMENT STR CHR CHREND INC
 
-DIGIT    [0-9]
-LETTER   [a-zA-Z_]
-HEX      [a-fA-F0-9]
-FS       (f|F|l|L)
-IS       (u|U|l|L)*
+DIGIT   [0-9]
+LETTER  [a-zA-Z]
+HEX     [a-fA-F0-9]
+OCT		[0-7]
 
 %{
 #include <stdbool.h>
@@ -89,6 +87,15 @@ void handle_include(const char *s);
 "float64"       {new_token(); return ;}
 
     /* Operators */
+"<="            {new_token(LE); return LE;}
+">="            {new_token(GE); return GE;}
+"=="            {new_token(EQ); return EQ;}
+"!="            {new_token(NE); return NE;}
+"&&"            {new_token(ANDAND); return ANDAND;}
+"||"            {new_token(OROR); return OROR;}
+"+="            {new_token(PLASN); return PLASN;}
+"-="            {new_token(MIASN); return MIASN;}
+"="             {new_token(ASN); return ASN;}
 "("             {new_token(LP); return LP;}
 ")"             {new_token(RP); return RP;}
 "["             {new_token(LB); return LB;}
@@ -101,41 +108,34 @@ void handle_include(const char *s);
 "%"             {new_token(MOD); return MOD;}
 "+"             {new_token(PLUS); return PLUS;}
 "<"             {new_token(LT); return LT;}
-"<="            {new_token(LE); return LE;}
 ">"             {new_token(GT); return GT;}
-">="            {new_token(GE); return GE;}
-"=="            {new_token(EQ); return EQ;}
-"!="            {new_token(NE); return NE;}
-"&&"            {new_token(ANDAND); return ANDAND;}
-"||"            {new_token(OROR); return OROR;}
-"="             {new_token(ASN); return ASN;}
-"+="            {new_token(PLASN); return PLASN;}
-"-="            {new_token(MIASN); return MIASN;}
 
     /* Invalid Operators */
-"&"             {new_token(BADOPERATOR); return BADOPERATOR;}
-"^"             {new_token(BADOPERATOR); return BADOPERATOR;}
+"&^="           {new_token(BADOPERATOR); return BADOPERATOR;}
+"<<="           {new_token(BADOPERATOR); return BADOPERATOR;}
+">>="           {new_token(BADOPERATOR); return BADOPERATOR;}
+"%="            {new_token(BADOPERATOR); return BADOPERATOR;}
+"|="            {new_token(BADOPERATOR); return BADOPERATOR;}
+"<-"            {new_token(BADOPERATOR); return BADOPERATOR;}
 ">>"            {new_token(BADOPERATOR); return BADOPERATOR;}
 "<<"            {new_token(BADOPERATOR); return BADOPERATOR;}
 "&^"            {new_token(BADOPERATOR); return BADOPERATOR;}
 "&="            {new_token(BADOPERATOR); return BADOPERATOR;}
 "*="            {new_token(BADOPERATOR); return BADOPERATOR;}
 "/="            {new_token(BADOPERATOR); return BADOPERATOR;}
-"|"             {new_token(BADOPERATOR); return BADOPERATOR;}
-"%="            {new_token(BADOPERATOR); return BADOPERATOR;}
-"&^="           {new_token(BADOPERATOR); return BADOPERATOR;}
-"<<="           {new_token(BADOPERATOR); return BADOPERATOR;}
-">>="           {new_token(BADOPERATOR); return BADOPERATOR;}
-"|="            {new_token(BADOPERATOR); return BADOPERATOR;}
-"<-"            {new_token(BADOPERATOR); return BADOPERATOR;}
 ":="            {new_token(BADOPERATOR); return BADOPERATOR;}
 ":"             {new_token(BADOPERATOR); return BADOPERATOR;}
+"&"             {new_token(BADOPERATOR); return BADOPERATOR;}
+"^"             {new_token(BADOPERATOR); return BADOPERATOR;}
+"|"             {new_token(BADOPERATOR); return BADOPERATOR;}
 
     /* Literals */
-{DIGIT}+               { new_token(ICON); return ICON; }
-{DIGIT}*"."{DIGIT}+    { new_token(FCON); return FCON; }
-         
-
+"0"{OCT}+               { new_token(ICON); return ICON; }
+[1-9]{DIGIT}*           { new_token(ICON); return ICON; }
+{DIGIT}*"."{DIGIT}+ |      	{ new_token(FCON); return FCON; }
+"0x"{HEX}+     			{ new_token(FCON); return FCON; }
+[a-zA-Z_][a-zA-Z0-9_]*	/* variable names */
+\"([^\"\n]|("\\\""))*\"
 
   /* constants */
 {D}+{FS}?               { new_token(FCON); return FCON; }
