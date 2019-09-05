@@ -1,8 +1,6 @@
 /* Referred to here: https://github.com/SethForrest/Compilers_HW_1/blob/master/clex.l and here: https://github.com/andschwa/partial-cpp-compiler/blob/hw1/clex.l */
 %option warn nounput noinput
-%option header-file="vgolex.h"
-%option yylineno
-
+%option noyywrap
 %{
 #include <stdio.h>
 #include <string.h>
@@ -19,14 +17,14 @@ extern char** filenames;
 /* print error message to stderr and terminate (for now) */
 void yyerror(const char *s)
 {
-    fprintf (stderr, "File %s line %d, token %s: %s\n", list_peek(filenames).filename, yylineno, yytext, s);
+    fprintf(stderr, "File %s line %d, token %s: %s\n", "test", yylineno, yytext, s);
     exit(1);
 }
 
 /* allocates and prepares token, saving pointer into yytoken */
 void tokenize(int category)
 {
-    yytoken = tokenNew(category, yylineno, yytext, list_peek(filenames).filename);
+    yytoken = tokenNew(category, yytext, yylineno, "test");
 }
 
 %}
@@ -127,14 +125,3 @@ void tokenize(int category)
 \'[^\\\n]\'|\'\\[0abfnrtveABFNRTVE"&'\\?]\'     { tokenize(LRUNE); return LRUNE; }          /* Char (rune) */
 
 %%
-
-void lexerr(char *s)
-{
-    errors++;
-
-    fprintf(stderr, "%s: lexical error", s);
-
-    /* to do: add mechanism for reporting file name and line number */
-
-    fprintf(stderr, ", token = \"%s\"\n", yytext);
-}
