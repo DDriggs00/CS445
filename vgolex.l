@@ -34,95 +34,98 @@ void tokenize(int category)
 
 %%
 
-((\/\/[^\n]*\n)|([ \r\t\v\f\n])|(\/\*(.|\n)*\*\/))*	{} /* eat whitespace and  comments */
+((\/\/[^\n]*\n)|([ \r\t\v\f\n])|(\/\*[^*]*\*+(?:[^\/*][^*]*\*+)*\/))* {} /* eat whitespace and  comments */
 
     /* Reserved words */
-"func"          {tokenize(); return ;}
-"map"           {tokenize(); return ;}
-"struc"         {tokenize(); return ;}
-"else"          {tokenize(); return ;}
-"package"       {tokenize(); return ;}
-"const"         {tokenize(); return ;}
-"if"            {tokenize(); return ;}
-"type"          {tokenize(); return ;}
-"for"           {tokenize(); return ;}
-"import"        {tokenize(); return ;}
-"return"        {tokenize(); return ;}
-"var"           {tokenize(); return ;}
+"func"          {tokenize(LFUNC); return LFUNC;}
+"map"           {tokenize(LMAP); return LMAP;}
+"struc"         {tokenize(LSTRUC); return LSTRUC;}
+"else"          {tokenize(LELSE); return LELSE;}
+"package"       {tokenize(LPACKAGE); return LPACKAGE;}
+"const"         {tokenize(LCONST); return LCONST;}
+"if"            {tokenize(LIF); return LIF;}
+"type"          {tokenize(LTYPE); return LTYPE;}
+"for"           {tokenize(LFOR); return LFOR;}
+"import"        {tokenize(LIMPORT); return LIMPORT;}
+"return"        {tokenize(LRETURN); return LRETURN;}
+"var"           {tokenize(LVAR); return LVAR;}
 
     /* Bad reserved words */
-"break"         {tokenize(BADKEYWORD); return BADKEYWORD;}
-"case"          {tokenize(BADKEYWORD); return BADKEYWORD;}
-"chan"          {tokenize(BADKEYWORD); return BADKEYWORD;}
-"fallthrough"   {tokenize(BADKEYWORD); return BADKEYWORD;}
-"continue"      {tokenize(BADKEYWORD); return BADKEYWORD;}
-"default"       {tokenize(BADKEYWORD); return BADKEYWORD;}
-"defer"         {tokenize(BADKEYWORD); return BADKEYWORD;}
-"goto"          {tokenize(BADKEYWORD); return BADKEYWORD;}
-"range"         {tokenize(BADKEYWORD); return BADKEYWORD;}
-"interface"     {tokenize(BADKEYWORD); return BADKEYWORD;}
-"go"            {tokenize(BADKEYWORD); return BADKEYWORD;}
-"switch"        {tokenize(BADKEYWORD); return BADKEYWORD;}
-"select"        {tokenize(BADKEYWORD); return BADKEYWORD;}
+"break"         {tokenize(LBADKEYWORD); return LBADKEYWORD;}
+"case"          {tokenize(LBADKEYWORD); return LBADKEYWORD;}
+"chan"          {tokenize(LBADKEYWORD); return LBADKEYWORD;}
+"fallthrough"   {tokenize(LBADKEYWORD); return LBADKEYWORD;}
+"continue"      {tokenize(LBADKEYWORD); return LBADKEYWORD;}
+"default"       {tokenize(LBADKEYWORD); return LBADKEYWORD;}
+"defer"         {tokenize(LBADKEYWORD); return LBADKEYWORD;}
+"goto"          {tokenize(LBADKEYWORD); return LBADKEYWORD;}
+"range"         {tokenize(LBADKEYWORD); return LBADKEYWORD;}
+"interface"     {tokenize(LBADKEYWORD); return LBADKEYWORD;}
+"go"            {tokenize(LBADKEYWORD); return LBADKEYWORD;}
+"switch"        {tokenize(LBADKEYWORD); return LBADKEYWORD;}
+"select"        {tokenize(LBADKEYWORD); return LBADKEYWORD;}
 
     /* Type Names */
-"bool"          {tokenize(); return ;}
-"string"        {tokenize(); return ;}
-"int"           {tokenize(); return ;}
-"float64"       {tokenize(); return ;}
+"bool"          {tokenize(LTYPEBOOL); return LTYPEBOOL;}
+"string"        {tokenize(LTYPESTRING); return LTYPESTRING;}
+"int"           {tokenize(LTYPEINT); return LTYPEINT;}
+"rune"          {tokenize(LTYPERUNE); return LTYPERUNE;}
+"float64"       {tokenize(LTYPEFLOAT64); return LTYPEFLOAT64;}
 
-    /* Operators */
-"<="            {tokenize(LE); return LE;}
-">="            {tokenize(GE); return GE;}
-"=="            {tokenize(EQ); return EQ;}
-"!="            {tokenize(NE); return NE;}
-"&&"            {tokenize(ANDAND); return ANDAND;}
-"||"            {tokenize(OROR); return OROR;}
-"+="            {tokenize(PLASN); return PLASN;}
-"-="            {tokenize(MIASN); return MIASN;}
-"="             {tokenize(ASN); return ASN;}
-"("             {tokenize(LP); return LP;}
-")"             {tokenize(RP); return RP;}
-"["             {tokenize(LB); return LB;}
-"]"             {tokenize(RB); return RB;}
-"."             {tokenize(DOT); return DOT;}
-"-"             {tokenize(MINUS); return MINUS;}
-"!"             {tokenize(BANG); return BANG;}
-"*"             {tokenize(MUL); return MUL;}
-"/"             {tokenize(DIV); return DIV;}
-"%"             {tokenize(MOD); return MOD;}
-"+"             {tokenize(PLUS); return PLUS;}
-"<"             {tokenize(LT); return LT;}
-">"             {tokenize(GT); return GT;}
+    /* Invalid Operators A */
+"&^="           {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+"<<="           {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+">>="           {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+"%="            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+"|="            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+"<-"            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+">>"            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+"<<"            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+"&^"            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+"&="            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+"*="            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+"/="            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+":="            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
 
-    /* Invalid Operators */
-"&^="           {tokenize(BADOPERATOR); return BADOPERATOR;}
-"<<="           {tokenize(BADOPERATOR); return BADOPERATOR;}
-">>="           {tokenize(BADOPERATOR); return BADOPERATOR;}
-"%="            {tokenize(BADOPERATOR); return BADOPERATOR;}
-"|="            {tokenize(BADOPERATOR); return BADOPERATOR;}
-"<-"            {tokenize(BADOPERATOR); return BADOPERATOR;}
-">>"            {tokenize(BADOPERATOR); return BADOPERATOR;}
-"<<"            {tokenize(BADOPERATOR); return BADOPERATOR;}
-"&^"            {tokenize(BADOPERATOR); return BADOPERATOR;}
-"&="            {tokenize(BADOPERATOR); return BADOPERATOR;}
-"*="            {tokenize(BADOPERATOR); return BADOPERATOR;}
-"/="            {tokenize(BADOPERATOR); return BADOPERATOR;}
-":="            {tokenize(BADOPERATOR); return BADOPERATOR;}
-":"             {tokenize(BADOPERATOR); return BADOPERATOR;}
-"&"             {tokenize(BADOPERATOR); return BADOPERATOR;}
-"^"             {tokenize(BADOPERATOR); return BADOPERATOR;}
-"|"             {tokenize(BADOPERATOR); return BADOPERATOR;}
+    /* Valid Operators */
+"<="            {tokenize(LLE); return LLE;}
+">="            {tokenize(LGE); return LGE;}
+"=="            {tokenize(LEQ); return LEQ;}
+"!="            {tokenize(LNE); return LNE;}
+"&&"            {tokenize(LANDAND); return LANDAND;}
+"||"            {tokenize(LOROR); return LOROR;}
+"+="            {tokenize(LPLASN); return LPLASN;}
+"-="            {tokenize(LMIASN); return LMIASN;}
+"="             {tokenize(LASN); return LASN;}
+"("             {tokenize(LLP); return LLP;}
+")"             {tokenize(LRP); return LRP;}
+"["             {tokenize(LLB); return LLB;}
+"]"             {tokenize(LRB); return LRB;}
+"<"             {tokenize(LLT); return LLT;}
+">"             {tokenize(LGT); return LGT;}
+"."             {tokenize(LDOT); return LDOT;}
+"!"             {tokenize(LBANG); return LBANG;}
+"+"             {tokenize(LPLUS); return LPLUS;}
+"-"             {tokenize(LMINUS); return LMINUS;}
+"*"             {tokenize(LMUL); return LMUL;}
+"/"             {tokenize(LDIV); return LDIV;}
+"%"             {tokenize(LMOD); return LMOD;}
+
+    /* Invalid Operators B */
+":"             {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+"&"             {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+"^"             {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+"|"             {tokenize(LBADOPERATOR); return LBADOPERATOR;}
 
     /* Literals */
-0[0-7]+                     { tokenize(ICON); return ICON; }   /* Octal */
-[1-9][0-9]*                 { tokenize(ICON); return ICON; }   /* Int */
-(([1-9][0-9]*)?\.[0-9]+)    { tokenize(FCON); return FCON; }   /* Float */
-"0x"[a-fA-F0-9]+            { tokenize(FCON); return FCON; }   /* Hex */
-"0b"[01]+     			    { tokenize(FCON); return FCON; }   /* Binary */
-[a-zA-Z_][a-zA-Z0-9_]*	    { tokenize(FCON); return FCON; }   /* variable names */
-\"(\\|[^\n"\\])*\"		    { tokenize(FCON); return FCON; }   /* string literals */
-\'[^\\\n]\'|\'\\[0abfnrtveABFNRTVE"&'\\?]\' { tokenize(FCON); return FCON; }   /* Char (rune) */
+0[0-7]+                                         { tokenize(LOCT); return LOCT; }            /* Octal */
+[1-9][0-9]*                                     { tokenize(LINT); return LINT; }            /* Int */
+(([1-9][0-9]*)?\.[0-9]+)                        { tokenize(LFLOAT); return LFLOAT; }        /* Float */
+"0x"[a-fA-F0-9]+                                { tokenize(LHEX); return LHEX; }            /* Hex */
+"0b"[01]+     			                        { tokenize(LBIN); return LBIN; }            /* Binary */
+[a-zA-Z_][a-zA-Z0-9_]*	                        { tokenize(LVARNAME); return LVARNAME; }    /* variable names */
+\"(\\|[^\n"\\])*\"		                        { tokenize(LLITERAL); return LLITERAL; }    /* string literals */
+\'[^\\\n]\'|\'\\[0abfnrtveABFNRTVE"&'\\?]\'     { tokenize(LRUNE); return LRUNE; }          /* Char (rune) */
 
 
 <<EOF>>                 { 
@@ -130,7 +133,7 @@ void tokenize(int category)
   yypop_buffer_state();
   popNode(&fStack);
   yylineno = 1;
-	line_num = 1;
+    line_num = 1;
   if (fStack == NULL) {
     yyterminate();    
     printf("ALL FILES PARSED!\n");
@@ -146,13 +149,13 @@ void tokenize(int category)
 
 void lexerr(char *s)
 {
-	errors++;
+    errors++;
 
-	fprintf(stderr, "%s: lexical error", s);
+    fprintf(stderr, "%s: lexical error", s);
 
-	/* to do: add mechanism for reporting file name and line number */
+    /* to do: add mechanism for reporting file name and line number */
 
-	fprintf(stderr, ", token = \"%s\"\n", yytext);
+    fprintf(stderr, ", token = \"%s\"\n", yytext);
 }
 
 /*
