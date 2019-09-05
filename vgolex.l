@@ -1,10 +1,9 @@
-/* Based on the version for c++ here: https://github.com/SethForrest/Compilers_HW_1/blob/master/clex.l and here: https://github.com/andschwa/partial-cpp-compiler/blob/hw1/clex.l */
+/* Referred to here: https://github.com/SethForrest/Compilers_HW_1/blob/master/clex.l and here: https://github.com/andschwa/partial-cpp-compiler/blob/hw1/clex.l */
 %option warn nounput noinput
 %option header-file="vgolex.h"
-%option yylineno noyywrap
+%option yylineno
 
 %{
-#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -127,25 +126,7 @@ void tokenize(int category)
 \"(\\|[^\n"\\])*\"		                        { tokenize(LLITERAL); return LLITERAL; }    /* string literals */
 \'[^\\\n]\'|\'\\[0abfnrtveABFNRTVE"&'\\?]\'     { tokenize(LRUNE); return LRUNE; }          /* Char (rune) */
 
-
-<<EOF>>                 { 
-
-  yypop_buffer_state();
-  popNode(&fStack);
-  yylineno = 1;
-    line_num = 1;
-  if (fStack == NULL) {
-    yyterminate();    
-    printf("ALL FILES PARSED!\n");
-  }
-
-  if (!YY_CURRENT_BUFFER) {
-    printf("NO MORE BUFFERS!\n");
-    yyterminate();
-  } 
-}
 %%
-
 
 void lexerr(char *s)
 {
@@ -156,26 +137,4 @@ void lexerr(char *s)
     /* to do: add mechanism for reporting file name and line number */
 
     fprintf(stderr, ", token = \"%s\"\n", yytext);
-}
-
-/*
- * Return 1 if done, 0 if yyin points at more input
- */
-int yywrap()
-{
-   return 1;
-}
-
-void handle_include()
-{
-   char *newfilename = malloc(strlen(yytext)+1-strlen("#include \"\""));
-   saved_yyin = yyin;
-   char *fname = strchr(yytext, '\"')+1;
-   fname[strlen(fname)-1] = '\0';
-   fprintf(stdout, "included filename '%s'\n", fname); fflush(stdout);
-   yyin = fopen(fname,"r");
-   if (yyin == NULL) {
-     lexerr("cannot open include file");
-     exit(1);
-   }
 }
