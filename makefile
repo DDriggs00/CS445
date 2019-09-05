@@ -11,8 +11,8 @@ main.o: main.c
 token.o: token.c
 	$(CC) $(CFLAGS) token.c
 
-# lex.yy.o: lex.yy.c
-# 	$(CC) $(CFLAGS) lex.yy.c
+lex.yy.o: lex.yy.c
+	$(CC) $(CFLAGS) lex.yy.c
 
-# lex.yy.c: vgolex.l vgo.tab.h
-# 	flex voglex.l
+lex.yy.c: vgolex.l vgo.tab.h
+	flex voglex.l

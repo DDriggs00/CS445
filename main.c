@@ -7,9 +7,14 @@
 #include <stdbool.h>    // Adds boolean support
 
 #include "token.h"
+#include "vgo.tab.h"
+
+extern FILE *yyin;
+extern char *yytext;
 
 struct token* yytoken;
 struct tokenList* tokens;
+
 char** filenames;
 
 // Return Codes:
@@ -48,8 +53,7 @@ int main(int argc, char* argv[]) {
     // create new array in memory, containing filenames
     char** fileNames;
 	fileNames = (char**)malloc(sizeof(char*) * (argc - 1)); // Allocate memory for array
-	for (int i = 1; i < argc; i++)
-	{
+	for (int i = 1; i < argc; i++) {
         if (endsWith(argv[i], ".go")) {
             fileNames[i - 1] = (char*)malloc(sizeof(char) * (strlen(argv[i]))); // Allocate memory for individual string
             strcpy(fileNames[i - 1], argv[i]);
@@ -66,6 +70,9 @@ int main(int argc, char* argv[]) {
         }
         printf("%s\n", fileNames[i - 1]);
 	}
+
+    yylex()
+
 
     return 0;
 }
