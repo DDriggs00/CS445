@@ -49,7 +49,7 @@
 #define LLB     513	    /* [ */
 #define LRB     514		/* ] */
 #define LLT     515	    /* < */
-#define LRT     516	    /* > */
+#define LGT     516	    /* > */
 #define LDOT    517	    /* . */
 #define LBANG   518		/* ! */
 #define LPLUS   519	    /* + */
