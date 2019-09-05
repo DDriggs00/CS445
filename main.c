@@ -8,13 +8,13 @@
 
 #include "token.h"
 #include "vgo.tab.h"
+#include "list.h"
 
 extern FILE *yyin;
 extern char *yytext;
 
 struct token* yytoken;
-struct tokenList* tokens;
-
+list_t* tokenList;
 char** filenames;
 
 // Return Codes:
@@ -43,6 +43,20 @@ bool hasExtention(const char* filename) {
     return true;
 }
 
+// // Based on https://github.com/andschwa/partial-cpp-compiler/blob/hw1/main.c
+// void runLexer()
+// {
+// 	while (true) {
+// 		int category = yylex();
+// 		if (category == 0) {
+// 			break;
+// 		}
+// 		list_push(tokens, (union data)yytoken);
+// 	}
+// 	yylex_destroy();
+// 	return;
+// }
+
 int main(int argc, char* argv[]) {
     
     if(argc == 1){
@@ -70,9 +84,18 @@ int main(int argc, char* argv[]) {
         }
         printf("%s\n", fileNames[i - 1]);
 	}
+    // Initialize token list
+    tokenList = list_new();
+    list_rpush(tokenList, list_node_new(tokenNew(100, "test", 10, "test.txt")));
+    list_rpush(tokenList, list_node_new(tokenNew(100, "test", 10, "test.txt")));
+    list_rpush(tokenList, list_node_new(tokenNew(100, "test", 10, "test.txt")));
+    // yylex();
 
-    yylex()
-
+    list_node_t *node;
+    list_iterator_t *it = list_iterator_new(tokenList, LIST_HEAD);
+    while ((node = list_iterator_next(it))) {
+        tokenPrint((node->val));
+    }
 
     return 0;
 }
