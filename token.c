@@ -33,7 +33,7 @@ struct token *tokenNew(int category,
     if (category == LINT) {
         t->ival = atoi(text);
     }
-    if (category == LDOUBLE) {
+    if (category == LFLOAT) {
         t->ival = atof(text);
     }
     if (category == LLITERAL) {
@@ -57,5 +57,19 @@ void tokenRemove(struct token *t) {
 }
 
 void tokenPrint(struct token *t) {
-    return;
+    printf("Category: %i\tText: %s\t line: %i\t filename: %s\t", t->category, t->text, t->lineno, t->filename);
+        
+    if (t->category == LINT) {
+        printf("content: %i\n", t->ival);
+    }
+    else if (t->category == LFLOAT) {
+        printf("content: %i\n", t->ival);
+    }
+    else if (t->category == LLITERAL) {
+        printf("content: %i\n", t->ival);
+    }
+    else {
+        printf("\n");
+    }
+
 }
