@@ -12,11 +12,6 @@ struct token {
                    /*    the string (less quotes and after escapes) here */
 };
 
-struct tokenlist {
-    struct token *t;
-    struct tokenlist *next;
-};
-
 struct token* tokenNew(int category,    // Allocates and creates a new token
                        char* text,
                        int lineno,
