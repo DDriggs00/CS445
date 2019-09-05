@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-c -g -std=c99 -Wall
-OBJ=main.o token.o #lex.yy.o
+OBJ=lex.yy.o main.o token.o list.o list_iterator.o list_node.o
 
 vgo: $(OBJ)
 	$(CC) -o vgo $(OBJ)
@@ -15,4 +15,17 @@ lex.yy.o: lex.yy.c
 	$(CC) $(CFLAGS) lex.yy.c
 
 lex.yy.c: vgolex.l vgo.tab.h
-	flex voglex.l
+	flex vgolex.l
+
+list.o: list.c
+	$(CC) $(CFLAGS) list.c
+
+list_iterator.o: list_iterator.c
+	$(CC) $(CFLAGS) list_iterator.c
+
+list_node.o: list_node.c
+	$(CC) $(CFLAGS) list_node.c
+
+.PHONY: clean
+clean:
+	@rm -f *.o vgo
