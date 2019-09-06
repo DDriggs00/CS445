@@ -3,28 +3,29 @@
 %option noyywrap
 %{
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
-#include <ctype.h>
-#include <libgen.h>
+// #include <string.h>
+// #include <ctype.h>
+// #include <libgen.h>
 
 #include "token.h"
 #include "vgo.tab.h"
 
 extern struct token *yytoken;
-extern char** filenames;
+extern char** fileNames;
+extern char* currentFile;
 
 /* print error message to stderr and terminate (for now) */
 void yyerror(const char *s)
 {
-    fprintf(stderr, "File %s line %d, token %s: %s\n", "test", yylineno, yytext, s);
+    fprintf(stderr, "File %s line %d, token %s: %s\n", currentFile, yylineno, yytext, s);
     exit(1);
 }
 
 /* allocates and prepares token, saving pointer into yytoken */
 void tokenize(int category)
 {
-    yytoken = tokenNew(category, yytext, yylineno, "test");
+    yytoken = tokenNew(category, yytext, yylineno, currentFile);
 }
 
 %}
@@ -115,13 +116,13 @@ void tokenize(int category)
 "|"             {tokenize(LBADOPERATOR); return LBADOPERATOR;}
 
     /* Literals */
-0[0-7]+                                         { tokenize(LOCT); return LOCT; }            /* Octal */
-[1-9][0-9]*                                     { tokenize(LINT); return LINT; }            /* Int */
-(([1-9][0-9]*)?\.[0-9]+)                        { tokenize(LFLOAT); return LFLOAT; }        /* Float */
-"0x"[a-fA-F0-9]+                                { tokenize(LHEX); return LHEX; }            /* Hex */
-"0b"[01]+     			                        { tokenize(LBIN); return LBIN; }            /* Binary */
-[a-zA-Z_][a-zA-Z0-9_]*	                        { tokenize(LVARNAME); return LVARNAME; }    /* variable names */
-\"(\\|[^\n"\\])*\"		                        { tokenize(LLITERAL); return LLITERAL; }    /* string literals */
-\'[^\\\n]\'|\'\\[0abfnrtveABFNRTVE"&'\\?]\'     { tokenize(LRUNE); return LRUNE; }          /* Char (rune) */
-
+0[0-7]+                         { tokenize(LOCT); return LOCT; }            /* Octal */
+[1-9][0-9]*                     { tokenize(LINT); return LINT; }            /* Int */
+(([1-9][0-9]*)?\.[0-9]+)        { tokenize(LFLOAT); return LFLOAT; }        /* Float */
+"0x"[a-fA-F0-9]+                { tokenize(LHEX); return LHEX; }            /* Hex */
+"0b"[01]+     			        { tokenize(LBIN); return LBIN; }            /* Binary */
+[a-zA-Z_][a-zA-Z0-9_]*	        { tokenize(LVARNAME); return LVARNAME; }    /* variable names */
+\"(\\|[^\n"\\])*\"		        { tokenize(LLITERAL); return LLITERAL; }    /* string literals */
+\'[^\\\n]\'|\'\\[ntNT'\\]\'     { tokenize(LRUNE); return LRUNE; }          /* Char (rune) */
+    /* non-accepted runed caught here */
 %%
