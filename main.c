@@ -12,11 +12,14 @@
 
 extern FILE *yyin;
 extern char *yytext;
+extern int yylineno;
 
 struct token* yytoken;
 list_t* tokenList;
 char** fileNames;
 char* currentFile;
+int yylex();
+
 // Return Codes:
 // 0: Success
 // 1: Lexical Error
@@ -43,20 +46,6 @@ bool hasExtention(const char* filename) {
     return true;
 }
 
-// // Based on https://github.com/andschwa/partial-cpp-compiler/blob/hw1/main.c
-// void runLexer()
-// {
-// 	while (true) {
-// 		int category = yylex();
-// 		if (category == 0) {
-// 			break;
-// 		}
-// 		list_push(tokens, (union data)yytoken);
-// 	}
-// 	yylex_destroy();
-// 	return;
-// }
-
 int main(int argc, char* argv[]) {
     
     if(argc == 1){
@@ -77,7 +66,7 @@ int main(int argc, char* argv[]) {
                 fprintf(stderr, "Only files with a .go extention are allowed\n");
                 return -1;
             }
-            fileNames[i - 1] = (char*)malloc(sizeof(char) * (strlen(argv[i]) + 3)); // Allocate memory for individual string (+3 chars for )
+            fileNames[i - 1] = (char*)malloc(sizeof(char) * (strlen(argv[i]) + 4)); // Allocate memory for individual string (+3 chars for )
             strcpy(fileNames[i - 1], argv[i]);
             fileNames[i - 1] = strcat(fileNames[i - 1], ".go");
         }
@@ -86,24 +75,28 @@ int main(int argc, char* argv[]) {
     tokenList = list_new();
     printf("List of input files:\n");
     for(int i = 0; i < argc - 1; i++) {
+        printf("%s\n", fileNames[i]);
+        
+    }
+
+    for(int i = 0; i < argc - 1; i++) {
         
         currentFile = fileNames[i];
-        
-        printf("%s\n", currentFile);
+        yylineno = 1;
         yyin = fopen(currentFile, "r");
 		if(yyin == NULL){
-			printf("invalid File: %s", currentFile);
+			printf("invalid File: %s\n", currentFile);
 			return -1;
 		}
         while((yyreturn = yylex()) != 0) {
-            list_rpush(tokenList, list_node_new(yytoken));
+            if(yyreturn != 1) {
+                list_rpush(tokenList, list_node_new(yytoken));
+            }
         }
     }
     
-    // Initialize token list
 
-
-    // yylex();
+    printf("Category Text                   LineNo  File\n");
 
     list_node_t *node;
     list_iterator_t *it = list_iterator_new(tokenList, LIST_HEAD);
