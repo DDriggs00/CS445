@@ -8,6 +8,54 @@
 // Exit codes:
 // -1: Memory Error
 
+char* formatString(char* s) {
+	char* iterator = s;
+	char* newString = malloc(strlen(s));
+    
+    int pos = 0;
+	while(*iterator != '\0')
+    {
+        if(*iterator == '\"') {
+            // Ignore
+        }
+        else if(*iterator == '\\') {
+            iterator++;
+            switch(*iterator) {
+                case 'n':
+                    newString[pos] = '\n';
+                    pos++;
+                    break;
+                case 't':
+                    newString[pos] = '\t';
+                    pos++;
+                    break;
+                case '"':
+                    newString[pos] = '"';
+                    pos++;
+                    break;
+                case '\'':
+                    newString[pos] = '\'';
+                    pos++;
+                    break;
+                default:
+                    newString[pos] = '\\';
+                    pos++;
+                    newString[pos] = *iterator;
+                    pos++;
+                    break;
+            }
+        }
+        else {
+            newString[pos] = *iterator;
+            pos++;
+        }
+        iterator++;
+    }
+    newString[pos] = '\0';
+
+	return newString;
+}
+
 struct token *tokenNew(int category,
                        char* text,
                        int lineno,
@@ -38,8 +86,7 @@ struct token *tokenNew(int category,
     }
     if (category == LLITERAL) {
         // TODO correct string
-        t->sval = malloc((strlen(text) + 1) * sizeof(char));
-	    snprintf(t->sval, strlen(text) + 1, "%s", text);
+        t->sval = formatString((text));
     }
 
 	return t;
@@ -57,7 +104,7 @@ void tokenRemove(struct token *t) {
 }
 
 void tokenPrint(struct token *t) {
-    printf("Category: %i\tText: %s\t line: %i\t filename: %s\t", t->category, t->text, t->lineno, t->filename);
+    printf("%-i\t %-20s\t%-3i\t%-20s\t", t->category, t->text, t->lineno, t->filename);
         
     if (t->category == LINT) {
         printf("content: %i\n", t->ival);

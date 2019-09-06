@@ -18,5 +18,6 @@ struct token* tokenNew(int category,    // Allocates and creates a new token
                        char* filename);
 void tokenRemove(struct token* t);      // Deletes a token and clears its memory
 void tokenPrint(struct token* t);       // Prints out a token to the console
+char* formatString(char* s);            // converts /t, /n, etc. to escaped versions
 
 #endif /* TOKEN_H */
