@@ -23,7 +23,7 @@ int yylex();
 // Return Codes:
 // 0: Success
 // 1: Lexical Error
-// 2: No Input
+// -1: Other errors
 
 // https://stackoverflow.com/questions/744766
 bool endsWith(const char *str, const char *suffix)
@@ -48,9 +48,11 @@ bool hasExtention(const char* filename) {
 
 int main(int argc, char* argv[]) {
     
+    int returnval = 0;
+
     if(argc == 1){
 		fprintf(stderr, "No files were given\n");
-		return 1;
+		return -1;
 	}
 
     // create new array in memory, containing filenames
@@ -73,11 +75,6 @@ int main(int argc, char* argv[]) {
 	}
     int yyreturn;
     tokenList = list_new();
-    printf("List of input files:\n");
-    for(int i = 0; i < argc - 1; i++) {
-        printf("%s\n", fileNames[i]);
-        
-    }
 
     for(int i = 0; i < argc - 1; i++) {
         
@@ -92,6 +89,9 @@ int main(int argc, char* argv[]) {
             if(yyreturn != 1) {
                 list_rpush(tokenList, list_node_new(yytoken));
             }
+            else {
+                returnval = 1;
+            }
         }
     }
     
@@ -104,5 +104,5 @@ int main(int argc, char* argv[]) {
         tokenPrint((node->val));
     }
 
-    return 0;
+    return  returnval;
 }
