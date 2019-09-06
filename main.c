@@ -15,8 +15,8 @@ extern char *yytext;
 
 struct token* yytoken;
 list_t* tokenList;
-char** filenames;
-
+char** fileNames;
+char* currentFile;
 // Return Codes:
 // 0: Success
 // 1: Lexical Error
@@ -65,11 +65,10 @@ int main(int argc, char* argv[]) {
 	}
 
     // create new array in memory, containing filenames
-    char** fileNames;
 	fileNames = (char**)malloc(sizeof(char*) * (argc - 1)); // Allocate memory for array
 	for (int i = 1; i < argc; i++) {
         if (endsWith(argv[i], ".go")) {
-            fileNames[i - 1] = (char*)malloc(sizeof(char) * (strlen(argv[i]))); // Allocate memory for individual string
+            fileNames[i - 1] = (char*)malloc(sizeof(char) * (strlen(argv[i]) + 1)); // Allocate memory for individual string
             strcpy(fileNames[i - 1], argv[i]);
         }
         else {
@@ -82,13 +81,28 @@ int main(int argc, char* argv[]) {
             strcpy(fileNames[i - 1], argv[i]);
             fileNames[i - 1] = strcat(fileNames[i - 1], ".go");
         }
-        printf("%s\n", fileNames[i - 1]);
 	}
-    // Initialize token list
+    int yyreturn;
     tokenList = list_new();
-    list_rpush(tokenList, list_node_new(tokenNew(100, "test", 10, "test.txt")));
-    list_rpush(tokenList, list_node_new(tokenNew(100, "test", 10, "test.txt")));
-    list_rpush(tokenList, list_node_new(tokenNew(100, "test", 10, "test.txt")));
+    printf("List of input files:\n");
+    for(int i = 0; i < argc - 1; i++) {
+        
+        currentFile = fileNames[i];
+        
+        printf("%s\n", currentFile);
+        yyin = fopen(currentFile, "r");
+		if(yyin == NULL){
+			printf("invalid File: %s", currentFile);
+			return -1;
+		}
+        while((yyreturn = yylex()) != 0) {
+            list_rpush(tokenList, list_node_new(yytoken));
+        }
+    }
+    
+    // Initialize token list
+
+
     // yylex();
 
     list_node_t *node;
