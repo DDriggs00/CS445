@@ -1,6 +1,7 @@
 CC=gcc
-CFLAGS=-c -g -std=c99 -Wall
+CFLAGS=-c -g -std=c99 -D_POSIX_C_SOURCE=1 -Wall
 OBJ=lex.yy.o main.o token.o list.o list_iterator.o list_node.o
+# -D_POSIX_C_SOURCE=1 allows use of fileno in lex.yy.c
 
 vgo: $(OBJ)
 	$(CC) -o vgo $(OBJ)
