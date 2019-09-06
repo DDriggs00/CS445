@@ -28,4 +28,4 @@ list_node.o: list_node.c
 
 .PHONY: clean
 clean:
-	@rm -f *.o vgo
+	@rm -f *.o vgo lex.yy.c
