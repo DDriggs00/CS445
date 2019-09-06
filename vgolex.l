@@ -1,9 +1,11 @@
 /* Referred to here: https://github.com/SethForrest/Compilers_HW_1/blob/master/clex.l and here: https://github.com/andschwa/partial-cpp-compiler/blob/hw1/clex.l */
 %option warn nounput noinput
-%option noyywrap
+%option noyywrap yylineno
+
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 // #include <string.h>
 // #include <ctype.h>
 // #include <libgen.h>
@@ -14,13 +16,6 @@
 extern struct token *yytoken;
 extern char** fileNames;
 extern char* currentFile;
-
-/* print error message to stderr and terminate (for now) */
-void yyerror(const char *s)
-{
-    fprintf(stderr, "File %s line %d, token %s: %s\n", currentFile, yylineno, yytext, s);
-    exit(1);
-}
 
 /* allocates and prepares token, saving pointer into yytoken */
 void tokenize(int category)
@@ -99,9 +94,12 @@ void tokenize(int category)
 ")"             {tokenize(LRP); return LRP;}
 "["             {tokenize(LLB); return LLB;}
 "]"             {tokenize(LRB); return LRB;}
+"{"             {tokenize(LLC); return LLC;}
+"}"             {tokenize(LRC); return LRC;}
 "<"             {tokenize(LLT); return LLT;}
 ">"             {tokenize(LGT); return LGT;}
 "."             {tokenize(LDOT); return LDOT;}
+","             {tokenize(LCOM); return LCOM;}
 "!"             {tokenize(LBANG); return LBANG;}
 "+"             {tokenize(LPLUS); return LPLUS;}
 "-"             {tokenize(LMINUS); return LMINUS;}
@@ -117,7 +115,7 @@ void tokenize(int category)
 
     /* Literals */
 0[0-7]+                         { tokenize(LOCT); return LOCT; }            /* Octal */
-[1-9][0-9]*                     { tokenize(LINT); return LINT; }            /* Int */
+0|[1-9][0-9]*                   { tokenize(LINT); return LINT; }            /* Int */
 (([1-9][0-9]*)?\.[0-9]+)        { tokenize(LFLOAT); return LFLOAT; }        /* Float */
 "0x"[a-fA-F0-9]+                { tokenize(LHEX); return LHEX; }            /* Hex */
 "0b"[01]+     			        { tokenize(LBIN); return LBIN; }            /* Binary */
@@ -125,4 +123,12 @@ void tokenize(int category)
 \"(\\|[^\n"\\])*\"		        { tokenize(LLITERAL); return LLITERAL; }    /* string literals */
 \'[^\\\n]\'|\'\\[ntNT'\\]\'     { tokenize(LRUNE); return LRUNE; }          /* Char (rune) */
     /* non-accepted runed caught here */
+
+
+    /* Unrecognized tokens */
+. { 
+    fprintf(stderr, "File %s line %d, token %s: %s\n", currentFile, yylineno, yytext, "Invalid Token");
+    return 1;
+}
+
 %%

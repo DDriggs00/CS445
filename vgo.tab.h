@@ -48,9 +48,12 @@
 #define LRP     512	    /* ) */
 #define LLB     513	    /* [ */
 #define LRB     514		/* ] */
+#define LLC     513	    /* { */
+#define LRC     514		/* } */
 #define LLT     515	    /* < */
 #define LGT     516	    /* > */
 #define LDOT    517	    /* . */
+#define LCOM    517	    /* , */
 #define LBANG   518		/* ! */
 #define LPLUS   519	    /* + */
 #define LMINUS  520	    /* - */
