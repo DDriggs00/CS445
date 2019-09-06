@@ -22,10 +22,10 @@ struct token *tokenNew(int category,
 	t->lineno = lineno;
 
     // Copy strings
-	t->text = malloc(strlen(text) * sizeof(char));
+	t->text = malloc((strlen(text) + 1) * sizeof(char));
 	strcpy(t->text, text);
 
-	t->filename = malloc(strlen(filename) * sizeof(char));
+	t->filename = malloc((strlen(filename) + 1) * sizeof(char));
 	strcpy(t->filename, filename);
 
     // Copy value
@@ -34,12 +34,12 @@ struct token *tokenNew(int category,
         t->ival = atoi(text);
     }
     if (category == LFLOAT) {
-        t->ival = atof(text);
+        t->dval = atof(text);
     }
     if (category == LLITERAL) {
         // TODO correct string
-        t->sval = malloc(strlen(text) * sizeof(char));
-	    sprintf(t->sval, "%s", text);
+        t->sval = malloc((strlen(text) + 1) * sizeof(char));
+	    snprintf(t->sval, strlen(text) + 1, "%s", text);
     }
 
 	return t;
@@ -63,10 +63,10 @@ void tokenPrint(struct token *t) {
         printf("content: %i\n", t->ival);
     }
     else if (t->category == LFLOAT) {
-        printf("content: %i\n", t->ival);
+        printf("content: %f\n", t->dval);
     }
     else if (t->category == LLITERAL) {
-        printf("content: %i\n", t->ival);
+        printf("content: %s\n", t->sval);
     }
     else {
         printf("\n");
