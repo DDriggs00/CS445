@@ -32,7 +32,7 @@ void tokenize(int category)
     /* Reserved words */
 "func"          {tokenize(LFUNC); return LFUNC;}
 "map"           {tokenize(LMAP); return LMAP;}
-"struc"         {tokenize(LSTRUC); return LSTRUC;}
+"struc"         {tokenize(LSTRUCT); return LSTRUCT;}
 "else"          {tokenize(LELSE); return LELSE;}
 "package"       {tokenize(LPACKAGE); return LPACKAGE;}
 "const"         {tokenize(LCONST); return LCONST;}
@@ -42,6 +42,9 @@ void tokenize(int category)
 "import"        {tokenize(LIMPORT); return LIMPORT;}
 "return"        {tokenize(LRETURN); return LRETURN;}
 "var"           {tokenize(LVAR); return LVAR;}
+"true"          {tokenize(LTRUE); return LTRUE;}
+"false"         {tokenize(LFALSE); return LFALSE;}
+
 
     /* Bad reserved words */
 "break"         {tokenize(LGOKEYWORD); return LGOKEYWORD;}
@@ -66,6 +69,7 @@ void tokenize(int category)
 "float64"       {tokenize(LTYPEFLOAT64); return LTYPEFLOAT64;}
 
     /* Invalid Operators A */
+"..."           {tokenize(LGOOPERATOR); return LGOOPERATOR;}
 "&^="           {tokenize(LGOOPERATOR); return LGOOPERATOR;}
 "<<="           {tokenize(LGOOPERATOR); return LGOOPERATOR;}
 ">>="           {tokenize(LGOOPERATOR); return LGOOPERATOR;}
@@ -89,9 +93,9 @@ void tokenize(int category)
 "||"            {tokenize(LOROR); return LOROR;}
 "+="            {tokenize(LPLASN); return LPLASN;}
 "-="            {tokenize(LMIASN); return LMIASN;}
-"="             {tokenize(LASN); return LASN;}
-"("             {tokenize(LLP); return LLP;}
-")"             {tokenize(LRP); return LRP;}
+"="             {tokenize(LASOP); return LASOP;}
+"("             {tokenize('('); return '(';}
+")"             {tokenize(')'); return ')';}
 "["             {tokenize(LLB); return LLB;}
 "]"             {tokenize(LRB); return LRB;}
 "{"             {tokenize(LLC); return LLC;}
@@ -101,12 +105,12 @@ void tokenize(int category)
 "."             {tokenize(LDOT); return LDOT;}
 ","             {tokenize(LCOM); return LCOM;}
 "!"             {tokenize(LBANG); return LBANG;}
-"+"             {tokenize(LPLUS); return LPLUS;}
-"-"             {tokenize(LMINUS); return LMINUS;}
-"*"             {tokenize(LMUL); return LMUL;}
-"/"             {tokenize(LDIV); return LDIV;}
-"%"             {tokenize(LMOD); return LMOD;}
-";"             {tokenize(SMCOL); return SMCOL;}
+"+"             {tokenize('+'); return '+';}
+"-"             {tokenize('-'); return '-';}
+"*"             {tokenize('*'); return '*';}
+"/"             {tokenize('/'); return '/';}
+"%"             {tokenize('%'); return '%';}
+";"             {tokenize(';'); return ';';}
 
     /* Invalid Operators B */
 ":"             {tokenize(LGOOPERATOR); return LGOOPERATOR;}
@@ -120,7 +124,7 @@ void tokenize(int category)
 (([1-9][0-9]*)?\.[0-9]+)        { tokenize(LFLOAT); return LFLOAT; }        /* Float */
 "0x"[a-fA-F0-9]+                { tokenize(LHEX); return LHEX; }            /* Hex */
 "0b"[01]+     			        { tokenize(LBIN); return LBIN; }            /* Binary */
-[a-zA-Z_][a-zA-Z0-9_]*	        { tokenize(LVARNAME); return LVARNAME; }    /* variable names */
+[a-zA-Z_][a-zA-Z0-9_]*	        { tokenize(LNAME); return LNAME; }          /* variable names */
 \"(\\|[^\n"\\])*\"		        { tokenize(LLITERAL); return LLITERAL; }    /* string literals */
 \'[^\\\n]\'|\'\\[ntNT'\\]\'     { tokenize(LRUNE); return LRUNE; }          /* Char (rune) */
     /* non-accepted runed caught here */
