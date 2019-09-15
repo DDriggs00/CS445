@@ -24,7 +24,7 @@
 #define LRETURN         410
 #define LVAR            411
 
-#define LBADKEYWORD     499
+#define LGOKEYWORD     499
 
 // Variable types
 #define LTYPEBOOL       413
@@ -60,5 +60,6 @@
 #define LMUL    521	    /* * */
 #define LDIV    522	    /* / */
 #define LMOD    523	    /* % */
+#define SMCOL   524     /* ; */
 
-#define LBADOPERATOR 599
+#define LGOOPERATOR 599
