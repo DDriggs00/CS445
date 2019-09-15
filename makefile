@@ -48,4 +48,4 @@ clean:
 zip:
 	make clean
 	@rm -f Driggs-Assign-$(ASSIGN).zip
-	zip -r Driggs-Assign-$(ASSIGN).zip . -x *.git* LICENSE README.md vgo.tab.h vgo.tab.c "tests*"
+	zip -r hw$(ASSIGN).zip . -x *.git* LICENSE README.md vgo.tab.h vgo.tab.c "tests*"
