@@ -22,8 +22,16 @@
 #include <stdio.h>
 #include <libc.h>
 %}
-// variable contents
+// variable contents (manually added)
 %token		LLITERAL LBOOL LINT LHEX LOCT LFLOAT LBIN LRUNE
+// Variable type names
+%token      LTYPEINT LTYPESTRING LTYPEBOOL LTYPEFLOAT64 LTYPERUNE
+
+// Operators manually added (+=, -=)
+%token      LPLASN LMIASN
+
+// True and False (manually added)
+%token      LTRUE LFALSE
 
 // Assignment Operator
 %token		LASOP
@@ -115,7 +123,7 @@
 %left		')'
 %left		PreferToRightParen
 
-%error-verbose
+%define parse.error verbose
 
 %%
 file:	package	imports	xdcl_list ;
