@@ -86,10 +86,13 @@ int main(int argc, char* argv[]) {
 			return -1;
 		}
         while((yyreturn = yylex()) != 0) {
-            if(yyreturn != 1) {
+            if(yyreturn != 1 && yyreturn != 2) {
                 list_rpush(tokenList, list_node_new(yytoken));
             }
-            else {
+            else if(yyreturn == 2 && returnval == 0){
+                returnval = 2;
+            }
+            else if(yyreturn == 2) {
                 returnval = 1;
             }
         }
