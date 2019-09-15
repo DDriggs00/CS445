@@ -12,3 +12,5 @@ vgo
 
 # flex-generated file
 lex.yy.c
+vgo.tab.c
+# vgo.tab.h

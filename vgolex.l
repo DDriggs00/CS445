@@ -44,19 +44,19 @@ void tokenize(int category)
 "var"           {tokenize(LVAR); return LVAR;}
 
     /* Bad reserved words */
-"break"         {tokenize(LBADKEYWORD); return LBADKEYWORD;}
-"case"          {tokenize(LBADKEYWORD); return LBADKEYWORD;}
-"chan"          {tokenize(LBADKEYWORD); return LBADKEYWORD;}
-"fallthrough"   {tokenize(LBADKEYWORD); return LBADKEYWORD;}
-"continue"      {tokenize(LBADKEYWORD); return LBADKEYWORD;}
-"default"       {tokenize(LBADKEYWORD); return LBADKEYWORD;}
-"defer"         {tokenize(LBADKEYWORD); return LBADKEYWORD;}
-"goto"          {tokenize(LBADKEYWORD); return LBADKEYWORD;}
-"range"         {tokenize(LBADKEYWORD); return LBADKEYWORD;}
-"interface"     {tokenize(LBADKEYWORD); return LBADKEYWORD;}
-"go"            {tokenize(LBADKEYWORD); return LBADKEYWORD;}
-"switch"        {tokenize(LBADKEYWORD); return LBADKEYWORD;}
-"select"        {tokenize(LBADKEYWORD); return LBADKEYWORD;}
+"break"         {tokenize(LGOKEYWORD); return LGOKEYWORD;}
+"case"          {tokenize(LGOKEYWORD); return LGOKEYWORD;}
+"chan"          {tokenize(LGOKEYWORD); return LGOKEYWORD;}
+"fallthrough"   {tokenize(LGOKEYWORD); return LGOKEYWORD;}
+"continue"      {tokenize(LGOKEYWORD); return LGOKEYWORD;}
+"default"       {tokenize(LGOKEYWORD); return LGOKEYWORD;}
+"defer"         {tokenize(LGOKEYWORD); return LGOKEYWORD;}
+"goto"          {tokenize(LGOKEYWORD); return LGOKEYWORD;}
+"range"         {tokenize(LGOKEYWORD); return LGOKEYWORD;}
+"interface"     {tokenize(LGOKEYWORD); return LGOKEYWORD;}
+"go"            {tokenize(LGOKEYWORD); return LGOKEYWORD;}
+"switch"        {tokenize(LGOKEYWORD); return LGOKEYWORD;}
+"select"        {tokenize(LGOKEYWORD); return LGOKEYWORD;}
 
     /* Type Names */
 "bool"          {tokenize(LTYPEBOOL); return LTYPEBOOL;}
@@ -66,19 +66,19 @@ void tokenize(int category)
 "float64"       {tokenize(LTYPEFLOAT64); return LTYPEFLOAT64;}
 
     /* Invalid Operators A */
-"&^="           {tokenize(LBADOPERATOR); return LBADOPERATOR;}
-"<<="           {tokenize(LBADOPERATOR); return LBADOPERATOR;}
-">>="           {tokenize(LBADOPERATOR); return LBADOPERATOR;}
-"%="            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
-"|="            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
-"<-"            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
-">>"            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
-"<<"            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
-"&^"            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
-"&="            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
-"*="            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
-"/="            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
-":="            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+"&^="           {tokenize(LGOOPERATOR); return LGOOPERATOR;}
+"<<="           {tokenize(LGOOPERATOR); return LGOOPERATOR;}
+">>="           {tokenize(LGOOPERATOR); return LGOOPERATOR;}
+"%="            {tokenize(LGOOPERATOR); return LGOOPERATOR;}
+"|="            {tokenize(LGOOPERATOR); return LGOOPERATOR;}
+"<-"            {tokenize(LGOOPERATOR); return LGOOPERATOR;}
+">>"            {tokenize(LGOOPERATOR); return LGOOPERATOR;}
+"<<"            {tokenize(LGOOPERATOR); return LGOOPERATOR;}
+"&^"            {tokenize(LGOOPERATOR); return LGOOPERATOR;}
+"&="            {tokenize(LGOOPERATOR); return LGOOPERATOR;}
+"*="            {tokenize(LGOOPERATOR); return LGOOPERATOR;}
+"/="            {tokenize(LGOOPERATOR); return LGOOPERATOR;}
+":="            {tokenize(LGOOPERATOR); return LGOOPERATOR;}
 
     /* Valid Operators */
 "<="            {tokenize(LLE); return LLE;}
@@ -106,12 +106,13 @@ void tokenize(int category)
 "*"             {tokenize(LMUL); return LMUL;}
 "/"             {tokenize(LDIV); return LDIV;}
 "%"             {tokenize(LMOD); return LMOD;}
+";"             {tokenize(SMCOL); return SMCOL;}
 
     /* Invalid Operators B */
-":"             {tokenize(LBADOPERATOR); return LBADOPERATOR;}
-"&"             {tokenize(LBADOPERATOR); return LBADOPERATOR;}
-"^"             {tokenize(LBADOPERATOR); return LBADOPERATOR;}
-"|"             {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+":"             {tokenize(LGOOPERATOR); return LGOOPERATOR;}
+"&"             {tokenize(LGOOPERATOR); return LGOOPERATOR;}
+"^"             {tokenize(LGOOPERATOR); return LGOOPERATOR;}
+"|"             {tokenize(LGOOPERATOR); return LGOOPERATOR;}
 
     /* Literals */
 0[0-7]+                         { tokenize(LOCT); return LOCT; }            /* Octal */
