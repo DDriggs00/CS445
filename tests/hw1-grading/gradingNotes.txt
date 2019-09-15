@@ -1,0 +1,1136 @@
+------------------------------------------------------------
+
+CS445 HW1 grade sheet for drig3819
+------------------------------------------------------------
+	HW1 is a .zip, unpacks in current dir: _1_/1
+	compiles -Wall, links w/out warnings:  _1_/1
+	builds executable named vgo:           _1_/1
+	runs on multiple named files:          _1_/1
+	linked list:                           _1_/1
+	valgrind OK:                           _1_/1
+	output looks OK:                       _1_/1
+	handles escapes:                       _1_/1
+	handles lexical errors:                _1_/1
+	handles Go-not-VGo errors:             _0_/1
+	---------------------------------------------
+	Total:                                 _9_/10
+
+
+CS445 HW1 testrun output for drig3819
+------------------------------------------------------------
+	(unpacking)
+	(unpacking done rv=0)
+
+
+flex vgolex.l
+gcc -c -g -std=c99 -D_POSIX_C_SOURCE=1 -Wall lex.yy.c
+gcc -c -g -std=c99 -D_POSIX_C_SOURCE=1 -Wall main.c
+gcc -c -g -std=c99 -D_POSIX_C_SOURCE=1 -Wall token.c
+gcc -c -g -std=c99 -D_POSIX_C_SOURCE=1 -Wall list.c
+gcc -c -g -std=c99 -D_POSIX_C_SOURCE=1 -Wall list_iterator.c
+gcc -c -g -std=c99 -D_POSIX_C_SOURCE=1 -Wall list_node.c
+gcc -o vgo lex.yy.o main.o token.o list.o list_iterator.o list_node.o
+
+
+...test0.go [expect lexical error on line 3]...
+Test input:
+package main
+func main() {
+  "lexical error...
+}
+Test output:
+File test0.go line 3, token ": Invalid Token
+Category Text                   LineNo  File
+404	 package             	1  	test0.go            	
+307	 main                	1  	test0.go            	
+400	 func                	2  	test0.go            	
+307	 main                	2  	test0.go            	
+511	 (                   	2  	test0.go            	
+512	 )                   	2  	test0.go            	
+513	 {                   	2  	test0.go            	
+307	 lexical             	3  	test0.go            	
+307	 error               	3  	test0.go            	
+517	 .                   	3  	test0.go            	
+517	 .                   	3  	test0.go            	
+517	 .                   	3  	test0.go            	
+514	 }                   	4  	test0.go            	
+exit status: 1 expected 1
+...test1.go [expect normal token output]...
+Test input:
+package main
+import "fmt"
+func main() {
+   fmt.Println("Hello\tworld")
+}
+Test output:
+Category Text                   LineNo  File
+404	 package             	1  	test1.go            	
+307	 main                	1  	test1.go            	
+409	 import              	2  	test1.go            	
+300	 "fmt"               	2  	test1.go            	content: fmt
+400	 func                	3  	test1.go            	
+307	 main                	3  	test1.go            	
+511	 (                   	3  	test1.go            	
+512	 )                   	3  	test1.go            	
+513	 {                   	3  	test1.go            	
+307	 fmt                 	4  	test1.go            	
+517	 .                   	4  	test1.go            	
+307	 Println             	4  	test1.go            	
+511	 (                   	4  	test1.go            	
+300	 "Hello\tworld"      	4  	test1.go            	content: Hello	world
+512	 )                   	4  	test1.go            	
+514	 }                   	5  	test1.go            	
+exit status: 0 expected 0
+...rerun test1.go under valgrind...
+==12837== Memcheck, a memory error detector
+==12837== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==12837== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
+==12837== Command: ./vgo test1.go
+==12837== 
+Category Text                   LineNo  File
+404	 package             	1  	test1.go            	
+307	 main                	1  	test1.go            	
+409	 import              	2  	test1.go            	
+300	 "fmt"               	2  	test1.go            	content: fmt
+400	 func                	3  	test1.go            	
+307	 main                	3  	test1.go            	
+511	 (                   	3  	test1.go            	
+512	 )                   	3  	test1.go            	
+513	 {                   	3  	test1.go            	
+307	 fmt                 	4  	test1.go            	
+517	 .                   	4  	test1.go            	
+307	 Println             	4  	test1.go            	
+511	 (                   	4  	test1.go            	
+300	 "Hello\tworld"      	4  	test1.go            	content: Hello	world
+512	 )                   	4  	test1.go            	
+514	 }                   	5  	test1.go            	
+==12837== 
+==12837== HEAP SUMMARY:
+==12837==     in use at exit: 18,627 bytes in 74 blocks
+==12837==   total heap usage: 74 allocs, 0 frees, 18,627 bytes allocated
+==12837== 
+==12837== LEAK SUMMARY:
+==12837==    definitely lost: 16 bytes in 1 blocks
+==12837==    indirectly lost: 0 bytes in 0 blocks
+==12837==      possibly lost: 0 bytes in 0 blocks
+==12837==    still reachable: 18,611 bytes in 73 blocks
+==12837==         suppressed: 0 bytes in 0 blocks
+==12837== Rerun with --leak-check=full to see details of leaked memory
+==12837== 
+==12837== For counts of detected and suppressed errors, rerun with: -v
+==12837== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+exit status: 0 expected 0
+...test2.go ...
+Test input:
+package main
+func f() int {
+   // this was a deliberate test to see what you do with an underscore
+   var thread_local int
+   thread_local = 5
+   return thread_local
+}
+Test output:
+Category Text                   LineNo  File
+404	 package             	1  	test2.go            	
+307	 main                	1  	test2.go            	
+400	 func                	2  	test2.go            	
+307	 f                   	2  	test2.go            	
+511	 (                   	2  	test2.go            	
+512	 )                   	2  	test2.go            	
+415	 int                 	2  	test2.go            	
+513	 {                   	2  	test2.go            	
+411	 var                 	4  	test2.go            	
+307	 thread_local        	4  	test2.go            	
+415	 int                 	4  	test2.go            	
+307	 thread_local        	5  	test2.go            	
+510	 =                   	5  	test2.go            	
+301	 5                   	5  	test2.go            	content: 5
+410	 return              	6  	test2.go            	
+307	 thread_local        	6  	test2.go            	
+514	 }                   	7  	test2.go            	
+exit status: 0 expected 2
+...multi-file test...
+Test input: a.go
+package main
+var x int
+Test input: b.go
+package main
+func foo() int { return 0 }
+Test output:
+Category Text                   LineNo  File
+404	 package             	1  	a.go                	
+307	 main                	1  	a.go                	
+411	 var                 	2  	a.go                	
+307	 x                   	2  	a.go                	
+415	 int                 	2  	a.go                	
+404	 package             	1  	b.go                	
+307	 main                	1  	b.go                	
+400	 func                	2  	b.go                	
+307	 foo                 	2  	b.go                	
+511	 (                   	2  	b.go                	
+512	 )                   	2  	b.go                	
+415	 int                 	2  	b.go                	
+513	 {                   	2  	b.go                	
+410	 return              	2  	b.go                	
+301	 0                   	2  	b.go                	content: 0
+514	 }                   	2  	b.go                	
+exit status: 0 expected 2
+...odds and ends test...
+Test input:
+package main
+import "fmt"
+// This is a VGo test. It would not pass semantic checks yet. //
+var x struct { }
+
+func main() {
+  var d float64
+  var x, y int
+  var L [5]int
+  var T map[string]int
+  var s string
+  var c C
+  x = 3 * 6
+  c = null
+  for x < 18 {
+     if x == 9 {
+     break
+     } else if x <= 5 {
+     break
+     } else if x >= 15 {
+     break
+     } else {
+     x += 1
+     }
+     }
+  for x=0; x < 3; x+=1 { x = x + 5 }
+  for x=3; x > 0; x-=1 { x = x - 2 }
+  L[1] = 5 * 5 / x % 5
+  L[1] = x
+  if x<=y && y>=0 || y!=-1 { fmt.Println("hello") }
+  return
+}
+Test output:
+File test3.go line 26, token ;: Invalid Token
+File test3.go line 26, token ;: Invalid Token
+File test3.go line 27, token ;: Invalid Token
+File test3.go line 27, token ;: Invalid Token
+Category Text                   LineNo  File
+404	 package             	1  	test3.go            	
+307	 main                	1  	test3.go            	
+409	 import              	2  	test3.go            	
+300	 "fmt"               	2  	test3.go            	content: fmt
+411	 var                 	4  	test3.go            	
+307	 x                   	4  	test3.go            	
+307	 struct              	4  	test3.go            	
+513	 {                   	4  	test3.go            	
+514	 }                   	4  	test3.go            	
+400	 func                	6  	test3.go            	
+307	 main                	6  	test3.go            	
+511	 (                   	6  	test3.go            	
+512	 )                   	6  	test3.go            	
+513	 {                   	6  	test3.go            	
+411	 var                 	7  	test3.go            	
+307	 d                   	7  	test3.go            	
+417	 float64             	7  	test3.go            	
+411	 var                 	8  	test3.go            	
+307	 x                   	8  	test3.go            	
+517	 ,                   	8  	test3.go            	
+307	 y                   	8  	test3.go            	
+415	 int                 	8  	test3.go            	
+411	 var                 	9  	test3.go            	
+307	 L                   	9  	test3.go            	
+513	 [                   	9  	test3.go            	
+301	 5                   	9  	test3.go            	content: 5
+514	 ]                   	9  	test3.go            	
+415	 int                 	9  	test3.go            	
+411	 var                 	10 	test3.go            	
+307	 T                   	10 	test3.go            	
+401	 map                 	10 	test3.go            	
+513	 [                   	10 	test3.go            	
+414	 string              	10 	test3.go            	
+514	 ]                   	10 	test3.go            	
+415	 int                 	10 	test3.go            	
+411	 var                 	11 	test3.go            	
+307	 s                   	11 	test3.go            	
+414	 string              	11 	test3.go            	
+411	 var                 	12 	test3.go            	
+307	 c                   	12 	test3.go            	
+307	 C                   	12 	test3.go            	
+307	 x                   	13 	test3.go            	
+510	 =                   	13 	test3.go            	
+301	 3                   	13 	test3.go            	content: 3
+521	 *                   	13 	test3.go            	
+301	 6                   	13 	test3.go            	content: 6
+307	 c                   	14 	test3.go            	
+510	 =                   	14 	test3.go            	
+307	 null                	14 	test3.go            	
+408	 for                 	15 	test3.go            	
+307	 x                   	15 	test3.go            	
+515	 <                   	15 	test3.go            	
+301	 18                  	15 	test3.go            	content: 18
+513	 {                   	15 	test3.go            	
+406	 if                  	16 	test3.go            	
+307	 x                   	16 	test3.go            	
+502	 ==                  	16 	test3.go            	
+301	 9                   	16 	test3.go            	content: 9
+513	 {                   	16 	test3.go            	
+499	 break               	17 	test3.go            	
+514	 }                   	18 	test3.go            	
+403	 else                	18 	test3.go            	
+406	 if                  	18 	test3.go            	
+307	 x                   	18 	test3.go            	
+500	 <=                  	18 	test3.go            	
+301	 5                   	18 	test3.go            	content: 5
+513	 {                   	18 	test3.go            	
+499	 break               	19 	test3.go            	
+514	 }                   	20 	test3.go            	
+403	 else                	20 	test3.go            	
+406	 if                  	20 	test3.go            	
+307	 x                   	20 	test3.go            	
+501	 >=                  	20 	test3.go            	
+301	 15                  	20 	test3.go            	content: 15
+513	 {                   	20 	test3.go            	
+499	 break               	21 	test3.go            	
+514	 }                   	22 	test3.go            	
+403	 else                	22 	test3.go            	
+513	 {                   	22 	test3.go            	
+307	 x                   	23 	test3.go            	
+506	 +=                  	23 	test3.go            	
+301	 1                   	23 	test3.go            	content: 1
+514	 }                   	24 	test3.go            	
+514	 }                   	25 	test3.go            	
+408	 for                 	26 	test3.go            	
+307	 x                   	26 	test3.go            	
+510	 =                   	26 	test3.go            	
+301	 0                   	26 	test3.go            	content: 0
+307	 x                   	26 	test3.go            	
+515	 <                   	26 	test3.go            	
+301	 3                   	26 	test3.go            	content: 3
+307	 x                   	26 	test3.go            	
+506	 +=                  	26 	test3.go            	
+301	 1                   	26 	test3.go            	content: 1
+513	 {                   	26 	test3.go            	
+307	 x                   	26 	test3.go            	
+510	 =                   	26 	test3.go            	
+307	 x                   	26 	test3.go            	
+519	 +                   	26 	test3.go            	
+301	 5                   	26 	test3.go            	content: 5
+514	 }                   	26 	test3.go            	
+408	 for                 	27 	test3.go            	
+307	 x                   	27 	test3.go            	
+510	 =                   	27 	test3.go            	
+301	 3                   	27 	test3.go            	content: 3
+307	 x                   	27 	test3.go            	
+516	 >                   	27 	test3.go            	
+301	 0                   	27 	test3.go            	content: 0
+307	 x                   	27 	test3.go            	
+507	 -=                  	27 	test3.go            	
+301	 1                   	27 	test3.go            	content: 1
+513	 {                   	27 	test3.go            	
+307	 x                   	27 	test3.go            	
+510	 =                   	27 	test3.go            	
+307	 x                   	27 	test3.go            	
+520	 -                   	27 	test3.go            	
+301	 2                   	27 	test3.go            	content: 2
+514	 }                   	27 	test3.go            	
+307	 L                   	28 	test3.go            	
+513	 [                   	28 	test3.go            	
+301	 1                   	28 	test3.go            	content: 1
+514	 ]                   	28 	test3.go            	
+510	 =                   	28 	test3.go            	
+exit status: 1 expected 0
+/* Referred to here: https://github.com/SethForrest/Compilers_HW_1/blob/master/clex.l and here: https://github.com/andschwa/partial-cpp-compiler/blob/hw1/clex.l */
+%option warn nounput noinput
+%option noyywrap yylineno
+
+%{
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+// #include <string.h>
+// #include <ctype.h>
+// #include <libgen.h>
+
+#include "token.h"
+#include "vgo.tab.h"
+
+extern struct token *yytoken;
+extern char** fileNames;
+extern char* currentFile;
+
+/* allocates and prepares token, saving pointer into yytoken */
+void tokenize(int category)
+{
+    yytoken = tokenNew(category, yytext, yylineno, currentFile);
+}
+
+%}
+
+%%
+
+((\/\/[^\n]*\n)|([ \r\t\v\f\n])|(\/\*[^*]*\*+(?:[^\/*][^*]*\*+)*\/))* {} /* eat whitespace and  comments */
+
+    /* Reserved words */
+"func"          {tokenize(LFUNC); return LFUNC;}
+"map"           {tokenize(LMAP); return LMAP;}
+"struc"         {tokenize(LSTRUC); return LSTRUC;}
+"else"          {tokenize(LELSE); return LELSE;}
+"package"       {tokenize(LPACKAGE); return LPACKAGE;}
+"const"         {tokenize(LCONST); return LCONST;}
+"if"            {tokenize(LIF); return LIF;}
+"type"          {tokenize(LTYPE); return LTYPE;}
+"for"           {tokenize(LFOR); return LFOR;}
+"import"        {tokenize(LIMPORT); return LIMPORT;}
+"return"        {tokenize(LRETURN); return LRETURN;}
+"var"           {tokenize(LVAR); return LVAR;}
+
+    /* Bad reserved words */
+"break"         {tokenize(LBADKEYWORD); return LBADKEYWORD;}
+"case"          {tokenize(LBADKEYWORD); return LBADKEYWORD;}
+"chan"          {tokenize(LBADKEYWORD); return LBADKEYWORD;}
+"fallthrough"   {tokenize(LBADKEYWORD); return LBADKEYWORD;}
+"continue"      {tokenize(LBADKEYWORD); return LBADKEYWORD;}
+"default"       {tokenize(LBADKEYWORD); return LBADKEYWORD;}
+"defer"         {tokenize(LBADKEYWORD); return LBADKEYWORD;}
+"goto"          {tokenize(LBADKEYWORD); return LBADKEYWORD;}
+"range"         {tokenize(LBADKEYWORD); return LBADKEYWORD;}
+"interface"     {tokenize(LBADKEYWORD); return LBADKEYWORD;}
+"go"            {tokenize(LBADKEYWORD); return LBADKEYWORD;}
+"switch"        {tokenize(LBADKEYWORD); return LBADKEYWORD;}
+"select"        {tokenize(LBADKEYWORD); return LBADKEYWORD;}
+
+    /* Type Names */
+"bool"          {tokenize(LTYPEBOOL); return LTYPEBOOL;}
+"string"        {tokenize(LTYPESTRING); return LTYPESTRING;}
+"int"           {tokenize(LTYPEINT); return LTYPEINT;}
+"rune"          {tokenize(LTYPERUNE); return LTYPERUNE;}
+"float64"       {tokenize(LTYPEFLOAT64); return LTYPEFLOAT64;}
+
+    /* Invalid Operators A */
+"&^="           {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+"<<="           {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+">>="           {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+"%="            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+"|="            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+"<-"            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+">>"            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+"<<"            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+"&^"            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+"&="            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+"*="            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+"/="            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+":="            {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+
+    /* Valid Operators */
+"<="            {tokenize(LLE); return LLE;}
+">="            {tokenize(LGE); return LGE;}
+"=="            {tokenize(LEQ); return LEQ;}
+"!="            {tokenize(LNE); return LNE;}
+"&&"            {tokenize(LANDAND); return LANDAND;}
+"||"            {tokenize(LOROR); return LOROR;}
+"+="            {tokenize(LPLASN); return LPLASN;}
+"-="            {tokenize(LMIASN); return LMIASN;}
+"="             {tokenize(LASN); return LASN;}
+"("             {tokenize(LLP); return LLP;}
+")"             {tokenize(LRP); return LRP;}
+"["             {tokenize(LLB); return LLB;}
+"]"             {tokenize(LRB); return LRB;}
+"{"             {tokenize(LLC); return LLC;}
+"}"             {tokenize(LRC); return LRC;}
+"<"             {tokenize(LLT); return LLT;}
+">"             {tokenize(LGT); return LGT;}
+"."             {tokenize(LDOT); return LDOT;}
+","             {tokenize(LCOM); return LCOM;}
+"!"             {tokenize(LBANG); return LBANG;}
+"+"             {tokenize(LPLUS); return LPLUS;}
+"-"             {tokenize(LMINUS); return LMINUS;}
+"*"             {tokenize(LMUL); return LMUL;}
+"/"             {tokenize(LDIV); return LDIV;}
+"%"             {tokenize(LMOD); return LMOD;}
+
+    /* Invalid Operators B */
+":"             {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+"&"             {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+"^"             {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+"|"             {tokenize(LBADOPERATOR); return LBADOPERATOR;}
+
+    /* Literals */
+0[0-7]+                         { tokenize(LOCT); return LOCT; }            /* Octal */
+0|[1-9][0-9]*                   { tokenize(LINT); return LINT; }            /* Int */
+(([1-9][0-9]*)?\.[0-9]+)        { tokenize(LFLOAT); return LFLOAT; }        /* Float */
+"0x"[a-fA-F0-9]+                { tokenize(LHEX); return LHEX; }            /* Hex */
+"0b"[01]+     			        { tokenize(LBIN); return LBIN; }            /* Binary */
+[a-zA-Z_][a-zA-Z0-9_]*	        { tokenize(LVARNAME); return LVARNAME; }    /* variable names */
+\"(\\|[^\n"\\])*\"		        { tokenize(LLITERAL); return LLITERAL; }    /* string literals */
+\'[^\\\n]\'|\'\\[ntNT'\\]\'     { tokenize(LRUNE); return LRUNE; }          /* Char (rune) */
+    /* non-accepted runed caught here */
+
+
+    /* Unrecognized tokens */
+. { 
+    fprintf(stderr, "File %s line %d, token %s: %s\n", currentFile, yylineno, yytext, "Invalid Token");
+    return 1;
+}
+
+%%
+//
+// list.h
+//
+// Copyright (c) 2010 TJ Holowaychuk <tj@vision-media.ca>
+//
+
+#ifndef LIST_H
+#define LIST_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <stdlib.h>
+
+// Library version
+
+#define LIST_VERSION "0.0.5"
+
+// Memory management macros
+
+#ifndef LIST_MALLOC
+#define LIST_MALLOC malloc
+#endif
+
+#ifndef LIST_FREE
+#define LIST_FREE free
+#endif
+
+/*
+ * list_t iterator direction.
+ */
+
+typedef enum {
+    LIST_HEAD
+  , LIST_TAIL
+} list_direction_t;
+
+/*
+ * list_t node struct.
+ */
+
+typedef struct list_node {
+  struct list_node *prev;
+  struct list_node *next;
+  void *val;
+} list_node_t;
+
+/*
+ * list_t struct.
+ */
+
+typedef struct {
+  list_node_t *head;
+  list_node_t *tail;
+  unsigned int len;
+  void (*free)(void *val);
+  int (*match)(void *a, void *b);
+} list_t;
+
+/*
+ * list_t iterator struct.
+ */
+
+typedef struct {
+  list_node_t *next;
+  list_direction_t direction;
+} list_iterator_t;
+
+// Node prototypes.
+
+list_node_t *
+list_node_new(void *val);
+
+// list_t prototypes.
+
+list_t *
+list_new();
+
+list_node_t *
+list_rpush(list_t *self, list_node_t *node);
+
+list_node_t *
+list_lpush(list_t *self, list_node_t *node);
+
+list_node_t *
+list_find(list_t *self, void *val);
+
+list_node_t *
+list_at(list_t *self, int index);
+
+list_node_t *
+list_rpop(list_t *self);
+
+list_node_t *
+list_lpop(list_t *self);
+
+void
+list_remove(list_t *self, list_node_t *node);
+
+void
+list_destroy(list_t *self);
+
+// list_t iterator prototypes.
+
+list_iterator_t *
+list_iterator_new(list_t *list, list_direction_t direction);
+
+list_iterator_t *
+list_iterator_new_from_node(list_node_t *node, list_direction_t direction);
+
+list_node_t *
+list_iterator_next(list_iterator_t *self);
+
+void
+list_iterator_destroy(list_iterator_t *self);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* LIST_H */
+#ifndef TOKEN_H
+#define TOKEN_H 
+
+struct token {
+   int category;   /* the integer code returned by yylex */
+   char *text;     /* the actual string (lexeme) matched */
+   int lineno;     /* the line number on which the token occurs */
+   char *filename; /* the source file in which the token occurs */
+   int ival;       /* for integer constants, store binary value here */
+   double dval;	   /* for real constants, store binary value here */
+   char *sval;     /* for string constants, malloc space, de-escape, store */
+                   /*    the string (less quotes and after escapes) here */
+};
+
+struct token* tokenNew(int category,    // Allocates and creates a new token
+                       char* text,
+                       int lineno,
+                       char* filename);
+void tokenRemove(struct token* t);      // Deletes a token and clears its memory
+void tokenPrint(struct token* t);       // Prints out a token to the console
+char* formatString(char* s);            // converts /t, /n, etc. to escaped versions
+
+#endif /* TOKEN_H */
+
+//
+// list.c
+//
+// Copyright (c) 2010 TJ Holowaychuk <tj@vision-media.ca>
+//
+
+#include "list.h"
+
+/*
+ * Allocate a new list_t. NULL on failure.
+ */
+
+list_t *
+list_new() {
+  list_t *self;
+  if (!(self = LIST_MALLOC(sizeof(list_t))))
+    return NULL;
+  self->head = NULL;
+  self->tail = NULL;
+  self->free = NULL;
+  self->match = NULL;
+  self->len = 0;
+  return self;
+}
+
+/*
+ * Free the list.
+ */
+
+void
+list_destroy(list_t *self) {
+  unsigned int len = self->len;
+  list_node_t *next;
+  list_node_t *curr = self->head;
+
+  while (len--) {
+    next = curr->next;
+    if (self->free) self->free(curr->val);
+    LIST_FREE(curr);
+    curr = next;
+  }
+
+  LIST_FREE(self);
+}
+
+/*
+ * Append the given node to the list
+ * and return the node, NULL on failure.
+ */
+
+list_node_t *
+list_rpush(list_t *self, list_node_t *node) {
+  if (!node) return NULL;
+
+  if (self->len) {
+    node->prev = self->tail;
+    node->next = NULL;
+    self->tail->next = node;
+    self->tail = node;
+  } else {
+    self->head = self->tail = node;
+    node->prev = node->next = NULL;
+  }
+
+  ++self->len;
+  return node;
+}
+
+/*
+ * Return / detach the last node in the list, or NULL.
+ */
+
+list_node_t *
+list_rpop(list_t *self) {
+  if (!self->len) return NULL;
+
+  list_node_t *node = self->tail;
+
+  if (--self->len) {
+    (self->tail = node->prev)->next = NULL;
+  } else {
+    self->tail = self->head = NULL;
+  }
+
+  node->next = node->prev = NULL;
+  return node;
+}
+
+/*
+ * Return / detach the first node in the list, or NULL.
+ */
+
+list_node_t *
+list_lpop(list_t *self) {
+  if (!self->len) return NULL;
+
+  list_node_t *node = self->head;
+
+  if (--self->len) {
+    (self->head = node->next)->prev = NULL;
+  } else {
+    self->head = self->tail = NULL;
+  }
+
+  node->next = node->prev = NULL;
+  return node;
+}
+
+/*
+ * Prepend the given node to the list
+ * and return the node, NULL on failure.
+ */
+
+list_node_t *
+list_lpush(list_t *self, list_node_t *node) {
+  if (!node) return NULL;
+
+  if (self->len) {
+    node->next = self->head;
+    node->prev = NULL;
+    self->head->prev = node;
+    self->head = node;
+  } else {
+    self->head = self->tail = node;
+    node->prev = node->next = NULL;
+  }
+
+  ++self->len;
+  return node;
+}
+
+/*
+ * Return the node associated to val or NULL.
+ */
+
+list_node_t *
+list_find(list_t *self, void *val) {
+  list_iterator_t *it = list_iterator_new(self, LIST_HEAD);
+  list_node_t *node;
+
+  while ((node = list_iterator_next(it))) {
+    if (self->match) {
+      if (self->match(val, node->val)) {
+        list_iterator_destroy(it);
+        return node;
+      }
+    } else {
+      if (val == node->val) {
+        list_iterator_destroy(it);
+        return node;
+      }
+    }
+  }
+
+  list_iterator_destroy(it);
+  return NULL;
+}
+
+/*
+ * Return the node at the given index or NULL.
+ */
+
+list_node_t *
+list_at(list_t *self, int index) {
+  list_direction_t direction = LIST_HEAD;
+
+  if (index < 0) {
+    direction = LIST_TAIL;
+    index = ~index;
+  }
+
+  if ((unsigned)index < self->len) {
+    list_iterator_t *it = list_iterator_new(self, direction);
+    list_node_t *node = list_iterator_next(it);
+    while (index--) node = list_iterator_next(it);
+    list_iterator_destroy(it);
+    return node;
+  }
+
+  return NULL;
+}
+
+/*
+ * Remove the given node from the list, freeing it and it's value.
+ */
+
+void
+list_remove(list_t *self, list_node_t *node) {
+  node->prev
+    ? (node->prev->next = node->next)
+    : (self->head = node->next);
+
+  node->next
+    ? (node->next->prev = node->prev)
+    : (self->tail = node->prev);
+
+  if (self->free) self->free(node->val);
+
+  LIST_FREE(node);
+  --self->len;
+}
+
+//
+// iterator.c
+//
+// Copyright (c) 2010 TJ Holowaychuk <tj@vision-media.ca>
+//
+
+#include "list.h"
+
+/*
+ * Allocate a new list_iterator_t. NULL on failure.
+ * Accepts a direction, which may be LIST_HEAD or LIST_TAIL.
+ */
+
+list_iterator_t *
+list_iterator_new(list_t *list, list_direction_t direction) {
+  list_node_t *node = direction == LIST_HEAD
+    ? list->head
+    : list->tail;
+  return list_iterator_new_from_node(node, direction);
+}
+
+/*
+ * Allocate a new list_iterator_t with the given start
+ * node. NULL on failure.
+ */
+
+list_iterator_t *
+list_iterator_new_from_node(list_node_t *node, list_direction_t direction) {
+  list_iterator_t *self;
+  if (!(self = LIST_MALLOC(sizeof(list_iterator_t))))
+    return NULL;
+  self->next = node;
+  self->direction = direction;
+  return self;
+}
+
+/*
+ * Return the next list_node_t or NULL when no more
+ * nodes remain in the list.
+ */
+
+list_node_t *
+list_iterator_next(list_iterator_t *self) {
+  list_node_t *curr = self->next;
+  if (curr) {
+    self->next = self->direction == LIST_HEAD
+      ? curr->next
+      : curr->prev;
+  }
+  return curr;
+}
+
+/*
+ * Free the list iterator.
+ */
+
+void
+list_iterator_destroy(list_iterator_t *self) {
+  LIST_FREE(self);
+  self = NULL;
+}
+
+//
+// node.c
+//
+// Copyright (c) 2010 TJ Holowaychuk <tj@vision-media.ca>
+//
+
+#include "list.h"
+
+/*
+ * Allocates a new list_node_t. NULL on failure.
+ */
+
+list_node_t *
+list_node_new(void *val) {
+  list_node_t *self;
+  if (!(self = LIST_MALLOC(sizeof(list_node_t))))
+    return NULL;
+  self->prev = NULL;
+  self->next = NULL;
+  self->val = val;
+  return self;
+}// Devin Driggs
+
+
+#include <stdlib.h>
+#include <stdio.h>      // printf
+#include <string.h>     // strlen, strcpy
+#include <stdbool.h>    // Adds boolean support
+
+#include "token.h"
+#include "vgo.tab.h"
+#include "list.h"
+
+extern FILE *yyin;
+extern char *yytext;
+extern int yylineno;
+
+struct token* yytoken;
+list_t* tokenList;
+char** fileNames;
+char* currentFile;
+int yylex();
+
+// Return Codes:
+// 0: Success
+// 1: Lexical Error
+// -1: Other errors
+
+// https://stackoverflow.com/questions/744766
+bool endsWith(const char *str, const char *suffix)
+{
+    if (!str || !suffix)
+        return false;
+    size_t lenstr = strlen(str);
+    size_t lensuffix = strlen(suffix);
+    if (lensuffix >  lenstr)
+        return false;
+    return strncmp(str + lenstr - lensuffix, suffix, lensuffix) == 0;
+}
+
+// derived from https://stackoverflow.com/questions/5309471/
+bool hasExtention(const char* filename) {
+    const char* dot = strrchr(filename, '.');
+    if(!dot || dot == filename) return false;
+    char* pPosition = strchr(dot + 1, '/');
+    if(pPosition) return false;
+    return true;
+}
+
+int main(int argc, char* argv[]) {
+    
+    int returnval = 0;
+
+    if(argc == 1){
+		fprintf(stderr, "No files were given\n");
+		return -1;
+	}
+
+    // create new array in memory, containing filenames
+	fileNames = (char**)malloc(sizeof(char*) * (argc - 1)); // Allocate memory for array
+	for (int i = 1; i < argc; i++) {
+        if (endsWith(argv[i], ".go")) {
+            fileNames[i - 1] = (char*)malloc(sizeof(char) * (strlen(argv[i]) + 1)); // Allocate memory for individual string
+            strcpy(fileNames[i - 1], argv[i]);
+        }
+        else {
+            // does not have .go extention
+            if (hasExtention(argv[i])) {
+                fprintf(stderr, "Only files with a .go extention are allowed\n");
+                return -1;
+            }
+            fileNames[i - 1] = (char*)malloc(sizeof(char) * (strlen(argv[i]) + 4)); // Allocate memory for individual string (+3 chars for )
+            strcpy(fileNames[i - 1], argv[i]);
+            fileNames[i - 1] = strcat(fileNames[i - 1], ".go");
+        }
+	}
+    int yyreturn;
+    tokenList = list_new();
+
+    for(int i = 0; i < argc - 1; i++) {
+        
+        currentFile = fileNames[i];
+        yylineno = 1;
+        yyin = fopen(currentFile, "r");
+		if(yyin == NULL){
+			printf("invalid File: %s\n", currentFile);
+			return -1;
+		}
+        while((yyreturn = yylex()) != 0) {
+            if(yyreturn != 1) {
+                list_rpush(tokenList, list_node_new(yytoken));
+            }
+            else {
+                returnval = 1;
+            }
+        }
+    }
+    
+
+    printf("Category Text                   LineNo  File\n");
+
+    list_node_t *node;
+    list_iterator_t *it = list_iterator_new(tokenList, LIST_HEAD);
+    while ((node = list_iterator_next(it))) {
+        tokenPrint((node->val));
+    }
+
+    return  returnval;
+}
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
+#include "token.h"
+#include "vgo.tab.h"
+
+// Exit codes:
+// -1: Memory Error
+
+char* formatString(char* s) {
+	char* iterator = s;
+	char* newString = malloc(strlen(s));
+    
+    int pos = 0;
+	while(*iterator != '\0')
+    {
+        if(*iterator == '\"') {
+            // Ignore
+        }
+        else if(*iterator == '\\') {
+            iterator++;
+            switch(*iterator) {
+                case 'n':
+                    newString[pos] = '\n';
+                    pos++;
+                    break;
+                case 't':
+                    newString[pos] = '\t';
+                    pos++;
+                    break;
+                case '"':
+                    newString[pos] = '"';
+                    pos++;
+                    break;
+                case '\'':
+                    newString[pos] = '\'';
+                    pos++;
+                    break;
+                default:
+                    newString[pos] = '\\';
+                    pos++;
+                    newString[pos] = *iterator;
+                    pos++;
+                    break;
+            }
+        }
+        else {
+            newString[pos] = *iterator;
+            pos++;
+        }
+        iterator++;
+    }
+    newString[pos] = '\0';
+
+	return newString;
+}
+
+struct token *tokenNew(int category,
+                       char* text,
+                       int lineno,
+                       char* filename) {
+
+	struct token *t = malloc(sizeof(*t));
+	if (t == NULL)
+		exit(-1);
+
+    // Copy ints
+	t->category = category;
+	t->lineno = lineno;
+
+    // Copy strings
+	t->text = malloc((strlen(text) + 1) * sizeof(char));
+	strcpy(t->text, text);
+
+	t->filename = malloc((strlen(filename) + 1) * sizeof(char));
+	strcpy(t->filename, filename);
+
+    // Copy value
+    
+    if (category == LINT) {
+        t->ival = atoi(text);
+    }
+    if (category == LFLOAT) {
+        t->dval = atof(text);
+    }
+    if (category == LLITERAL) {
+        // TODO correct string
+        t->sval = formatString((text));
+    }
+
+	return t;
+}
+
+void tokenRemove(struct token *t) {
+    // First free text values
+	free(t->text);
+	free(t->filename);
+	if (t->category == LLITERAL)
+		free(t->sval);
+
+    // Then free the token
+	free(t);
+}
+
+void tokenPrint(struct token *t) {
+    printf("%-i\t %-20s\t%-3i\t%-20s\t", t->category, t->text, t->lineno, t->filename);
+        
+    if (t->category == LINT) {
+        printf("content: %i\n", t->ival);
+    }
+    else if (t->category == LFLOAT) {
+        printf("content: %f\n", t->dval);
+    }
+    else if (t->category == LLITERAL) {
+        printf("content: %s\n", t->sval);
+    }
+    else {
+        printf("\n");
+    }
+
+}
