@@ -1,5 +1,5 @@
 /*
- * list.c
+ * list.h
  *
  *  Created on: Mar 8, 2011
  *      Author: posixninja
@@ -21,27 +21,20 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#ifndef LIST_H_
+#define LIST_H_
 
-#include "list.h"
+#include "object.h"
 
-void list_init(list_t* list) {
-	list->next = NULL;
-	list->prev = list;
-}
+typedef struct list_t {
+	void* next;
+	void* prev;
+} list_t;
 
+void list_init(struct list_t* list);
+void list_destroy(struct list_t* list);
 
-void list_destroy(list_t* list) {
-	if(list) {
-		free(list);
-	}
-}
+int list_add(struct list_t* list, struct object_t* object);
+int list_remove(struct list_t* list, struct object_t* object);
 
-int list_add(list_t* list, object_t* object) {
-	return -1;
-}
-
-int list_remove(list_t* list, object_t* object) {
-	return -1;
-}
+#endif /* LIST_H_ */

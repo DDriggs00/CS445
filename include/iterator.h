@@ -1,5 +1,5 @@
 /*
- * list.c
+ * iterator.h
  *
  *  Created on: Mar 8, 2011
  *      Author: posixninja
@@ -21,27 +21,29 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#ifndef ITERATOR_H_
+#define ITERATOR_H_
 
-#include "list.h"
+struct list_t;
+struct object_t;
 
-void list_init(list_t* list) {
-	list->next = NULL;
-	list->prev = list;
-}
+typedef struct iterator_t {
+	struct object_t*(*next)(struct iterator_t* iterator);
+	int(*bind)(struct iterator_t* iterator, struct list_t* list);
 
+	unsigned int count;
+	unsigned int position;
 
-void list_destroy(list_t* list) {
-	if(list) {
-		free(list);
-	}
-}
+	struct list_t* list;
+	struct object_t* end;
+	struct object_t* begin;
+	struct object_t* value;
+} iterator_t;
 
-int list_add(list_t* list, object_t* object) {
-	return -1;
-}
+void iterator_destroy(struct iterator_t* iterator);
+struct iterator_t* iterator_create(struct list_t* list);
 
-int list_remove(list_t* list, object_t* object) {
-	return -1;
-}
+struct object_t* iterator_next(struct iterator_t* iterator);
+int iterator_bind(struct iterator_t* iterator, struct list_t* list);
+
+#endif /* ITERATOR_H_ */

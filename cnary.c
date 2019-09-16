@@ -1,7 +1,7 @@
 /*
- * list.c
+ * cnary.c
  *
- *  Created on: Mar 8, 2011
+ *  Created on: Mar 9, 2011
  *      Author: posixninja
  *
  * Copyright (c) 2011 Joshua Hill. All Rights Reserved.
@@ -22,26 +22,25 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
 
-#include "list.h"
+#include "node.h"
 
-void list_init(list_t* list) {
-	list->next = NULL;
-	list->prev = list;
-}
+int main(int argc, char* argv[]) {
+	puts("Creating root node");
+	node_t* root = node_create(NULL, NULL);
 
+	puts("Creating child 1 node");
+	node_t* one = node_create(root, NULL);
+	puts("Creating child 2 node");
+	node_t* two = node_create(root, NULL);
 
-void list_destroy(list_t* list) {
-	if(list) {
-		free(list);
-	}
-}
+	puts("Creating child 3 node");
+	node_t* three = node_create(one, NULL);
 
-int list_add(list_t* list, object_t* object) {
-	return -1;
-}
+	puts("Debugging root node");
+	node_debug(root);
 
-int list_remove(list_t* list, object_t* object) {
-	return -1;
+	puts("Destroying root node");
+	node_destroy(root);
+	return 0;
 }

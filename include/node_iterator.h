@@ -1,5 +1,5 @@
 /*
- * list.c
+ * node_iterator.h
  *
  *  Created on: Mar 8, 2011
  *      Author: posixninja
@@ -21,27 +21,35 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#ifndef NODE_ITERATOR_H_
+#define NODE_ITERATOR_H_
 
-#include "list.h"
+#include "iterator.h"
+#include "node_list.h"
 
-void list_init(list_t* list) {
-	list->next = NULL;
-	list->prev = list;
-}
+// This class implements the abstract iterator class
+typedef struct node_iterator_t {
+	// Super class
+	struct iterator_t super;
 
+	// Local members
+	struct node_t*(*next)(struct node_iterator_t* iterator);
+	int(*bind)(struct node_iterator_t* iterator, struct node_list_t* list);
 
-void list_destroy(list_t* list) {
-	if(list) {
-		free(list);
-	}
-}
+	unsigned int count;
+	unsigned int position;
 
-int list_add(list_t* list, object_t* object) {
-	return -1;
-}
+	struct node_list_t* list;
+	struct node_t* end;
+	struct node_t* begin;
+	struct node_t* value;
 
-int list_remove(list_t* list, object_t* object) {
-	return -1;
-}
+} node_iterator_t;
+
+void node_iterator_destroy(node_iterator_t* iterator);
+node_iterator_t* node_iterator_create(node_list_t* list);
+
+struct node_t* node_iterator_next(struct node_iterator_t* iterator);
+int node_iterator_bind(struct node_iterator_t* iterator, struct node_list_t* list);
+
+#endif /* NODE_ITERATOR_H_ */
