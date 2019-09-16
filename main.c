@@ -1,6 +1,5 @@
 // Devin Driggs
 
-
 #include <stdlib.h>
 #include <stdio.h>      // printf
 #include <string.h>     // strlen, strcpy
@@ -8,14 +7,19 @@
 
 #include "token.h"
 #include "vgo.tab.h"
-#include "list.h"
+
+#include "node.h"
+#include "node_list.h"
+#include "node_iterator.h"
 
 extern FILE *yyin;
 extern char *yytext;
 extern int yylineno;
 
 struct token* yytoken;
-list_t* tokenList;
+struct node_t* root;
+struct node_t* currentNode;
+struct node_t* nextNode;
 char** fileNames;
 char* currentFile;
 int yylex();
@@ -74,10 +78,8 @@ int main(int argc, char* argv[]) {
         }
 	}
     int yyreturn;
-    tokenList = list_new();
-
     for(int i = 0; i < argc - 1; i++) {
-        
+        root = node_create(NULL, NULL);
         currentFile = fileNames[i];
         yylineno = 1;
         yyin = fopen(currentFile, "r");
@@ -86,14 +88,16 @@ int main(int argc, char* argv[]) {
 			return -1;
 		}
         while((yyreturn = yylex()) != 0) {
-            if(yyreturn != 1 && yyreturn != 2) {
-                list_rpush(tokenList, list_node_new(yytoken));
+            if(yyreturn != 1 && yyreturn != LGOOPERATOR && yyreturn != LGOKEYWORD) {
+                currentNode = node_create(root, yytoken);
+                // tokenPrint(currentNode->data);
             }
-            else if(yyreturn == 2 && returnval == 0){
-                returnval = 2;
-            }
-            else if(yyreturn == 2) {
+            else if(yyreturn == 1 && returnval == 0){
                 returnval = 1;
+            }
+            else {
+                returnval = -1;
+                printf("Valid in Go, but not in VGo");
             }
         }
     }
@@ -101,10 +105,10 @@ int main(int argc, char* argv[]) {
 
     printf("Category Text                   LineNo  File\n");
 
-    list_node_t *node;
-    list_iterator_t *it = list_iterator_new(tokenList, LIST_HEAD);
-    while ((node = list_iterator_next(it))) {
-        tokenPrint((node->val));
+    node_t *node;
+    node_iterator_t* it = node_iterator_create(root->children);
+    while ((node = node_iterator_next(it))) {
+        tokenPrint(node->data);
     }
 
     return  returnval;
