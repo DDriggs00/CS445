@@ -1,7 +1,7 @@
 CC=gcc
-CFLAGS=-c -g -std=c99 -D_POSIX_C_SOURCE=1 -Wall
+CFLAGS=-c -g -std=c99 -D_POSIX_C_SOURCE=1 -Wall -I./include
 # -D_POSIX_C_SOURCE=1 allows use of fileno in lex.yy.c
-OBJ=lex.yy.o main.o token.o list.o list_iterator.o list_node.o
+OBJ=lex.yy.o main.o token.o cnary.o list.o iterator.o node_iterator.o node_list.o node.o
 ASSIGN=2
 
 
@@ -29,19 +29,28 @@ vgo.tab.c vgo.tab.h: vgo.y
 	bison -d vgo.y
 
 # List
+cnary.o: cnary.c
+	$(CC) $(CFLAGS) cnary.c
+
 list.o: list.c
 	$(CC) $(CFLAGS) list.c
 
-list_iterator.o: list_iterator.c
-	$(CC) $(CFLAGS) list_iterator.c
+node.o: node.c
+	$(CC) $(CFLAGS) node.c
 
-list_node.o: list_node.c
-	$(CC) $(CFLAGS) list_node.c
+iterator.o: iterator.c
+	$(CC) $(CFLAGS) iterator.c
+
+node_iterator.o: node_iterator.c
+	$(CC) $(CFLAGS) node_iterator.c
+
+node_list.o: node_list.c
+	$(CC) $(CFLAGS) node_list.c
 
 # Clean
 .PHONY: clean
 clean:
-	@rm -f *.o vgo lex.yy.c
+	@rm -f *.o vgo lex.yy.c vgo.tab.c vgo.tab.h
 
 # Create zip file
 .PHONY: zip
