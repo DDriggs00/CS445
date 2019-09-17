@@ -20,7 +20,10 @@
 
 %{
 #include <stdio.h>
-#include <libc.h>
+#include <stdlib.h>
+int yylex();		
+int yyerror();		
+#define YYDEBUG 1
 %}
 // variable contents (manually added)
 %token		LLITERAL LBOOL LINT LHEX LOCT LFLOAT LBIN LRUNE
@@ -42,7 +45,7 @@
 %token      LNAME
 %token		LTYPE LRANGE
 
-%token		LANDAND LANDNOT LBODY LCOMM LDEC LEQ LGE LGT
+%token		LANDAND LANDNOT LCOMM LDEC LEQ LGE LGT
 %token		LIGNORE LINC LLE LLSH LLT LNE LOROR LRSH
 
 // Go, Not vGo
@@ -178,18 +181,18 @@ import_there:
 xdcl:
 	{
 		yyerror("empty top-level declaration");
-		$$ = nil;
+		$$ = 0;
 	}
 |	common_dcl
 |	xfndcl
 |	non_dcl_stmt
 	{
 		yyerror("non-declaration statement outside function body");
-		$$ = nil;
+		$$ = 0;
 	}
 |	error
 	{
-		$$ = nil;
+		$$ = 0;
 	}
 	;
 
@@ -269,11 +272,11 @@ caseblock:
 		// leave it alone (parser has it cached in yychar).
 		// This is so that the stmt_list action doesn't look at
 		// the case tokens if the stmt_list is empty.
-		yylast = yychar;
+		// yylast = yychar;
 	}
 	stmt_list
 	{
-		int last;
+		// int last;
 
 		// This is the only place in the language where a statement
 		// list is not allowed to drop the final semicolon, because
@@ -282,10 +285,10 @@ caseblock:
 
 		// Find the final token of the statement list.
 		// yylast is lookahead; yyprev is last of stmt_list
-		last = yyprev;
+		// last = yyprev;
 
-		if(last > 0 && last != ';' && yychar != '}')
-			yyerror("missing statement after label");
+		// if(last > 0 && last != ';' && yychar != '}')
+		// 	yyerror("missing statement after label");
 	}
 
 caseblock_list:
@@ -293,7 +296,7 @@ caseblock_list:
 	;
 
 loop_body:
-	LBODY
+	'{'
 	stmt_list '}'
 	;
 
@@ -346,12 +349,12 @@ else:
 switch_stmt:
 	LSWITCH
 	if_header
-	LBODY caseblock_list '}'
+	'{' caseblock_list '}'
 	;
 
 select_stmt:
 	LSELECT
-	LBODY caseblock_list '}'
+	'{' caseblock_list '}'
 	;
 
 /*
@@ -419,11 +422,6 @@ pexpr_no_paren:
 |	pseudocall
 |	convtype '(' expr ocomma ')'
 |	comptype lbrace start_complit braced_keyval_list '}'
-|	pexpr_no_paren '{' start_complit braced_keyval_list '}'
-|	'(' expr_or_type ')' '{' start_complit braced_keyval_list '}'
-	{
-		yyerror("cannot parenthesize type in composite literal");
-	}
 |	fnliteral
 
 start_complit:
@@ -460,8 +458,7 @@ name_or_type:
 	ntype
 
 lbrace:
-	LBODY
-|	'{'
+	'{'
 	;
 
 /*
