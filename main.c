@@ -1,7 +1,7 @@
 // Devin Driggs
 
-#include <stdlib.h>
-#include <stdio.h>      // printf
+#include <stdlib.h>     // For basically everything
+#include <stdio.h>      // printf, NULL
 #include <string.h>     // strlen, strcpy
 #include <stdbool.h>    // Adds boolean support
 
@@ -12,10 +12,12 @@
 #include "node_list.h"
 #include "node_iterator.h"
 
+// extern char *yytext;
 extern FILE *yyin;
-extern char *yytext;
-extern int yylineno;
+extern int yylineno;        // For resetting lineno in each new file
 
+struct tree *yyprogram;
+struct list *typenames = NULL;
 struct token* yytoken;
 struct node_t* root;
 struct node_t* currentNode;
@@ -27,6 +29,7 @@ int yylex();
 // Return Codes:
 // 0: Success
 // 1: Lexical Error
+// 2: Parsing Error
 // -1: Other errors
 
 // https://stackoverflow.com/questions/744766
@@ -77,16 +80,25 @@ int main(int argc, char* argv[]) {
             fileNames[i - 1] = strcat(fileNames[i - 1], ".go");
         }
 	}
-    int yyreturn;
+    // Create an array of pointers to parse trees
+    node_t** treeRoots = malloc(sizeof(node_t*) * (argc - 1));
+
+    // For each filename, parse file
     for(int i = 0; i < argc - 1; i++) {
-        root = node_create(NULL, NULL);
-        currentFile = fileNames[i];
-        yylineno = 1;
-        yyin = fopen(currentFile, "r");
+        // Initialize root pointer
+        treeRoots[i] = node_create(NULL, NULL);
+        
+        yylineno = 1; // Reset line counter to 0
+        
+        // prepare input file
+        yyin = fopen(fileNames[i], "r");
 		if(yyin == NULL){
-			printf("invalid File: %s\n", currentFile);
+			printf("invalid File: %s\n", fileNames[i]);
 			return -1;
 		}
+
+        // Parse with Bison
+        int yyreturn = yyparse();
         while((yyreturn = yylex()) != 0) {
             if(yyreturn != 1 && yyreturn != LGOOPERATOR && yyreturn != LGOKEYWORD) {
                 currentNode = node_create(root, yytoken);
