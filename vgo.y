@@ -229,30 +229,22 @@ common_dcl:
 lconst:
 	LCONST	{ $$ = $1; }
 	;
-///////////////////////////////////////////////
-Pausing here
-Clipboard for easy copying
-{ $$ = $1; }
-{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
-{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
-//////////////////////////////////////////////
+
 vardcl:
-	dcl_name_list ntype
-|	dcl_name_list ntype '=' expr_list
-|	dcl_name_list '=' expr_list
+	dcl_name_list ntype					{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+|	dcl_name_list ntype '=' expr_list	{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
+|	dcl_name_list '=' expr_list			{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 constdcl:
-	dcl_name_list ntype '=' expr_list
-|	dcl_name_list '=' expr_list
+	dcl_name_list ntype '=' expr_list	{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
+|	dcl_name_list '=' expr_list			{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 constdcl1:
-	constdcl
-|	dcl_name_list ntype
-|	dcl_name_list
+	constdcl			{ $$ = $1; }
+|	dcl_name_list ntype	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+|	dcl_name_list		{ $$ = $1; }
 	;
 
 typedclname:
@@ -264,28 +256,28 @@ typedclname:
 	;
 
 typedcl:
-	typedclname ntype
+	typedclname ntype	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
 	;
 
 simple_stmt:
-	expr
-|	expr LASOP expr
-|	expr_list '=' expr_list
-|	expr_list LCOLAS expr_list
-|	expr LINC
-|	expr LDEC
+	expr						{ $$ = $1; }
+|	expr LASOP expr				{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	expr_list '=' expr_list		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	expr_list LCOLAS expr_list	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	expr LINC					{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+|	expr LDEC					{ $$ = node_create(NULL, NULL, 2, $1, $2); }
 	;
 
 case:
-	LCASE expr_or_type_list ':'
-|	LCASE expr_or_type_list '=' expr ':'
-|	LCASE expr_or_type_list LCOLAS expr ':'
-|	LDEFAULT ':'
+	LCASE expr_or_type_list ':'				{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	LCASE expr_or_type_list '=' expr ':'	{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	LCASE expr_or_type_list LCOLAS expr ':' { $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	LDEFAULT ':'							{ $$ = node_create(NULL, NULL, 2, $1, $2); }
 	;
 
 compound_stmt:
-	'{'
-	stmt_list '}'
+	'{'				{ $$ = $1; }
+	stmt_list '}'	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
 	;
 
 caseblock:
@@ -317,112 +309,113 @@ caseblock:
 	}
 
 caseblock_list:
-|	caseblock_list caseblock
+|	caseblock_list caseblock	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
 	;
 
 loop_body:
-	'{'
-	stmt_list '}'
+	'{'				{ $$ = $1; }
+	stmt_list '}'	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
 	;
 
 range_stmt:
-	expr_list '=' LRANGE expr
-|	expr_list LCOLAS LRANGE expr
+	expr_list '=' LRANGE expr		{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
+|	expr_list LCOLAS LRANGE expr	{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
 	;
 
 for_header:
-	osimple_stmt ';' osimple_stmt ';' osimple_stmt
-|	osimple_stmt
-|	range_stmt
+	osimple_stmt ';' osimple_stmt ';' osimple_stmt	{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	osimple_stmt									{ $$ = $1; }
+|	range_stmt										{ $$ = $1; }
 	;
 
 for_body:
-	for_header loop_body
+	for_header loop_body	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
 	;
 
 for_stmt:
-	LFOR
-	for_body
+	LFOR		{ $$ = $1; }
+	for_body	{ $$ = $1; }
 	;
 
 if_header:
-	osimple_stmt
-|	osimple_stmt ';' osimple_stmt
+	osimple_stmt					{ $$ = $1; }
+|	osimple_stmt ';' osimple_stmt	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 /* IF cond body (ELSE IF cond body)* (ELSE block)? */
 if_stmt:
-	LIF
-	if_header
-	loop_body
-	elseif_list else
+	LIF					{ $$ = $1; }
+	if_header			{ $$ = $1; }
+	loop_body			{ $$ = $1; }
+	elseif_list else	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
 	;
 
 elseif:
-	LELSE LIF 
-	if_header loop_body
+	LELSE LIF 			{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+	if_header loop_body	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
 	;
 
 elseif_list:
-|	elseif_list elseif
+|	elseif_list elseif	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
 	;
 
 else:
-|	LELSE compound_stmt
+|	LELSE compound_stmt	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
 	;
 
 switch_stmt:
-	LSWITCH
-	if_header
-	'{' caseblock_list '}'
+	LSWITCH					{ $$ = $1; }
+	if_header				{ $$ = $1; }
+	'{' caseblock_list '}'	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 select_stmt:
-	LSELECT
-	'{' caseblock_list '}'
+	LSELECT					{ $$ = $1; }
+	'{' caseblock_list '}'	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 /*
  * expressions
  */
 expr:
-	uexpr
-|	expr LOROR expr
-|	expr LANDAND expr
-|	expr LEQ expr
-|	expr LNE expr
-|	expr LLT expr
-|	expr LLE expr
-|	expr LGE expr
-|	expr LGT expr
-|	expr '+' expr
-|	expr '-' expr
-|	expr '|' expr
-|	expr '^' expr
-|	expr '*' expr
-|	expr '/' expr
-|	expr '%' expr
-|	expr '&' expr
-|	expr LANDNOT expr
-|	expr LLSH expr
-|	expr LRSH expr
+	uexpr				{ $$ = $1; }
+|	expr LOROR expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	expr LANDAND expr	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	expr LEQ expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	expr LNE expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	expr LLT expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	expr LLE expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	expr LGE expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	expr LGT expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	expr '+' expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	expr '-' expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	expr '|' expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	expr '^' expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	expr '*' expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	expr '/' expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	expr '%' expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	expr '&' expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	expr LANDNOT expr	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	expr LLSH expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	expr LRSH expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+
 	/* not an expression anymore, but left in so we can give a good error */
-|	expr LCOMM expr
+|	expr LCOMM expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 uexpr:
-	pexpr
-|	'*' uexpr
-|	'&' uexpr
-|	'+' uexpr
-|	'-' uexpr
-|	'!' uexpr
+	pexpr		{ $$ = $1; }
+|	'*' uexpr	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+|	'&' uexpr	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+|	'+' uexpr	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+|	'-' uexpr	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+|	'!' uexpr	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
 |	'~' uexpr
 	{
 		yyerror("the bitwise complement operator is ^");
 	}
 |	'^' uexpr
-|	LCOMM uexpr
+|	LCOMM uexpr	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
 	;
 
 /*
@@ -430,24 +423,24 @@ uexpr:
  * can be preceded by 'defer' and 'go'
  */
 pseudocall:
-	pexpr '(' ')'
-|	pexpr '(' expr_or_type_list ocomma ')'
-|	pexpr '(' expr_or_type_list LDDD ocomma ')'
+	pexpr '(' ')'								{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	pexpr '(' expr_or_type_list ocomma ')'		{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	pexpr '(' expr_or_type_list LDDD ocomma ')'	{ $$ = node_create(NULL, NULL, 6, $1, $2, $3, $4, $5, $6); }
 	;
 
 pexpr_no_paren:
-	literal
-|	name
-|	pexpr '.' sym
-|	pexpr '.' '(' expr_or_type ')'
-|	pexpr '.' '(' LTYPE ')'
-|	pexpr '[' expr ']'
-|	pexpr '[' oexpr ':' oexpr ']'
-|	pexpr '[' oexpr ':' oexpr ':' oexpr ']'
-|	pseudocall
-|	convtype '(' expr ocomma ')'
-|	comptype lbrace start_complit braced_keyval_list '}'
-|	fnliteral
+	literal													{ $$ = $1; }
+|	name													{ $$ = $1; }
+|	pexpr '.' sym											{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	pexpr '.' '(' expr_or_type ')'							{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	pexpr '.' '(' LTYPE ')'									{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	pexpr '[' expr ']'										{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
+|	pexpr '[' oexpr ':' oexpr ']'							{ $$ = node_create(NULL, NULL, 6, $1, $2, $3, $4, $5, $6); }
+|	pexpr '[' oexpr ':' oexpr ':' oexpr ']'					{ $$ = node_create(NULL, NULL, 8, $1, $2, $3, $4, $5, $6, $7, $8); }
+|	pseudocall												{ $$ = $1; }
+|	convtype '(' expr ocomma ')'							{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	comptype lbrace start_complit braced_keyval_list '}'	{ $$ = node_create(NULL, NULL, 6, $1, $2, $3, $4, $5, $6); }
+|	fnliteral												{ $$ = $1; }
 
 start_complit:
 	{
@@ -457,33 +450,33 @@ start_complit:
 	;
 
 keyval:
-	expr ':' complitexpr
+	expr ':' complitexpr	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 bare_complitexpr:
-	expr
-|	'{' start_complit braced_keyval_list '}'
+	expr										{ $$ = $1; }
+|	'{' start_complit braced_keyval_list '}'	{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
 	;
 
 complitexpr:
-	expr
-|	'{' start_complit braced_keyval_list '}'
+	expr										{ $$ = $1; }
+|	'{' start_complit braced_keyval_list '}'	{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
 	;
 
 pexpr:
-	pexpr_no_paren
-|	'(' expr_or_type ')'
+	pexpr_no_paren			{ $$ = $1; }
+|	'(' expr_or_type ')'	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 expr_or_type:
-	expr
-|	non_expr_type	%prec PreferToRightParen
+	expr			{ $$ = $1; }
+|	non_expr_type	{ $$ = $1; }	%prec PreferToRightParen
 
 name_or_type:
-	ntype
+	ntype	{ $$ = $1; }
 
 lbrace:
-	'{'
+	'{'		{ $$ = $1; }
 	;
 
 /*
@@ -492,34 +485,34 @@ lbrace:
  *	oldname is used after declared
  */
 new_name:
-	sym
+	sym	{ $$ = $1; }
 	;
 
 dcl_name:
-	sym
+	sym	{ $$ = $1; }
 	;
 
 onew_name:
-|	new_name
+|	new_name	{ $$ = $1; }
 	;
 
 sym:
-	LNAME
-|	hidden_importsym
-|	'?'
+	LNAME				{ $$ = $1; }
+|	hidden_importsym	{ $$ = $1; }
+|	'?'					{ $$ = $1; }
 	;
 
 hidden_importsym:
-	'@' literal '.' LNAME
-|	'@' literal '.' '?'
+	'@' literal '.' LNAME	{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
+|	'@' literal '.' '?'		{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
 	;
 
 name:
-	sym	%prec NotParen
+	sym	{ $$ = $1; }	%prec NotParen
 	;
 
 labelname:
-	new_name
+	new_name	{ $$ = $1; }
 	;
 
 /*
@@ -536,80 +529,80 @@ dotdotdot:
 	{
 		yyerror("final argument in variadic function missing type");
 	}
-|	LDDD ntype
+|	LDDD ntype	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
 	;
 
 ntype:
-	recvchantype
-|	fntype
-|	othertype
-|	ptrtype
-|	dotname
-|	'(' ntype ')'
+	recvchantype	{ $$ = $1; }
+|	fntype			{ $$ = $1; }
+|	othertype		{ $$ = $1; }
+|	ptrtype			{ $$ = $1; }
+|	dotname			{ $$ = $1; }
+|	'(' ntype ')'	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 non_expr_type:
-	recvchantype
-|	fntype
-|	othertype
-|	'*' non_expr_type
+	recvchantype		{ $$ = $1; }
+|	fntype				{ $$ = $1; }
+|	othertype			{ $$ = $1; }
+|	'*' non_expr_type	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
 	;
 
 non_recvchantype:
-	fntype
-|	othertype
-|	ptrtype
-|	dotname
-|	'(' ntype ')'
+	fntype			{ $$ = $1; }
+|	othertype		{ $$ = $1; }
+|	ptrtype			{ $$ = $1; }
+|	dotname			{ $$ = $1; }
+|	'(' ntype ')'	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 convtype:
-	fntype
-|	othertype
+	fntype		{ $$ = $1; }
+|	othertype	{ $$ = $1; }
 
 comptype:
-	othertype
+	othertype	{ $$ = $1; }
 	;
 
 fnret_type:
-	recvchantype
-|	fntype
-|	othertype
-|	ptrtype
-|	dotname
+	recvchantype	{ $$ = $1; }
+|	fntype			{ $$ = $1; }
+|	othertype		{ $$ = $1; }
+|	ptrtype			{ $$ = $1; }
+|	dotname			{ $$ = $1; }
 	;
 
 dotname:
-	name
-|	name '.' sym
+	name			{ $$ = $1; }
+|	name '.' sym	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 othertype:
-	'[' oexpr ']' ntype
-|	'[' LDDD ']' ntype
-|	LCHAN non_recvchantype
-|	LCHAN LCOMM ntype
-|	LMAP '[' ntype ']' ntype
-|	structtype
-|	interfacetype
+	'[' oexpr ']' ntype			{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
+|	'[' LDDD ']' ntype			{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
+|	LCHAN non_recvchantype		{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+|	LCHAN LCOMM ntype			{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	LMAP '[' ntype ']' ntype	{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	structtype					{ $$ = $1; }
+|	interfacetype				{ $$ = $1; }
 	;
 
 ptrtype:
-	'*' ntype
+	'*' ntype	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
 	;
 
 recvchantype:
-	LCOMM LCHAN ntype
+	LCOMM LCHAN ntype	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 structtype:
-	LSTRUCT lbrace structdcl_list osemi '}'
-|	LSTRUCT lbrace '}'
+	LSTRUCT lbrace structdcl_list osemi '}'	{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	LSTRUCT lbrace '}'						{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 interfacetype:
-	LINTERFACE lbrace interfacedcl_list osemi '}'
-|	LINTERFACE lbrace '}'
+	LINTERFACE lbrace interfacedcl_list osemi '}'	{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	LINTERFACE lbrace '}'							{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 /*
@@ -617,36 +610,45 @@ interfacetype:
  * all in one place to show how crappy it all is
  */
 xfndcl:
-	LFUNC fndcl fnbody
+	LFUNC fndcl fnbody	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 fndcl:
-	sym '(' oarg_type_list_ocomma ')' fnres
-|	'(' oarg_type_list_ocomma ')' sym '(' oarg_type_list_ocomma ')' fnres
+	sym '(' oarg_type_list_ocomma ')' fnres									{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	'(' oarg_type_list_ocomma ')' sym '(' oarg_type_list_ocomma ')' fnres	{ $$ = node_create(NULL, NULL, 8, $1, $2, $3, $4, $5, $6, $7, $8); }
 	;
 
 hidden_fndcl:
-	hidden_pkg_importsym '(' ohidden_funarg_list ')' ohidden_funres
-|	'(' hidden_funarg_list ')' sym '(' ohidden_funarg_list ')' ohidden_funres
+	hidden_pkg_importsym '(' ohidden_funarg_list ')' ohidden_funres				{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	'(' hidden_funarg_list ')' sym '(' ohidden_funarg_list ')' ohidden_funres	{ $$ = node_create(NULL, NULL, 8, $1, $2, $3, $4, $5, $6, $7, $8); }
 	;
 
 fntype:
-	LFUNC '(' oarg_type_list_ocomma ')' fnres
+	LFUNC '(' oarg_type_list_ocomma ')' fnres	{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
 	;
 
 fnbody:
-|	'{' stmt_list '}'
+|	'{' stmt_list '}'	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 fnres:
 	%prec NotParen
-|	fnret_type
-|	'(' oarg_type_list_ocomma ')'
+|	fnret_type						{ $$ = $1; }
+|	'(' oarg_type_list_ocomma ')'	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 fnlitdcl:
-	fntype
+	fntype	{ $$ = $1; }
 	;
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
+{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+{ $$ = $1; }
 
 fnliteral:
 	fnlitdcl lbrace stmt_list '}'
