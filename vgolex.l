@@ -42,8 +42,8 @@ void tokenize(int category)
 "import"        {tokenize(LIMPORT); return LIMPORT;}
 "return"        {tokenize(LRETURN); return LRETURN;}
 "var"           {tokenize(LVAR); return LVAR;}
-"true"          {tokenize(LTRUE); return LTRUE;}
-"false"         {tokenize(LFALSE); return LFALSE;}
+"true"          {tokenize(LBOOL); return LBOOL;}
+"false"         {tokenize(LBOOL); return LBOOL;}
 
 
     /* Bad reserved words */
