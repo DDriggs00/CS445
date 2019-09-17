@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 
 #include "node.h"
 #include "node_list.h"
@@ -76,6 +77,21 @@ node_t* node_create(node_t* parent, void* data) {
 	}
 
 	return node;
+}
+
+node_t* node_create2(struct node_t* parent, void* data, int count, ...) {
+	node_t* node = node_create(parent, data);
+	
+	// for each additional arg (in the ...), add it as a child
+	// Loosely based on: https://github.com/andschwa/partial-cpp-compiler/blob/master/tree.c
+	va_list ap;
+	va_start(ap, count);
+	for (int i = 0; i < count; ++i) {
+		struct node_t* child = va_arg(ap, void *);
+		if (child != NULL) {
+			node_attach(node, child);
+		}
+	}
 }
 
 int node_attach(node_t* parent, node_t* child) {

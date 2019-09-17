@@ -56,6 +56,10 @@ typedef struct node_t {
 void node_destroy(struct node_t* node);
 struct node_t* node_create(struct node_t* parent, void* data);
 
+// Same as above, but initializes children too
+// Used in parser
+struct node_t* node_create2(struct node_t* parent, void* data, int count, ...);
+
 int node_attach(struct node_t* parent, struct node_t* child);
 int node_detach(struct node_t* parent, struct node_t* child);
 int node_insert(struct node_t* parent, unsigned int index, struct node_t* child);
