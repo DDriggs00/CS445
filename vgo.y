@@ -19,91 +19,108 @@
  */
 
 %{
-#include <stdio.h>
-#include <stdlib.h>
-int yylex();		
-int yyerror();		
-#define YYDEBUG 1
+
+#include <stdlib.h>		// For basically everything
+#include <stdio.h>		// For NULL, printf
+#include <stdbool.h>	// For boolean support
+
+#include "node.h"
+
+#define YYDEBUG true
+
+// extern struct token *yytoken;
+extern char** fileNames;
+extern char* currentFile;
+
+int yylex();    // Parser
+
+int yyerror(char* s);
 %}
+
+%union {
+	struct node_t* t;
+}
+
 // variable contents (manually added)
-%token		LLITERAL LBOOL LINT LHEX LOCT LFLOAT LBIN LRUNE
+%token <t>	LLITERAL LBOOL LINT LHEX LOCT LFLOAT LBIN LRUNE
+
 // Variable type names
-%token      LTYPEINT LTYPESTRING LTYPEBOOL LTYPEFLOAT64 LTYPERUNE
+%token <t>  LTYPEINT LTYPESTRING LTYPEBOOL LTYPEFLOAT64 LTYPERUNE
 
 // Operators manually added (+=, -=)
-%token      LPLASN LMIASN
-
-// True and False (manually added)
-%token      LTRUE LFALSE
+%token <t>  LPLASN LMIASN
 
 // Assignment Operator
-%token		LASOP
+%token <t>  LASOP
 
 // reserved words
-%token		LCONST LELSE LFOR LFUNC LIF LIMPORT LMAP LVAR
-%token		LPACKAGE LRETURN LSTRUCT
-%token      LNAME
-%token		LTYPE LRANGE
+%token <t>	LCONST LELSE LFOR LFUNC LIF LIMPORT LMAP LVAR
+%token <t>  LPACKAGE LRETURN LSTRUCT
+%token <t>  LNAME
+%token <t>  LTYPE LRANGE
 
-%token		LANDAND LANDNOT LCOMM LDEC LEQ LGE LGT
-%token		LIGNORE LINC LLE LLSH LLT LNE LOROR LRSH
+// Operators
+%token <t>  LANDAND LANDNOT LCOMM LDEC LEQ LGE LGT
+%token <t>  LIGNORE LINC LLE LLSH LLT LNE LOROR LRSH
 
 // Go, Not vGo
-%token		LGOKEYWORD LGOOPERATOR
-%token	    LCOLAS LBREAK LCASE LCHAN LCONTINUE LDDD
-%token      LDEFAULT LDEFER LFALL LGO LGOTO LINTERFACE
-%token      LSELECT LSWITCH
+%token <t>  LGOKEYWORD LGOOPERATOR
+%token <t>  LCOLAS LBREAK LCASE LCHAN LCONTINUE LDDD
+%token <t>  LDEFAULT LDEFER LFALL LGO LGOTO LINTERFACE
+%token <t>  LSELECT LSWITCH
 
-/*
-%type		lbrace import_here
-%type		sym packname
-%type		oliteral
+// My added types
+%type <t>   literal
 
-%type		stmt ntype
-%type		arg_type
-%type		case caseblock
-%type		compound_stmt dotname embed expr complitexpr bare_complitexpr
-%type		expr_or_type
-%type		fndcl hidden_fndcl fnliteral
-%type		for_body for_header for_stmt if_header if_stmt non_dcl_stmt
-%type		interfacedcl keyval labelname name
-%type		name_or_type non_expr_type
-%type		new_name dcl_name oexpr typedclname
-%type		onew_name
-%type		osimple_stmt pexpr pexpr_no_paren
-%type		pseudocall range_stmt select_stmt
-%type		simple_stmt
-%type		switch_stmt uexpr
-%type		xfndcl typedcl start_complit
+// Non-Terminal symbols
+%type <t>	lbrace import_here
+%type <t>	sym packname
+%type <t>	oliteral
 
-%type		xdcl fnbody fnres loop_body dcl_name_list
-%type		new_name_list expr_list keyval_list braced_keyval_list expr_or_type_list xdcl_list
-%type		oexpr_list caseblock_list elseif elseif_list else stmt_list oarg_type_list_ocomma arg_type_list
-%type		interfacedcl_list vardcl vardcl_list structdcl structdcl_list
-%type		common_dcl constdcl constdcl1 constdcl_list typedcl_list
+%type <t>	stmt ntype
+%type <t>	arg_type
+%type <t>	case caseblock
+%type <t>	compound_stmt dotname embed expr complitexpr bare_complitexpr
+%type <t>	expr_or_type
+%type <t>	fndcl hidden_fndcl fnliteral
+%type <t>	for_body for_header for_stmt if_header if_stmt non_dcl_stmt
+%type <t>	interfacedcl keyval labelname name
+%type <t>	name_or_type non_expr_type
+%type <t>	new_name dcl_name oexpr typedclname
+%type <t>	onew_name
+%type <t>	osimple_stmt pexpr pexpr_no_paren
+%type <t>	pseudocall range_stmt select_stmt
+%type <t>	simple_stmt
+%type <t>	switch_stmt uexpr
+%type <t>	xfndcl typedcl start_complit
 
-%type		convtype comptype dotdotdot
-%type		indcl interfacetype structtype ptrtype
-%type		recvchantype non_recvchantype othertype fnret_type fntype
+%type <t>	xdcl fnbody fnres loop_body dcl_name_list
+%type <t>	new_name_list expr_list keyval_list braced_keyval_list expr_or_type_list xdcl_list
+%type <t>	oexpr_list caseblock_list elseif elseif_list else stmt_list oarg_type_list_ocomma arg_type_list
+%type <t>	interfacedcl_list vardcl vardcl_list structdcl structdcl_list
+%type <t>	common_dcl constdcl constdcl1 constdcl_list typedcl_list
 
-%type		hidden_importsym hidden_pkg_importsym
+%type <t>	convtype comptype dotdotdot
+%type <t>	indcl interfacetype structtype ptrtype
+%type <t>	recvchantype non_recvchantype othertype fnret_type fntype
 
-%type		hidden_constant hidden_literal hidden_funarg
-%type		hidden_interfacedcl hidden_structdcl
+%type <t>	hidden_importsym hidden_pkg_importsym
 
-%type		hidden_funres
-%type		ohidden_funres
-%type		hidden_funarg_list ohidden_funarg_list
-%type		hidden_interfacedcl_list ohidden_interfacedcl_list
-%type		hidden_structdcl_list ohidden_structdcl_list
+%type <t>	hidden_constant hidden_literal hidden_funarg
+%type <t>	hidden_interfacedcl hidden_structdcl
 
-%type		hidden_type hidden_type_misc hidden_pkgtype
-%type		hidden_type_func
-%type		hidden_type_recv_chan hidden_type_non_recv_chan
-*/
+%type <t>	hidden_funres
+%type <t>	ohidden_funres
+%type <t>	hidden_funarg_list ohidden_funarg_list
+%type <t>	hidden_interfacedcl_list ohidden_interfacedcl_list
+%type <t>	hidden_structdcl_list ohidden_structdcl_list
 
+%type <t>	hidden_type hidden_type_misc hidden_pkgtype
+%type <t>	hidden_type_func
+%type <t>	hidden_type_recv_chan hidden_type_non_recv_chan
+
+// Type order precedence, top is first
 %left		LCOMM	/* outside the usual hierarchy; here for good error messages */
-
 %left		LOROR
 %left		LANDAND
 %left		LEQ LNE LLE LGE LLT LGT
@@ -126,10 +143,12 @@ int yyerror();
 %left		')'
 %left		PreferToRightParen
 
-%define parse.error verbose
+// %start program
 
 %%
-file:	package	imports	xdcl_list ;
+file:	
+    package	imports	xdcl_list	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    ;
 
 package:
 	%prec NotPackage 
@@ -137,82 +156,88 @@ package:
 		yyerror("package statement must be first");
 		exit(1);
 	}
-|	LPACKAGE sym ';'
+|	LPACKAGE sym ';'	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 imports:
-|	imports import ';'
+|	imports import ';'	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 
 import:
-	LIMPORT import_stmt
-|	LIMPORT '(' import_stmt_list osemi ')'
-|	LIMPORT '(' ')'
+	LIMPORT import_stmt	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+|	LIMPORT '(' import_stmt_list osemi ')'	{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
+|	LIMPORT '(' ')'		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 import_stmt:
-	import_here import_package import_there
+	import_here import_package import_there	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 import_stmt_list:
 	import_stmt
-|	import_stmt_list ';' import_stmt
+|	import_stmt_list ';' import_stmt	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 import_here:
-	LLITERAL
-|	sym LLITERAL
-|	'.' LLITERAL
+	literal		{ $$ = $1; }
+|	sym literal	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+|	'.' literal	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
 	;
 
 import_package:
-	LPACKAGE LNAME import_safety ';'
+	LPACKAGE LNAME import_safety ';'	{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
 	;
 
 import_safety:
-|	LNAME
+|	LNAME	{ $$ = $1; }
 	;
 
 import_there:
-	hidden_import_list '$' '$'
+	hidden_import_list '$' '$'	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 
 /*
  * declarations
- */
+*/
 xdcl:
 	{
 		yyerror("empty top-level declaration");
 		$$ = 0;
 	}
-|	common_dcl
-|	xfndcl
-|	non_dcl_stmt
-	{
+|	common_dcl		{ $$ = $1; }
+|	xfndcl			{ $$ = $1; }
+|	non_dcl_stmt {
 		yyerror("non-declaration statement outside function body");
 		$$ = 0;
 	}
-|	error
-	{
+|	error {
 		$$ = 0;
 	}
 	;
 
 common_dcl:
-	LVAR vardcl
-|	LVAR '(' vardcl_list osemi ')'
-|	LVAR '(' ')'
-|	lconst constdcl
-|	lconst '(' constdcl osemi ')'
-|	lconst '(' constdcl ';' constdcl_list osemi ')'
-|	lconst '(' ')'
-|	LTYPE typedcl
-|	LTYPE '(' typedcl_list osemi ')'
-|	LTYPE '(' ')'
+	LVAR vardcl											{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+|	LVAR '(' vardcl_list osemi ')'						{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	LVAR '(' ')'										{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	lconst constdcl										{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+|	lconst '(' constdcl osemi ')'						{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	lconst '(' constdcl ';' constdcl_list osemi ')'		{ $$ = node_create(NULL, NULL, 6, $1, $2, $3, $4, $5, $6); }
+|	lconst '(' ')'										{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	LTYPE typedcl										{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+|	LTYPE '(' typedcl_list osemi ')'					{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	LTYPE '(' ')'										{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 lconst:
-	LCONST
+	LCONST	{ $$ = $1; }
 	;
-
+///////////////////////////////////////////////
+Pausing here
+Clipboard for easy copying
+{ $$ = $1; }
+{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
+{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+//////////////////////////////////////////////
 vardcl:
 	dcl_name_list ntype
 |	dcl_name_list ntype '=' expr_list
@@ -411,7 +436,7 @@ pseudocall:
 	;
 
 pexpr_no_paren:
-	LLITERAL
+	literal
 |	name
 |	pexpr '.' sym
 |	pexpr '.' '(' expr_or_type ')'
@@ -485,8 +510,8 @@ sym:
 	;
 
 hidden_importsym:
-	'@' LLITERAL '.' LNAME
-|	'@' LLITERAL '.' '?'
+	'@' literal '.' LNAME
+|	'@' literal '.' '?'
 	;
 
 name:
@@ -719,6 +744,17 @@ stmt:
 |	error
 	;
 
+literal:
+    LINT        { $$ = $1; }
+|   LHEX        { $$ = $1; }
+|   LOCT        { $$ = $1; }
+|   LBIN        { $$ = $1; }
+|   LFLOAT      { $$ = $1; }
+|   LBOOL       { $$ = $1; }
+|   LLITERAL    { $$ = $1; }
+|   LRUNE       { $$ = $1; }
+    ;
+
 non_dcl_stmt:
 	simple_stmt
 |	for_stmt
@@ -811,14 +847,14 @@ ohidden_interfacedcl_list:
 	;
 
 oliteral:
-|	LLITERAL
+|	literal
 	;
 
 /*
  * import syntax from package header
  */
 hidden_import:
-	LIMPORT LNAME LLITERAL ';'
+	LIMPORT LNAME literal ';'
 |	LVAR hidden_pkg_importsym hidden_type ';'
 |	LCONST hidden_pkg_importsym '=' hidden_constant ';'
 |	LCONST hidden_pkg_importsym hidden_type '=' hidden_constant ';'
@@ -853,7 +889,7 @@ hidden_type_misc:
 	hidden_importsym
 |	LNAME
 |	'[' ']' hidden_type
-|	'[' LLITERAL ']' hidden_type
+|	'[' literal ']' hidden_type
 |	LMAP '[' hidden_type ']' hidden_type
 |	LSTRUCT '{' ohidden_structdcl_list '}'
 |	LINTERFACE '{' ohidden_interfacedcl_list '}'
@@ -899,8 +935,8 @@ hidden_funres:
  */
 
 hidden_literal:
-	LLITERAL
-|	'-' LLITERAL
+	literal
+|	'-' literal
 |	sym
 	;
 
@@ -929,3 +965,9 @@ hidden_interfacedcl_list:
 	;
 
 %%
+
+// Error handling
+int yyerror(char* s) {
+   	fprintf(stderr, "%s:%d: %s before '%s' token\n", yyfilename, yylineno, s, yytext);
+    exit(2);
+}
