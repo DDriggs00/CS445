@@ -20,8 +20,8 @@
 
 %{
 
-#include <stdlib.h>		// For basically everything
-#include <stdio.h>		// For NULL, printf
+#include <stdlib.h>	    // For basically everything
+#include <stdio.h>	    // For NULL, printf
 #include <stdbool.h>	// For boolean support
 
 #include "node.h"
@@ -81,7 +81,7 @@ int yyerror(char* s);
 %type <t>	oliteral
 
 %type <t>	stmt ntype file package imports import import_stmt
-%type <t>	arg_type hidden_import list ocomma osemi
+%type <t>	arg_type hidden_import ocomma osemi fnlitdcl error
 %type <t>	case caseblock hidden_import_list import_stmt_list
 %type <t>	compound_stmt dotname embed expr complitexpr bare_complitexpr
 %type <t>	expr_or_type import_package import_safety import_there
@@ -123,12 +123,12 @@ int yyerror(char* s);
 %type <t>	hidden_type_recv_chan hidden_type_non_recv_chan
 
 // Type order precedence, top is first
-%left		LCOMM	/* outside the usual hierarchy; here for good error messages */
-%left		LOROR
-%left		LANDAND
-%left		LEQ LNE LLE LGE LLT LGT
-%left		'+' '-' '|' '^'
-%left		'*' '/' '%' '&' LLSH LRSH LANDNOT
+%left	    LCOMM	/* outside the usual hierarchy; here for good error messages */
+%left	    LOROR
+%left	    LANDAND
+%left	    LEQ LNE LLE LGE LLT LGT
+%left	    '+' '-' '|' '^'
+%left	    '*' '/' '%' '&' LLSH LRSH LANDNOT
 
 /*
  * manual override of shift/reduce conflicts.
@@ -137,76 +137,78 @@ int yyerror(char* s);
  * NotToken with lower precedence or PreferToToken with higher
  * and annotate the reducing rule accordingly.
  */
-%left		NotPackage
-%left		LPACKAGE
+%left	    NotPackage
+%left	    LPACKAGE
 
-%left		NotParen
-%left		'('
+%left	    NotParen
+%left	    '('
 
-%left		')'
-%left		PreferToRightParen
+%left	    ')'
+%left	    PreferToRightParen
 
 // %start program
 
 %%
 file:	
-    package	imports	xdcl_list	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    package	imports	xdcl_list	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 package:
     %prec NotPackage 
-    {
+    %empty {
         yyerror("package statement must be first");
         exit(1);
     }
-|	LPACKAGE sym ';'	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	LPACKAGE sym ';'	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 imports:
-|	imports import ';'	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    %empty              { $$ = node_create(NULL, NULL); }
+|	imports import ';'	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
 
 import:
-    LIMPORT import_stmt	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-|	LIMPORT '(' import_stmt_list osemi ')'	{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
-|	LIMPORT '(' ')'		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    LIMPORT import_stmt                     { $$ = node_create2(NULL, NULL, 2, $1, $2); }
+|	LIMPORT '(' import_stmt_list osemi ')'  { $$ = node_create2(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	LIMPORT '(' ')'                         { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 import_stmt:
-    import_here import_package import_there	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    import_here import_package import_there	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 import_stmt_list:
     import_stmt
-|	import_stmt_list ';' import_stmt	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	import_stmt_list ';' import_stmt	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 import_here:
-    literal		{ $$ = $1; }
-|	sym literal	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-|	'.' literal	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+    literal	    { $$ = $1; }
+|	sym literal	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
+|	'.' literal	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
     ;
 
 import_package:
-    LPACKAGE LNAME import_safety ';'	{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
+    LPACKAGE LNAME import_safety ';'	{ $$ = node_create2(NULL, NULL, 4, $1, $2, $3, $4); }
     ;
 
 import_safety:
+    %empty  { $$ = node_create(NULL, NULL); }
 |	LNAME	{ $$ = $1; }
     ;
 
 import_there:
-    hidden_import_list '$' '$'	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    hidden_import_list '$' '$'	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
 
 /*
  * declarations
 */
 xdcl:
-    {
+    %empty {
         yyerror("empty top-level declaration");
         $$ = 0;
     }
-|	common_dcl		{ $$ = $1; }
-|	xfndcl			{ $$ = $1; }
+|	common_dcl	    { $$ = $1; }
+|	xfndcl	    	{ $$ = $1; }
 |	non_dcl_stmt {
         yyerror("non-declaration statement outside function body");
         $$ = 0;
@@ -217,16 +219,16 @@ xdcl:
     ;
 
 common_dcl:
-    LVAR vardcl											{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-|	LVAR '(' vardcl_list osemi ')'						{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
-|	LVAR '(' ')'										{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	lconst constdcl										{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-|	lconst '(' constdcl osemi ')'						{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
-|	lconst '(' constdcl ';' constdcl_list osemi ')'		{ $$ = node_create(NULL, NULL, 6, $1, $2, $3, $4, $5, $6); }
-|	lconst '(' ')'										{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	LTYPE typedcl										{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-|	LTYPE '(' typedcl_list osemi ')'					{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
-|	LTYPE '(' ')'										{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    LVAR vardcl	    	    	    	    	    	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
+|	LVAR '(' vardcl_list osemi ')'	    	    	    { $$ = node_create2(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	LVAR '(' ')'	    	    	    	    	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	lconst constdcl	    	    	    	    	    { $$ = node_create2(NULL, NULL, 2, $1, $2); }
+|	lconst '(' constdcl osemi ')'	    	    	    { $$ = node_create2(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	lconst '(' constdcl ';' constdcl_list osemi ')'	    { $$ = node_create2(NULL, NULL, 6, $1, $2, $3, $4, $5, $6); }
+|	lconst '(' ')'	    	    	    	    	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	LTYPE typedcl	    	    	    	    	    { $$ = node_create2(NULL, NULL, 2, $1, $2); }
+|	LTYPE '(' typedcl_list osemi ')'	    	    	{ $$ = node_create2(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	LTYPE '(' ')'	    	    	    	    	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 lconst:
@@ -234,20 +236,20 @@ lconst:
     ;
 
 vardcl:
-    dcl_name_list ntype					{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-|	dcl_name_list ntype '=' expr_list	{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
-|	dcl_name_list '=' expr_list			{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    dcl_name_list ntype	    	    	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
+|	dcl_name_list ntype '=' expr_list	{ $$ = node_create2(NULL, NULL, 4, $1, $2, $3, $4); }
+|	dcl_name_list '=' expr_list	    	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 constdcl:
-    dcl_name_list ntype '=' expr_list	{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
-|	dcl_name_list '=' expr_list			{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    dcl_name_list ntype '=' expr_list	{ $$ = node_create2(NULL, NULL, 4, $1, $2, $3, $4); }
+|	dcl_name_list '=' expr_list	    	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 constdcl1:
-    constdcl			{ $$ = $1; }
-|	dcl_name_list ntype	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-|	dcl_name_list		{ $$ = $1; }
+    constdcl	    	{ $$ = $1; }
+|	dcl_name_list ntype	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
+|	dcl_name_list	    { $$ = $1; }
     ;
 
 typedclname:
@@ -259,28 +261,27 @@ typedclname:
     ;
 
 typedcl:
-    typedclname ntype	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+    typedclname ntype	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
     ;
 
 simple_stmt:
-    expr						{ $$ = $1; }
-|	expr LASOP expr				{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	expr_list '=' expr_list		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	expr_list LCOLAS expr_list	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	expr LINC					{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-|	expr LDEC					{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+    expr	    	    	    { $$ = $1; }
+|	expr LASOP expr	    	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	expr_list '=' expr_list	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	expr_list LCOLAS expr_list	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	expr LINC	    	    	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
+|	expr LDEC	    	    	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
     ;
 
 case:
-    LCASE expr_or_type_list ':'				{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	LCASE expr_or_type_list '=' expr ':'	{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
-|	LCASE expr_or_type_list LCOLAS expr ':' { $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
-|	LDEFAULT ':'							{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+    LCASE expr_or_type_list ':'	    	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	LCASE expr_or_type_list '=' expr ':'	{ $$ = node_create2(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	LCASE expr_or_type_list LCOLAS expr ':' { $$ = node_create2(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	LDEFAULT ':'	    	    	    	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
     ;
 
 compound_stmt:
-    '{'				{ $$ = $1; }
-    stmt_list '}'	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+    '{' stmt_list '}'	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 caseblock:
@@ -312,113 +313,107 @@ caseblock:
     }
 
 caseblock_list:
-|	caseblock_list caseblock	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+    %empty                      { $$ = node_create(NULL, NULL); }
+|	caseblock_list caseblock	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
     ;
 
 loop_body:
-    '{'				{ $$ = $1; }
-    stmt_list '}'	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+    '{' stmt_list '}'   { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 range_stmt:
-    expr_list '=' LRANGE expr		{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
-|	expr_list LCOLAS LRANGE expr	{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
+    expr_list '=' LRANGE expr	    { $$ = node_create2(NULL, NULL, 4, $1, $2, $3, $4); }
+|	expr_list LCOLAS LRANGE expr	{ $$ = node_create2(NULL, NULL, 4, $1, $2, $3, $4); }
     ;
 
 for_header:
-    osimple_stmt ';' osimple_stmt ';' osimple_stmt	{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
-|	osimple_stmt									{ $$ = $1; }
-|	range_stmt										{ $$ = $1; }
+    osimple_stmt ';' osimple_stmt ';' osimple_stmt	{ $$ = node_create2(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	osimple_stmt	    	    	    	    	{ $$ = $1; }
+|	range_stmt	    	    	    	    	    { $$ = $1; }
     ;
 
 for_body:
-    for_header loop_body	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+    for_header loop_body	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
     ;
 
 for_stmt:
-    LFOR		{ $$ = $1; }
-    for_body	{ $$ = $1; }
+    LFOR for_body   { $$ = node_create2(NULL, NULL, 2, $1, $2); }
     ;
 
 if_header:
-    osimple_stmt					{ $$ = $1; }
-|	osimple_stmt ';' osimple_stmt	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    osimple_stmt	    	    	{ $$ = $1; }
+|	osimple_stmt ';' osimple_stmt	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 /* IF cond body (ELSE IF cond body)* (ELSE block)? */
 if_stmt:
-    LIF					{ $$ = $1; }
-    if_header			{ $$ = $1; }
-    loop_body			{ $$ = $1; }
-    elseif_list else	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+    LIF if_header loop_body elseif_list else    { $$ = node_create2(NULL, NULL, 5, $1, $2, $3, $4, $5); }
     ;
 
 elseif:
-    LELSE LIF 			{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-    if_header loop_body	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+    LELSE LIF if_header loop_body   { $$ = node_create2(NULL, NULL, 4, $1, $2, $3, $4); }
     ;
 
 elseif_list:
-|	elseif_list elseif	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+    %empty              { $$ = node_create(NULL, NULL); }
+|	elseif_list elseif	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
     ;
 
 else:
-|	LELSE compound_stmt	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+    %empty              { $$ = node_create(NULL, NULL); }
+|	LELSE compound_stmt	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
     ;
 
 switch_stmt:
-    LSWITCH					{ $$ = $1; }
-    if_header				{ $$ = $1; }
-    '{' caseblock_list '}'	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    LSWITCH if_header '{' caseblock_list '}'    { $$ = node_create2(NULL, NULL, 5, $1, $2, $3, $4, $5); }
     ;
 
 select_stmt:
-    LSELECT					{ $$ = $1; }
-    '{' caseblock_list '}'	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    LSELECT '{' caseblock_list '}'	{ $$ = node_create2(NULL, NULL, 4, $1, $2, $3, $4); }
     ;
 
 /*
  * expressions
  */
 expr:
-    uexpr				{ $$ = $1; }
-|	expr LOROR expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	expr LANDAND expr	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	expr LEQ expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	expr LNE expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	expr LLT expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	expr LLE expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	expr LGE expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	expr LGT expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	expr '+' expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	expr '-' expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	expr '|' expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	expr '^' expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	expr '*' expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	expr '/' expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	expr '%' expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	expr '&' expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	expr LANDNOT expr	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	expr LLSH expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	expr LRSH expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    uexpr	    	    { $$ = $1; }
+|	expr LOROR expr	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	expr LANDAND expr	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	expr LEQ expr	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	expr LNE expr	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	expr LLT expr	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	expr LLE expr	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	expr LGE expr	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	expr LGT expr	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	expr '+' expr	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	expr '-' expr	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	expr '|' expr	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	expr '^' expr	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	expr '*' expr	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	expr '/' expr	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	expr '%' expr	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	expr '&' expr	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	expr LANDNOT expr	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	expr LLSH expr	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	expr LRSH expr	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
 
     /* not an expression anymore, but left in so we can give a good error */
-|	expr LCOMM expr		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	expr LCOMM expr	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 uexpr:
-    pexpr		{ $$ = $1; }
-|	'*' uexpr	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-|	'&' uexpr	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-|	'+' uexpr	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-|	'-' uexpr	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-|	'!' uexpr	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+    pexpr	    { $$ = $1; }
+|	'*' uexpr	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
+|	'&' uexpr	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
+|	'+' uexpr	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
+|	'-' uexpr	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
+|	'!' uexpr	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
 |	'~' uexpr
     {
         yyerror("the bitwise complement operator is ^");
     }
 |	'^' uexpr
-|	LCOMM uexpr	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+|	LCOMM uexpr	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
     ;
 
 /*
@@ -426,60 +421,60 @@ uexpr:
  * can be preceded by 'defer' and 'go'
  */
 pseudocall:
-    pexpr '(' ')'								{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	pexpr '(' expr_or_type_list ocomma ')'		{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
-|	pexpr '(' expr_or_type_list LDDD ocomma ')'	{ $$ = node_create(NULL, NULL, 6, $1, $2, $3, $4, $5, $6); }
+    pexpr '(' ')'	    	    	    	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	pexpr '(' expr_or_type_list ocomma ')'	    { $$ = node_create2(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	pexpr '(' expr_or_type_list LDDD ocomma ')'	{ $$ = node_create2(NULL, NULL, 6, $1, $2, $3, $4, $5, $6); }
     ;
 
 pexpr_no_paren:
-    literal													{ $$ = $1; }
-|	name													{ $$ = $1; }
-|	pexpr '.' sym											{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	pexpr '.' '(' expr_or_type ')'							{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
-|	pexpr '.' '(' LTYPE ')'									{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
-|	pexpr '[' expr ']'										{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
-|	pexpr '[' oexpr ':' oexpr ']'							{ $$ = node_create(NULL, NULL, 6, $1, $2, $3, $4, $5, $6); }
-|	pexpr '[' oexpr ':' oexpr ':' oexpr ']'					{ $$ = node_create(NULL, NULL, 8, $1, $2, $3, $4, $5, $6, $7, $8); }
-|	pseudocall												{ $$ = $1; }
-|	convtype '(' expr ocomma ')'							{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
-|	comptype lbrace start_complit braced_keyval_list '}'	{ $$ = node_create(NULL, NULL, 6, $1, $2, $3, $4, $5, $6); }
-|	fnliteral												{ $$ = $1; }
+    literal	    	    	    	    	    	    	{ $$ = $1; }
+|	name	    	    	    	    	    	    	{ $$ = $1; }
+|	pexpr '.' sym	    	    	    	    	    	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	pexpr '.' '(' expr_or_type ')'	    	    	    	{ $$ = node_create2(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	pexpr '.' '(' LTYPE ')'	    	    	    	    	{ $$ = node_create2(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	pexpr '[' expr ']'	    	    	    	    	    { $$ = node_create2(NULL, NULL, 4, $1, $2, $3, $4); }
+|	pexpr '[' oexpr ':' oexpr ']'	    	    	    	{ $$ = node_create2(NULL, NULL, 6, $1, $2, $3, $4, $5, $6); }
+|	pexpr '[' oexpr ':' oexpr ':' oexpr ']'	    	    	{ $$ = node_create2(NULL, NULL, 8, $1, $2, $3, $4, $5, $6, $7, $8); }
+|	pseudocall      	    	    	    	    	    { $$ = $1; }
+|	convtype '(' expr ocomma ')'	    	    	    	{ $$ = node_create2(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	comptype lbrace start_complit braced_keyval_list '}'    { $$ = node_create2(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	fnliteral	    	    	    	    	    	    { $$ = $1; }
 
 start_complit:
-    {
+    %empty {
         // composite expression.
         // make node early so we get the right line number.
     }
     ;
 
 keyval:
-    expr ':' complitexpr	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    expr ':' complitexpr	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 bare_complitexpr:
-    expr										{ $$ = $1; }
-|	'{' start_complit braced_keyval_list '}'	{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
+    expr	    	    	    	    	    { $$ = $1; }
+|	'{' start_complit braced_keyval_list '}'	{ $$ = node_create2(NULL, NULL, 4, $1, $2, $3, $4); }
     ;
 
 complitexpr:
-    expr										{ $$ = $1; }
-|	'{' start_complit braced_keyval_list '}'	{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
+    expr	    	    	    	    	    { $$ = $1; }
+|	'{' start_complit braced_keyval_list '}'	{ $$ = node_create2(NULL, NULL, 4, $1, $2, $3, $4); }
     ;
 
 pexpr:
-    pexpr_no_paren			{ $$ = $1; }
-|	'(' expr_or_type ')'	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    pexpr_no_paren	    	{ $$ = $1; }
+|	'(' expr_or_type ')'	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 expr_or_type:
-    expr			{ $$ = $1; }
+    expr	    	{ $$ = $1; }
 |	non_expr_type	{ $$ = $1; }	%prec PreferToRightParen
 
 name_or_type:
     ntype	{ $$ = $1; }
 
 lbrace:
-    '{'		{ $$ = $1; }
+    '{'	    { $$ = $1; }
     ;
 
 /*
@@ -496,18 +491,19 @@ dcl_name:
     ;
 
 onew_name:
+    %empty      { $$ = node_create(NULL, NULL); }
 |	new_name	{ $$ = $1; }
     ;
 
 sym:
-    LNAME				{ $$ = $1; }
+    LNAME	    	    { $$ = $1; }
 |	hidden_importsym	{ $$ = $1; }
-|	'?'					{ $$ = $1; }
+|	'?'	    	    	{ $$ = $1; }
     ;
 
 hidden_importsym:
-    '@' literal '.' LNAME	{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
-|	'@' literal '.' '?'		{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
+    '@' literal '.' LNAME	{ $$ = node_create2(NULL, NULL, 4, $1, $2, $3, $4); }
+|	'@' literal '.' '?'	    { $$ = node_create2(NULL, NULL, 4, $1, $2, $3, $4); }
     ;
 
 name:
@@ -532,35 +528,35 @@ dotdotdot:
     {
         yyerror("final argument in variadic function missing type");
     }
-|	LDDD ntype	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+|	LDDD ntype	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
     ;
 
 ntype:
     recvchantype	{ $$ = $1; }
-|	fntype			{ $$ = $1; }
-|	othertype		{ $$ = $1; }
-|	ptrtype			{ $$ = $1; }
-|	dotname			{ $$ = $1; }
-|	'(' ntype ')'	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	fntype	    	{ $$ = $1; }
+|	othertype	    { $$ = $1; }
+|	ptrtype	    	{ $$ = $1; }
+|	dotname	    	{ $$ = $1; }
+|	'(' ntype ')'	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 non_expr_type:
-    recvchantype		{ $$ = $1; }
-|	fntype				{ $$ = $1; }
-|	othertype			{ $$ = $1; }
-|	'*' non_expr_type	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+    recvchantype	    { $$ = $1; }
+|	fntype	    	    { $$ = $1; }
+|	othertype	    	{ $$ = $1; }
+|	'*' non_expr_type	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
     ;
 
 non_recvchantype:
-    fntype			{ $$ = $1; }
-|	othertype		{ $$ = $1; }
-|	ptrtype			{ $$ = $1; }
-|	dotname			{ $$ = $1; }
-|	'(' ntype ')'	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    fntype	    	{ $$ = $1; }
+|	othertype	    { $$ = $1; }
+|	ptrtype	    	{ $$ = $1; }
+|	dotname	    	{ $$ = $1; }
+|	'(' ntype ')'	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 convtype:
-    fntype		{ $$ = $1; }
+    fntype	    { $$ = $1; }
 |	othertype	{ $$ = $1; }
 
 comptype:
@@ -569,43 +565,43 @@ comptype:
 
 fnret_type:
     recvchantype	{ $$ = $1; }
-|	fntype			{ $$ = $1; }
-|	othertype		{ $$ = $1; }
-|	ptrtype			{ $$ = $1; }
-|	dotname			{ $$ = $1; }
+|	fntype	    	{ $$ = $1; }
+|	othertype	    { $$ = $1; }
+|	ptrtype	    	{ $$ = $1; }
+|	dotname	    	{ $$ = $1; }
     ;
 
 dotname:
-    name			{ $$ = $1; }
-|	name '.' sym	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    name	    	{ $$ = $1; }
+|	name '.' sym	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 othertype:
-    '[' oexpr ']' ntype			{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
-|	'[' LDDD ']' ntype			{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
-|	LCHAN non_recvchantype		{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-|	LCHAN LCOMM ntype			{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	LMAP '[' ntype ']' ntype	{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
-|	structtype					{ $$ = $1; }
-|	interfacetype				{ $$ = $1; }
+    '[' oexpr ']' ntype	    	{ $$ = node_create2(NULL, NULL, 4, $1, $2, $3, $4); }
+|	'[' LDDD ']' ntype	    	{ $$ = node_create2(NULL, NULL, 4, $1, $2, $3, $4); }
+|	LCHAN non_recvchantype	    { $$ = node_create2(NULL, NULL, 2, $1, $2); }
+|	LCHAN LCOMM ntype	    	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	LMAP '[' ntype ']' ntype	{ $$ = node_create2(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	structtype	    	    	{ $$ = $1; }
+|	interfacetype	    	    { $$ = $1; }
     ;
 
 ptrtype:
-    '*' ntype	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+    '*' ntype	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
     ;
 
 recvchantype:
-    LCOMM LCHAN ntype	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    LCOMM LCHAN ntype	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 structtype:
-    LSTRUCT lbrace structdcl_list osemi '}'	{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
-|	LSTRUCT lbrace '}'						{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    LSTRUCT lbrace structdcl_list osemi '}'	{ $$ = node_create2(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	LSTRUCT lbrace '}'	    	    	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 interfacetype:
-    LINTERFACE lbrace interfacedcl_list osemi '}'	{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
-|	LINTERFACE lbrace '}'							{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    LINTERFACE lbrace interfacedcl_list osemi '}'	{ $$ = node_create2(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	LINTERFACE lbrace '}'	    	    	    	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 /*
@@ -613,31 +609,32 @@ interfacetype:
  * all in one place to show how crappy it all is
  */
 xfndcl:
-    LFUNC fndcl fnbody	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    LFUNC fndcl fnbody	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 fndcl:
-    sym '(' oarg_type_list_ocomma ')' fnres									{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
-|	'(' oarg_type_list_ocomma ')' sym '(' oarg_type_list_ocomma ')' fnres	{ $$ = node_create(NULL, NULL, 8, $1, $2, $3, $4, $5, $6, $7, $8); }
+    sym '(' oarg_type_list_ocomma ')' fnres	    	    	    	    	{ $$ = node_create2(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	'(' oarg_type_list_ocomma ')' sym '(' oarg_type_list_ocomma ')' fnres	{ $$ = node_create2(NULL, NULL, 8, $1, $2, $3, $4, $5, $6, $7, $8); }
     ;
 
 hidden_fndcl:
-    hidden_pkg_importsym '(' ohidden_funarg_list ')' ohidden_funres				{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
-|	'(' hidden_funarg_list ')' sym '(' ohidden_funarg_list ')' ohidden_funres	{ $$ = node_create(NULL, NULL, 8, $1, $2, $3, $4, $5, $6, $7, $8); }
+    hidden_pkg_importsym '(' ohidden_funarg_list ')' ohidden_funres	    	    { $$ = node_create2(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	'(' hidden_funarg_list ')' sym '(' ohidden_funarg_list ')' ohidden_funres	{ $$ = node_create2(NULL, NULL, 8, $1, $2, $3, $4, $5, $6, $7, $8); }
     ;
 
 fntype:
-    LFUNC '(' oarg_type_list_ocomma ')' fnres	{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+    LFUNC '(' oarg_type_list_ocomma ')' fnres	{ $$ = node_create2(NULL, NULL, 5, $1, $2, $3, $4, $5); }
     ;
 
 fnbody:
-|	'{' stmt_list '}'	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    %empty              { $$ = node_create(NULL, NULL); }
+|	'{' stmt_list '}'	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 fnres:
-    %prec NotParen
-|	fnret_type						{ $$ = $1; }
-|	'(' oarg_type_list_ocomma ')'	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    %prec NotParen %empty           { $$ = node_create(NULL, NULL); }
+|	fnret_type	    	    	    { $$ = $1; }
+|	'(' oarg_type_list_ocomma ')'	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 fnlitdcl:
@@ -645,8 +642,8 @@ fnlitdcl:
     ;
 
 fnliteral:
-    fnlitdcl lbrace stmt_list '}'	{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
-|	fnlitdcl error					{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+    fnlitdcl lbrace stmt_list '}'	{ $$ = node_create2(NULL, NULL, 4, $1, $2, $3, $4); }
+|	fnlitdcl error	    	    	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
     ;
 
 /*
@@ -655,46 +652,47 @@ fnliteral:
  * be reversed to interpret correctly
  */
 xdcl_list:
-|	xdcl_list xdcl ';'	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    %empty              { $$ = node_create(NULL, NULL); }
+|	xdcl_list xdcl ';'	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 vardcl_list:
-    vardcl					{ $$ = $1; }
-|	vardcl_list ';' vardcl	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    vardcl	    	    	{ $$ = $1; }
+|	vardcl_list ';' vardcl	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 constdcl_list:
-    constdcl1					{ $$ = $1; }
-|	constdcl_list ';' constdcl1	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    constdcl1	    	    	{ $$ = $1; }
+|	constdcl_list ';' constdcl1	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 typedcl_list:
-    typedcl						{ $$ = $1; }
-|	typedcl_list ';' typedcl	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    typedcl	    	    	    { $$ = $1; }
+|	typedcl_list ';' typedcl	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 structdcl_list:
-    structdcl						{ $$ = $1; }
-|	structdcl_list ';' structdcl	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    structdcl	    	    	    { $$ = $1; }
+|	structdcl_list ';' structdcl	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 interfacedcl_list:
-    interfacedcl						{ $$ = $1; }
-|	interfacedcl_list ';' interfacedcl	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    interfacedcl	    	    	    { $$ = $1; }
+|	interfacedcl_list ';' interfacedcl	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 structdcl:
-    new_name_list ntype oliteral	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	embed oliteral					{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-|	'(' embed ')' oliteral			{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
-|	'*' embed oliteral				{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	'(' '*' embed ')' oliteral		{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
-|	'*' '(' embed ')' oliteral		{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+    new_name_list ntype oliteral	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	embed oliteral	    	    	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
+|	'(' embed ')' oliteral	    	{ $$ = node_create2(NULL, NULL, 4, $1, $2, $3, $4); }
+|	'*' embed oliteral	    	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	'(' '*' embed ')' oliteral	    { $$ = node_create2(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	'*' '(' embed ')' oliteral	    { $$ = node_create2(NULL, NULL, 5, $1, $2, $3, $4, $5); }
     ;
 
 packname:
-    LNAME			{ $$ = $1; }
-|	LNAME '.' sym	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    LNAME	    	{ $$ = $1; }
+|	LNAME '.' sym	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 embed:
@@ -702,42 +700,44 @@ embed:
     ;
 
 interfacedcl:
-    new_name indcl		{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-|	packname			{ $$ = $1; }
-|	'(' packname ')'	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    new_name indcl	    { $$ = node_create2(NULL, NULL, 2, $1, $2); }
+|	packname	    	{ $$ = $1; }
+|	'(' packname ')'	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 indcl:
-    '(' oarg_type_list_ocomma ')' fnres	{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
+    '(' oarg_type_list_ocomma ')' fnres	{ $$ = node_create2(NULL, NULL, 4, $1, $2, $3, $4); }
     ;
 
 /*
  * function arguments.
  */
 arg_type:
-    name_or_type		{ $$ = $1; }
-|	sym name_or_type	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-|	sym dotdotdot		{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-|	dotdotdot			{ $$ = $1; }
+    name_or_type	    { $$ = $1; }
+|	sym name_or_type	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
+|	sym dotdotdot	    { $$ = node_create2(NULL, NULL, 2, $1, $2); }
+|	dotdotdot	    	{ $$ = $1; }
     ;
 
 arg_type_list:
-    arg_type					{ $$ = $1; }
-|	arg_type_list ',' arg_type	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    arg_type	    	    	{ $$ = $1; }
+|	arg_type_list ',' arg_type	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 oarg_type_list_ocomma:
-|	arg_type_list ocomma	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+    %empty                  { $$ = node_create(NULL, NULL); }
+|	arg_type_list ocomma	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
     ;
 
 /*
  * statement
  */
 stmt:
+    %empty          { $$ = node_create(NULL, NULL); }
 |	compound_stmt	{ $$ = $1; }
-|	common_dcl		{ $$ = $1; }
+|	common_dcl	    { $$ = $1; }
 |	non_dcl_stmt	{ $$ = $1; }
-|	error			{ $$ = $1; }
+|	error	    	{ $$ = $1; }
     ;
 
 literal:
@@ -752,110 +752,119 @@ literal:
     ;
 
 non_dcl_stmt:
-    simple_stmt			{ $$ = $1; }
-|	for_stmt			{ $$ = $1; }
-|	switch_stmt			{ $$ = $1; }
-|	select_stmt			{ $$ = $1; }
-|	if_stmt				{ $$ = $1; }
-|	labelname ':'		{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-    stmt				{ $$ = $1; }
-|	LFALL				{ $$ = $1; }
-|	LBREAK onew_name	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-|	LCONTINUE onew_name	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-|	LGO pseudocall		{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-|	LDEFER pseudocall	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-|	LGOTO new_name		{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-|	LRETURN oexpr_list	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+    simple_stmt	    	{ $$ = $1; }
+|	for_stmt	    	{ $$ = $1; }
+|	switch_stmt	    	{ $$ = $1; }
+|	select_stmt	    	{ $$ = $1; }
+|	if_stmt	    	    { $$ = $1; }
+|	labelname ':' stmt  { $$ = node_create2(NULL, NULL, 2, $1, $2); }
+|	LFALL	    	    { $$ = $1; }
+|	LBREAK onew_name	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
+|	LCONTINUE onew_name	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
+|	LGO pseudocall	    { $$ = node_create2(NULL, NULL, 2, $1, $2); }
+|	LDEFER pseudocall	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
+|	LGOTO new_name	    { $$ = node_create2(NULL, NULL, 2, $1, $2); }
+|	LRETURN oexpr_list	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
     ;
 
 stmt_list:
-    stmt				{ $$ = $1; }
-|	stmt_list ';' stmt	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    stmt	    	    { $$ = $1; }
+|	stmt_list ';' stmt	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 new_name_list:
-    new_name					{ $$ = $1; }
-|	new_name_list ',' new_name	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    new_name	    	    	{ $$ = $1; }
+|	new_name_list ',' new_name	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 dcl_name_list:
-    dcl_name					{ $$ = $1; }
-|	dcl_name_list ',' dcl_name	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    dcl_name	    	    	{ $$ = $1; }
+|	dcl_name_list ',' dcl_name	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 expr_list:
-    expr				{ $$ = $1; }
-|	expr_list ',' expr	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    expr	    	    { $$ = $1; }
+|	expr_list ',' expr	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 expr_or_type_list:
-    expr_or_type						{ $$ = $1; }
-|	expr_or_type_list ',' expr_or_type	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    expr_or_type	    	    	    { $$ = $1; }
+|	expr_or_type_list ',' expr_or_type	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 /*
  * list of combo of keyval and val
  */
 keyval_list:
-    keyval								{ $$ = $1; }
-|	bare_complitexpr					{ $$ = $1; }
-|	keyval_list ',' keyval				{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	keyval_list ',' bare_complitexpr	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    keyval	    	    	    	    { $$ = $1; }
+|	bare_complitexpr	    	    	{ $$ = $1; }
+|	keyval_list ',' keyval	    	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	keyval_list ',' bare_complitexpr	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 braced_keyval_list:
-|	keyval_list ocomma	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+    %empty              { $$ = node_create(NULL, NULL); }
+|	keyval_list ocomma	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
     ;
 
 /*
  * optional things
  */
 osemi:
-|	';'	{ $$ = $1; }
+    %empty  { $$ = node_create(NULL, NULL); }
+|	';'     { $$ = $1; }
     ;
 
 ocomma:
-|	','	{ $$ = $1; }
+    %empty  { $$ = node_create(NULL, NULL); }
+|	','     { $$ = $1; }
     ;
 
 oexpr:
-|	expr	{ $$ = $1; }
+    %empty  { $$ = node_create(NULL, NULL); }
+|	expr    { $$ = $1; }
     ;
 
 oexpr_list:
-|	expr_list	{ $$ = $1; }
+    %empty      { $$ = node_create(NULL, NULL); }
+|	expr_list   { $$ = $1; }
     ;
 
 osimple_stmt:
-|	simple_stmt	{ $$ = $1; }
+    %empty      { $$ = node_create(NULL, NULL); }
+|	simple_stmt { $$ = $1; }
     ;
 
 ohidden_funarg_list:
-|	hidden_funarg_list	{ $$ = $1; }
+    %empty              { $$ = node_create(NULL, NULL); }
+|	hidden_funarg_list  { $$ = $1; }
     ;
 
 ohidden_structdcl_list:
-|	hidden_structdcl_list	{ $$ = $1; }
+    %empty                  { $$ = node_create(NULL, NULL); }
+|	hidden_structdcl_list   { $$ = $1; }
     ;
 
 ohidden_interfacedcl_list:
-|	hidden_interfacedcl_list	{ $$ = $1; }
+    %empty                      { $$ = node_create(NULL, NULL); }
+|	hidden_interfacedcl_list    { $$ = $1; }
     ;
 
 oliteral:
-|	literal	{ $$ = $1; }
+    %empty  { $$ = node_create(NULL, NULL); }
+|	literal { $$ = $1; }
     ;
 
 /*
  * import syntax from package header
  */
 hidden_import:
-    LIMPORT LNAME literal ';'										{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
-|	LVAR hidden_pkg_importsym hidden_type ';'						{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
-|	LCONST hidden_pkg_importsym '=' hidden_constant ';'				{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
-|	LCONST hidden_pkg_importsym hidden_type '=' hidden_constant ';'	{ $$ = node_create(NULL, NULL, 6, $1, $2, $3, $4, $5, $6); }
-|	LTYPE hidden_pkgtype hidden_type ';'							{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
-|	LFUNC hidden_fndcl fnbody ';'									{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
+    LIMPORT LNAME literal ';'	    	    	    	    	    { $$ = node_create2(NULL, NULL, 4, $1, $2, $3, $4); }
+|	LVAR hidden_pkg_importsym hidden_type ';'	    	    	    { $$ = node_create2(NULL, NULL, 4, $1, $2, $3, $4); }
+|	LCONST hidden_pkg_importsym '=' hidden_constant ';'	    	    { $$ = node_create2(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	LCONST hidden_pkg_importsym hidden_type '=' hidden_constant ';'	{ $$ = node_create2(NULL, NULL, 6, $1, $2, $3, $4, $5, $6); }
+|	LTYPE hidden_pkgtype hidden_type ';'	    	    	    	{ $$ = node_create2(NULL, NULL, 4, $1, $2, $3, $4); }
+|	LFUNC hidden_fndcl fnbody ';'	    	    	    	    	{ $$ = node_create2(NULL, NULL, 4, $1, $2, $3, $4); }
     ;
 
 hidden_pkg_importsym:
@@ -871,59 +880,60 @@ hidden_pkgtype:
  */
 
 hidden_type:
-    hidden_type_misc		{ $$ = $1; }
+    hidden_type_misc	    { $$ = $1; }
 |	hidden_type_recv_chan	{ $$ = $1; }
-|	hidden_type_func		{ $$ = $1; }
+|	hidden_type_func	    { $$ = $1; }
     ;
 
 hidden_type_non_recv_chan:
-    hidden_type_misc		{ $$ = $1; }
-|	hidden_type_func		{ $$ = $1; }
+    hidden_type_misc	    { $$ = $1; }
+|	hidden_type_func	    { $$ = $1; }
     ;
 
 hidden_type_misc:
-    hidden_importsym								{ $$ = $1; }
-|	LNAME											{ $$ = $1; }
-|	'[' ']' hidden_type								{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	'[' literal ']' hidden_type						{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
-|	LMAP '[' hidden_type ']' hidden_type			{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
-|	LSTRUCT '{' ohidden_structdcl_list '}'			{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
-|	LINTERFACE '{' ohidden_interfacedcl_list '}'	{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
-|	'*' hidden_type									{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-|	LCHAN hidden_type_non_recv_chan					{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-|	LCHAN '(' hidden_type_recv_chan ')'				{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
-|	LCHAN LCOMM hidden_type							{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    hidden_importsym	    	    	    	    { $$ = $1; }
+|	LNAME	    	    	    	    	    	{ $$ = $1; }
+|	'[' ']' hidden_type	    	    	    	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	'[' literal ']' hidden_type	    	    	    { $$ = node_create2(NULL, NULL, 4, $1, $2, $3, $4); }
+|	LMAP '[' hidden_type ']' hidden_type	    	{ $$ = node_create2(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	LSTRUCT '{' ohidden_structdcl_list '}'	    	{ $$ = node_create2(NULL, NULL, 4, $1, $2, $3, $4); }
+|	LINTERFACE '{' ohidden_interfacedcl_list '}'	{ $$ = node_create2(NULL, NULL, 4, $1, $2, $3, $4); }
+|	'*' hidden_type	    	    	    	    	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
+|	LCHAN hidden_type_non_recv_chan	    	    	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
+|	LCHAN '(' hidden_type_recv_chan ')'	    	    { $$ = node_create2(NULL, NULL, 4, $1, $2, $3, $4); }
+|	LCHAN LCOMM hidden_type	    	    	    	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 hidden_type_recv_chan:
-    LCOMM LCHAN hidden_type	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    LCOMM LCHAN hidden_type	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 hidden_type_func:
-    LFUNC '(' ohidden_funarg_list ')' ohidden_funres	{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+    LFUNC '(' ohidden_funarg_list ')' ohidden_funres	{ $$ = node_create2(NULL, NULL, 5, $1, $2, $3, $4, $5); }
     ;
 
 hidden_funarg:
-    sym hidden_type oliteral		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	sym LDDD hidden_type oliteral	{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
+    sym hidden_type oliteral	    { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	sym LDDD hidden_type oliteral	{ $$ = node_create2(NULL, NULL, 4, $1, $2, $3, $4); }
     ;
 
 hidden_structdcl:
-    sym hidden_type oliteral	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    sym hidden_type oliteral	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 hidden_interfacedcl:
-    sym '(' ohidden_funarg_list ')' ohidden_funres	{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
-|	hidden_type										{ $$ = $1; }
+    sym '(' ohidden_funarg_list ')' ohidden_funres	{ $$ = node_create2(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	hidden_type	    	    	    	    	    { $$ = $1; }
     ;
 
 ohidden_funres:
-|	hidden_funres	{ $$ = $1; }
+    %empty          { $$ = node_create(NULL, NULL); }
+|	hidden_funres   { $$ = $1; }
     ;
 
 hidden_funres:
-    '(' ohidden_funarg_list ')'	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-|	hidden_type					{ $$ = $1; }
+    '(' ohidden_funarg_list ')'	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+|	hidden_type	    	    	{ $$ = $1; }
     ;
 
 /*
@@ -931,33 +941,34 @@ hidden_funres:
  */
 
 hidden_literal:
-    literal		{ $$ = $1; }
-|	'-' literal	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-|	sym			{ $$ = $1; }
+    literal	    { $$ = $1; }
+|	'-' literal	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
+|	sym	    	{ $$ = $1; }
     ;
 
 hidden_constant:
-    hidden_literal								{ $$ = $1; }
-|	'(' hidden_literal '+' hidden_literal ')'	{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+    hidden_literal	    	    	    	    { $$ = $1; }
+|	'(' hidden_literal '+' hidden_literal ')'	{ $$ = node_create2(NULL, NULL, 5, $1, $2, $3, $4, $5); }
     ;
 
 hidden_import_list:
-|	hidden_import_list hidden_import	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+    %empty                              { $$ = node_create(NULL, NULL); }
+|	hidden_import_list hidden_import	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
     ;
 
 hidden_funarg_list:
-    hidden_funarg							{ $$ = $1; }
-|	hidden_funarg_list ',' hidden_funarg	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    hidden_funarg	    	    	    	{ $$ = $1; }
+|	hidden_funarg_list ',' hidden_funarg	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 hidden_structdcl_list:
-    hidden_structdcl							{ $$ = $1; }
-|	hidden_structdcl_list ';' hidden_structdcl	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    hidden_structdcl	    	    	    	{ $$ = $1; }
+|	hidden_structdcl_list ';' hidden_structdcl	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 hidden_interfacedcl_list:
-    hidden_interfacedcl									{ $$ = $1; }
-|	hidden_interfacedcl_list ';' hidden_interfacedcl	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+    hidden_interfacedcl	    	    	    	    	{ $$ = $1; }
+|	hidden_interfacedcl_list ';' hidden_interfacedcl	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 %%
