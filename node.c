@@ -92,6 +92,8 @@ node_t* node_create2(struct node_t* parent, void* data, int count, ...) {
 			node_attach(node, child);
 		}
 	}
+
+	return node;
 }
 
 int node_attach(node_t* parent, node_t* child) {
