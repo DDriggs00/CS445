@@ -640,19 +640,10 @@ fnres:
 fnlitdcl:
 	fntype	{ $$ = $1; }
 	;
-/////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////
-{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
-{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
-{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
-{ $$ = node_create(NULL, NULL, 2, $1, $2); }
-{ $$ = $1; }
 
 fnliteral:
-	fnlitdcl lbrace stmt_list '}'
-|	fnlitdcl error
+	fnlitdcl lbrace stmt_list '}'	{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
+|	fnlitdcl error					{ $$ = node_create(NULL, NULL, 2, $1, $2); }
 	;
 
 /*
@@ -661,89 +652,89 @@ fnliteral:
  * be reversed to interpret correctly
  */
 xdcl_list:
-|	xdcl_list xdcl ';'
+|	xdcl_list xdcl ';'	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 vardcl_list:
-	vardcl
-|	vardcl_list ';' vardcl
+	vardcl					{ $$ = $1; }
+|	vardcl_list ';' vardcl	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 constdcl_list:
-	constdcl1
-|	constdcl_list ';' constdcl1
+	constdcl1					{ $$ = $1; }
+|	constdcl_list ';' constdcl1	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 typedcl_list:
-	typedcl
-|	typedcl_list ';' typedcl
+	typedcl						{ $$ = $1; }
+|	typedcl_list ';' typedcl	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 structdcl_list:
-	structdcl
-|	structdcl_list ';' structdcl
+	structdcl						{ $$ = $1; }
+|	structdcl_list ';' structdcl	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 interfacedcl_list:
-	interfacedcl
-|	interfacedcl_list ';' interfacedcl
+	interfacedcl						{ $$ = $1; }
+|	interfacedcl_list ';' interfacedcl	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 structdcl:
-	new_name_list ntype oliteral
-|	embed oliteral
-|	'(' embed ')' oliteral
-|	'*' embed oliteral
-|	'(' '*' embed ')' oliteral
-|	'*' '(' embed ')' oliteral
+	new_name_list ntype oliteral	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	embed oliteral					{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+|	'(' embed ')' oliteral			{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
+|	'*' embed oliteral				{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	'(' '*' embed ')' oliteral		{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	'*' '(' embed ')' oliteral		{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
 	;
 
 packname:
-	LNAME
-|	LNAME '.' sym
+	LNAME			{ $$ = $1; }
+|	LNAME '.' sym	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 embed:
-	packname
+	packname	{ $$ = $1; }
 	;
 
 interfacedcl:
-	new_name indcl
-|	packname
-|	'(' packname ')'
+	new_name indcl		{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+|	packname			{ $$ = $1; }
+|	'(' packname ')'	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 indcl:
-	'(' oarg_type_list_ocomma ')' fnres
+	'(' oarg_type_list_ocomma ')' fnres	{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
 	;
 
 /*
  * function arguments.
  */
 arg_type:
-	name_or_type
-|	sym name_or_type
-|	sym dotdotdot
-|	dotdotdot
+	name_or_type		{ $$ = $1; }
+|	sym name_or_type	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+|	sym dotdotdot		{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+|	dotdotdot			{ $$ = $1; }
 	;
 
 arg_type_list:
-	arg_type
-|	arg_type_list ',' arg_type
+	arg_type					{ $$ = $1; }
+|	arg_type_list ',' arg_type	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 oarg_type_list_ocomma:
-|	arg_type_list ocomma
+|	arg_type_list ocomma	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
 	;
 
 /*
  * statement
  */
 stmt:
-|	compound_stmt
-|	common_dcl
-|	non_dcl_stmt
-|	error
+|	compound_stmt	{ $$ = $1; }
+|	common_dcl		{ $$ = $1; }
+|	non_dcl_stmt	{ $$ = $1; }
+|	error			{ $$ = $1; }
 	;
 
 literal:
@@ -758,118 +749,118 @@ literal:
     ;
 
 non_dcl_stmt:
-	simple_stmt
-|	for_stmt
-|	switch_stmt
-|	select_stmt
-|	if_stmt
-|	labelname ':'
-	stmt
-|	LFALL
-|	LBREAK onew_name
-|	LCONTINUE onew_name
-|	LGO pseudocall
-|	LDEFER pseudocall
-|	LGOTO new_name
-|	LRETURN oexpr_list
+	simple_stmt			{ $$ = $1; }
+|	for_stmt			{ $$ = $1; }
+|	switch_stmt			{ $$ = $1; }
+|	select_stmt			{ $$ = $1; }
+|	if_stmt				{ $$ = $1; }
+|	labelname ':'		{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+	stmt				{ $$ = $1; }
+|	LFALL				{ $$ = $1; }
+|	LBREAK onew_name	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+|	LCONTINUE onew_name	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+|	LGO pseudocall		{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+|	LDEFER pseudocall	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+|	LGOTO new_name		{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+|	LRETURN oexpr_list	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
 	;
 
 stmt_list:
-	stmt
-|	stmt_list ';' stmt
+	stmt				{ $$ = $1; }
+|	stmt_list ';' stmt	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 new_name_list:
-	new_name
-|	new_name_list ',' new_name
+	new_name					{ $$ = $1; }
+|	new_name_list ',' new_name	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 dcl_name_list:
-	dcl_name
-|	dcl_name_list ',' dcl_name
+	dcl_name					{ $$ = $1; }
+|	dcl_name_list ',' dcl_name	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 expr_list:
-	expr
-|	expr_list ',' expr
+	expr				{ $$ = $1; }
+|	expr_list ',' expr	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 expr_or_type_list:
-	expr_or_type
-|	expr_or_type_list ',' expr_or_type
+	expr_or_type						{ $$ = $1; }
+|	expr_or_type_list ',' expr_or_type	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 /*
  * list of combo of keyval and val
  */
 keyval_list:
-	keyval
-|	bare_complitexpr
-|	keyval_list ',' keyval
-|	keyval_list ',' bare_complitexpr
+	keyval								{ $$ = $1; }
+|	bare_complitexpr					{ $$ = $1; }
+|	keyval_list ',' keyval				{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	keyval_list ',' bare_complitexpr	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 braced_keyval_list:
-|	keyval_list ocomma
+|	keyval_list ocomma	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
 	;
 
 /*
  * optional things
  */
 osemi:
-|	';'
+|	';'	{ $$ = $1; }
 	;
 
 ocomma:
-|	','
+|	','	{ $$ = $1; }
 	;
 
 oexpr:
-|	expr
+|	expr	{ $$ = $1; }
 	;
 
 oexpr_list:
-|	expr_list
+|	expr_list	{ $$ = $1; }
 	;
 
 osimple_stmt:
-|	simple_stmt
+|	simple_stmt	{ $$ = $1; }
 	;
 
 ohidden_funarg_list:
-|	hidden_funarg_list
+|	hidden_funarg_list	{ $$ = $1; }
 	;
 
 ohidden_structdcl_list:
-|	hidden_structdcl_list
+|	hidden_structdcl_list	{ $$ = $1; }
 	;
 
 ohidden_interfacedcl_list:
-|	hidden_interfacedcl_list
+|	hidden_interfacedcl_list	{ $$ = $1; }
 	;
 
 oliteral:
-|	literal
+|	literal	{ $$ = $1; }
 	;
 
 /*
  * import syntax from package header
  */
 hidden_import:
-	LIMPORT LNAME literal ';'
-|	LVAR hidden_pkg_importsym hidden_type ';'
-|	LCONST hidden_pkg_importsym '=' hidden_constant ';'
-|	LCONST hidden_pkg_importsym hidden_type '=' hidden_constant ';'
-|	LTYPE hidden_pkgtype hidden_type ';'
-|	LFUNC hidden_fndcl fnbody ';'
+	LIMPORT LNAME literal ';'										{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
+|	LVAR hidden_pkg_importsym hidden_type ';'						{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
+|	LCONST hidden_pkg_importsym '=' hidden_constant ';'				{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	LCONST hidden_pkg_importsym hidden_type '=' hidden_constant ';'	{ $$ = node_create(NULL, NULL, 6, $1, $2, $3, $4, $5, $6); }
+|	LTYPE hidden_pkgtype hidden_type ';'							{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
+|	LFUNC hidden_fndcl fnbody ';'									{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
 	;
 
 hidden_pkg_importsym:
-	hidden_importsym
+	hidden_importsym	{ $$ = $1; }
 	;
 
 hidden_pkgtype:
-	hidden_pkg_importsym
+	hidden_pkg_importsym	{ $$ = $1; }
 	;
 
 /*
@@ -877,59 +868,59 @@ hidden_pkgtype:
  */
 
 hidden_type:
-	hidden_type_misc
-|	hidden_type_recv_chan
-|	hidden_type_func
+	hidden_type_misc		{ $$ = $1; }
+|	hidden_type_recv_chan	{ $$ = $1; }
+|	hidden_type_func		{ $$ = $1; }
 	;
 
 hidden_type_non_recv_chan:
-	hidden_type_misc
-|	hidden_type_func
+	hidden_type_misc		{ $$ = $1; }
+|	hidden_type_func		{ $$ = $1; }
 	;
 
 hidden_type_misc:
-	hidden_importsym
-|	LNAME
-|	'[' ']' hidden_type
-|	'[' literal ']' hidden_type
-|	LMAP '[' hidden_type ']' hidden_type
-|	LSTRUCT '{' ohidden_structdcl_list '}'
-|	LINTERFACE '{' ohidden_interfacedcl_list '}'
-|	'*' hidden_type
-|	LCHAN hidden_type_non_recv_chan
-|	LCHAN '(' hidden_type_recv_chan ')'
-|	LCHAN LCOMM hidden_type
+	hidden_importsym								{ $$ = $1; }
+|	LNAME											{ $$ = $1; }
+|	'[' ']' hidden_type								{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	'[' literal ']' hidden_type						{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
+|	LMAP '[' hidden_type ']' hidden_type			{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	LSTRUCT '{' ohidden_structdcl_list '}'			{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
+|	LINTERFACE '{' ohidden_interfacedcl_list '}'	{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
+|	'*' hidden_type									{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+|	LCHAN hidden_type_non_recv_chan					{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+|	LCHAN '(' hidden_type_recv_chan ')'				{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
+|	LCHAN LCOMM hidden_type							{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 hidden_type_recv_chan:
-	LCOMM LCHAN hidden_type
+	LCOMM LCHAN hidden_type	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 hidden_type_func:
-	LFUNC '(' ohidden_funarg_list ')' ohidden_funres
+	LFUNC '(' ohidden_funarg_list ')' ohidden_funres	{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
 	;
 
 hidden_funarg:
-	sym hidden_type oliteral
-|	sym LDDD hidden_type oliteral
+	sym hidden_type oliteral		{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	sym LDDD hidden_type oliteral	{ $$ = node_create(NULL, NULL, 4, $1, $2, $3, $4); }
 	;
 
 hidden_structdcl:
-	sym hidden_type oliteral
+	sym hidden_type oliteral	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 hidden_interfacedcl:
-	sym '(' ohidden_funarg_list ')' ohidden_funres
-|	hidden_type
+	sym '(' ohidden_funarg_list ')' ohidden_funres	{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
+|	hidden_type										{ $$ = $1; }
 	;
 
 ohidden_funres:
-|	hidden_funres
+|	hidden_funres	{ $$ = $1; }
 	;
 
 hidden_funres:
-	'(' ohidden_funarg_list ')'
-|	hidden_type
+	'(' ohidden_funarg_list ')'	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
+|	hidden_type					{ $$ = $1; }
 	;
 
 /*
@@ -937,33 +928,33 @@ hidden_funres:
  */
 
 hidden_literal:
-	literal
-|	'-' literal
-|	sym
+	literal		{ $$ = $1; }
+|	'-' literal	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
+|	sym			{ $$ = $1; }
 	;
 
 hidden_constant:
-	hidden_literal
-|	'(' hidden_literal '+' hidden_literal ')'
+	hidden_literal								{ $$ = $1; }
+|	'(' hidden_literal '+' hidden_literal ')'	{ $$ = node_create(NULL, NULL, 5, $1, $2, $3, $4, $5); }
 	;
 
 hidden_import_list:
-|	hidden_import_list hidden_import
+|	hidden_import_list hidden_import	{ $$ = node_create(NULL, NULL, 2, $1, $2); }
 	;
 
 hidden_funarg_list:
-	hidden_funarg
-|	hidden_funarg_list ',' hidden_funarg
+	hidden_funarg							{ $$ = $1; }
+|	hidden_funarg_list ',' hidden_funarg	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 hidden_structdcl_list:
-	hidden_structdcl
-|	hidden_structdcl_list ';' hidden_structdcl
+	hidden_structdcl							{ $$ = $1; }
+|	hidden_structdcl_list ';' hidden_structdcl	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 hidden_interfacedcl_list:
-	hidden_interfacedcl
-|	hidden_interfacedcl_list ';' hidden_interfacedcl
+	hidden_interfacedcl									{ $$ = $1; }
+|	hidden_interfacedcl_list ';' hidden_interfacedcl	{ $$ = node_create(NULL, NULL, 3, $1, $2, $3); }
 	;
 
 %%
