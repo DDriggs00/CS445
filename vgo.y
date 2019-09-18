@@ -25,6 +25,7 @@
 #include <stdbool.h>	// For boolean support
 
 #include "node.h"
+#include "vgo.tab.h"
 
 #define YYDEBUG true
 
@@ -32,7 +33,11 @@
 extern char** fileNames;
 extern char* currentFile;
 
-int yylex();    // Parser
+// flex vars
+extern int yylineno;
+extern char* yytext;
+
+extern int yylex();
 
 int yyerror(char* s);
 %}
@@ -975,6 +980,6 @@ hidden_interfacedcl_list:
 
 // Error handling
 int yyerror(char* s) {
-    fprintf(stderr, "%s:%d: %s before '%s' token\n", yyfilename, yylineno, s, yytext);
+    fprintf(stderr, "%s:%d: %s before '%s' token\n", currentFile, yylineno, s, yytext);
     exit(2);
 }
