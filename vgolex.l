@@ -12,16 +12,14 @@
 
 #include "token.h"
 #include "vgo.tab.h"
+#include "node.h"
 
 extern struct token *yytoken;
 extern char** fileNames;
 extern char* currentFile;
 
 /* allocates and prepares token, saving pointer into yytoken */
-void tokenize(int category)
-{
-    yytoken = tokenNew(category, yytext, yylineno, currentFile);
-}
+void nodenize(int category);
 
 %}
 
@@ -30,103 +28,103 @@ void tokenize(int category)
 ((\/\/[^\n]*\n)|([ \r\t\v\f\n])|(\/\*[^*]*\*+(?:[^\/*][^*]*\*+)*\/))* {} /* eat whitespace and  comments */
 
     /* Reserved words */
-"func"          {tokenize(LFUNC); return LFUNC;}
-"map"           {tokenize(LMAP); return LMAP;}
-"struc"         {tokenize(LSTRUCT); return LSTRUCT;}
-"else"          {tokenize(LELSE); return LELSE;}
-"package"       {tokenize(LPACKAGE); return LPACKAGE;}
-"const"         {tokenize(LCONST); return LCONST;}
-"if"            {tokenize(LIF); return LIF;}
-"type"          {tokenize(LTYPE); return LTYPE;}
-"for"           {tokenize(LFOR); return LFOR;}
-"import"        {tokenize(LIMPORT); return LIMPORT;}
-"return"        {tokenize(LRETURN); return LRETURN;}
-"var"           {tokenize(LVAR); return LVAR;}
-"true"          {tokenize(LBOOL); return LBOOL;}
-"false"         {tokenize(LBOOL); return LBOOL;}
+"func"          {nodenize(LFUNC); return LFUNC;}
+"map"           {nodenize(LMAP); return LMAP;}
+"struc"         {nodenize(LSTRUCT); return LSTRUCT;}
+"else"          {nodenize(LELSE); return LELSE;}
+"package"       {nodenize(LPACKAGE); return LPACKAGE;}
+"const"         {nodenize(LCONST); return LCONST;}
+"if"            {nodenize(LIF); return LIF;}
+"type"          {nodenize(LTYPE); return LTYPE;}
+"for"           {nodenize(LFOR); return LFOR;}
+"import"        {nodenize(LIMPORT); return LIMPORT;}
+"return"        {nodenize(LRETURN); return LRETURN;}
+"var"           {nodenize(LVAR); return LVAR;}
+"true"          {nodenize(LBOOL); return LBOOL;}
+"false"         {nodenize(LBOOL); return LBOOL;}
 
 
     /* Bad reserved words */
-"break"         {tokenize(LGOKEYWORD); return LGOKEYWORD;}
-"case"          {tokenize(LGOKEYWORD); return LGOKEYWORD;}
-"chan"          {tokenize(LGOKEYWORD); return LGOKEYWORD;}
-"fallthrough"   {tokenize(LGOKEYWORD); return LGOKEYWORD;}
-"continue"      {tokenize(LGOKEYWORD); return LGOKEYWORD;}
-"default"       {tokenize(LGOKEYWORD); return LGOKEYWORD;}
-"defer"         {tokenize(LGOKEYWORD); return LGOKEYWORD;}
-"goto"          {tokenize(LGOKEYWORD); return LGOKEYWORD;}
-"range"         {tokenize(LGOKEYWORD); return LGOKEYWORD;}
-"interface"     {tokenize(LGOKEYWORD); return LGOKEYWORD;}
-"go"            {tokenize(LGOKEYWORD); return LGOKEYWORD;}
-"switch"        {tokenize(LGOKEYWORD); return LGOKEYWORD;}
-"select"        {tokenize(LGOKEYWORD); return LGOKEYWORD;}
+"break"         {nodenize(LGOKEYWORD); return LGOKEYWORD;}
+"case"          {nodenize(LGOKEYWORD); return LGOKEYWORD;}
+"chan"          {nodenize(LGOKEYWORD); return LGOKEYWORD;}
+"fallthrough"   {nodenize(LGOKEYWORD); return LGOKEYWORD;}
+"continue"      {nodenize(LGOKEYWORD); return LGOKEYWORD;}
+"default"       {nodenize(LGOKEYWORD); return LGOKEYWORD;}
+"defer"         {nodenize(LGOKEYWORD); return LGOKEYWORD;}
+"goto"          {nodenize(LGOKEYWORD); return LGOKEYWORD;}
+"range"         {nodenize(LGOKEYWORD); return LGOKEYWORD;}
+"interface"     {nodenize(LGOKEYWORD); return LGOKEYWORD;}
+"go"            {nodenize(LGOKEYWORD); return LGOKEYWORD;}
+"switch"        {nodenize(LGOKEYWORD); return LGOKEYWORD;}
+"select"        {nodenize(LGOKEYWORD); return LGOKEYWORD;}
 
     /* Type Names */
-"bool"          {tokenize(LTYPEBOOL); return LTYPEBOOL;}
-"string"        {tokenize(LTYPESTRING); return LTYPESTRING;}
-"int"           {tokenize(LTYPEINT); return LTYPEINT;}
-"rune"          {tokenize(LTYPERUNE); return LTYPERUNE;}
-"float64"       {tokenize(LTYPEFLOAT64); return LTYPEFLOAT64;}
+"bool"          {nodenize(LTYPEBOOL); return LTYPEBOOL;}
+"string"        {nodenize(LTYPESTRING); return LTYPESTRING;}
+"int"           {nodenize(LTYPEINT); return LTYPEINT;}
+"rune"          {nodenize(LTYPERUNE); return LTYPERUNE;}
+"float64"       {nodenize(LTYPEFLOAT64); return LTYPEFLOAT64;}
 
     /* Invalid Operators A */
-"..."           {tokenize(LGOOPERATOR); return LGOOPERATOR;}
-"&^="           {tokenize(LGOOPERATOR); return LGOOPERATOR;}
-"<<="           {tokenize(LGOOPERATOR); return LGOOPERATOR;}
-">>="           {tokenize(LGOOPERATOR); return LGOOPERATOR;}
-"%="            {tokenize(LGOOPERATOR); return LGOOPERATOR;}
-"|="            {tokenize(LGOOPERATOR); return LGOOPERATOR;}
-"<-"            {tokenize(LGOOPERATOR); return LGOOPERATOR;}
-">>"            {tokenize(LGOOPERATOR); return LGOOPERATOR;}
-"<<"            {tokenize(LGOOPERATOR); return LGOOPERATOR;}
-"&^"            {tokenize(LGOOPERATOR); return LGOOPERATOR;}
-"&="            {tokenize(LGOOPERATOR); return LGOOPERATOR;}
-"*="            {tokenize(LGOOPERATOR); return LGOOPERATOR;}
-"/="            {tokenize(LGOOPERATOR); return LGOOPERATOR;}
-":="            {tokenize(LGOOPERATOR); return LGOOPERATOR;}
+"..."           {nodenize(LGOOPERATOR); return LGOOPERATOR;}
+"&^="           {nodenize(LGOOPERATOR); return LGOOPERATOR;}
+"<<="           {nodenize(LGOOPERATOR); return LGOOPERATOR;}
+">>="           {nodenize(LGOOPERATOR); return LGOOPERATOR;}
+"%="            {nodenize(LGOOPERATOR); return LGOOPERATOR;}
+"|="            {nodenize(LGOOPERATOR); return LGOOPERATOR;}
+"<-"            {nodenize(LGOOPERATOR); return LGOOPERATOR;}
+">>"            {nodenize(LGOOPERATOR); return LGOOPERATOR;}
+"<<"            {nodenize(LGOOPERATOR); return LGOOPERATOR;}
+"&^"            {nodenize(LGOOPERATOR); return LGOOPERATOR;}
+"&="            {nodenize(LGOOPERATOR); return LGOOPERATOR;}
+"*="            {nodenize(LGOOPERATOR); return LGOOPERATOR;}
+"/="            {nodenize(LGOOPERATOR); return LGOOPERATOR;}
+":="            {nodenize(LGOOPERATOR); return LGOOPERATOR;}
 
     /* Valid Operators */
-"<="            {tokenize(LLE); return LLE;}
-">="            {tokenize(LGE); return LGE;}
-"=="            {tokenize(LEQ); return LEQ;}
-"!="            {tokenize(LNE); return LNE;}
-"&&"            {tokenize(LANDAND); return LANDAND;}
-"||"            {tokenize(LOROR); return LOROR;}
-"+="            {tokenize(LPLASN); return LPLASN;}
-"-="            {tokenize(LMIASN); return LMIASN;}
-"="             {tokenize(LASOP); return LASOP;}
-"("             {tokenize('('); return '(';}
-")"             {tokenize(')'); return ')';}
-"["             {tokenize('['); return '[';}
-"]"             {tokenize(']'); return ']';}
-"{"             {tokenize('{'); return '{';}
-"}"             {tokenize('}'); return '}';}
-"<"             {tokenize(LLT); return LLT;}
-">"             {tokenize(LGT); return LGT;}
-"."             {tokenize('.'); return '.';}
-","             {tokenize(','); return ',';}
-"!"             {tokenize('!'); return '!';}
-"+"             {tokenize('+'); return '+';}
-"-"             {tokenize('-'); return '-';}
-"*"             {tokenize('*'); return '*';}
-"/"             {tokenize('/'); return '/';}
-"%"             {tokenize('%'); return '%';}
-";"             {tokenize(';'); return ';';}
+"<="            {nodenize(LLE); return LLE;}
+">="            {nodenize(LGE); return LGE;}
+"=="            {nodenize(LEQ); return LEQ;}
+"!="            {nodenize(LNE); return LNE;}
+"&&"            {nodenize(LANDAND); return LANDAND;}
+"||"            {nodenize(LOROR); return LOROR;}
+"+="            {nodenize(LPLASN); return LPLASN;}
+"-="            {nodenize(LMIASN); return LMIASN;}
+"="             {nodenize(LASOP); return LASOP;}
+"("             {nodenize('('); return '(';}
+")"             {nodenize(')'); return ')';}
+"["             {nodenize('['); return '[';}
+"]"             {nodenize(']'); return ']';}
+"{"             {nodenize('{'); return '{';}
+"}"             {nodenize('}'); return '}';}
+"<"             {nodenize(LLT); return LLT;}
+">"             {nodenize(LGT); return LGT;}
+"."             {nodenize('.'); return '.';}
+","             {nodenize(','); return ',';}
+"!"             {nodenize('!'); return '!';}
+"+"             {nodenize('+'); return '+';}
+"-"             {nodenize('-'); return '-';}
+"*"             {nodenize('*'); return '*';}
+"/"             {nodenize('/'); return '/';}
+"%"             {nodenize('%'); return '%';}
+";"             {nodenize(';'); return ';';}
 
     /* Invalid Operators B */
-":"             {tokenize(LGOOPERATOR); return LGOOPERATOR;}
-"&"             {tokenize(LGOOPERATOR); return LGOOPERATOR;}
-"^"             {tokenize(LGOOPERATOR); return LGOOPERATOR;}
-"|"             {tokenize(LGOOPERATOR); return LGOOPERATOR;}
+":"             {nodenize(LGOOPERATOR); return LGOOPERATOR;}
+"&"             {nodenize(LGOOPERATOR); return LGOOPERATOR;}
+"^"             {nodenize(LGOOPERATOR); return LGOOPERATOR;}
+"|"             {nodenize(LGOOPERATOR); return LGOOPERATOR;}
 
     /* Literals */
-0[0-7]+                         { tokenize(LOCT); return LOCT; }            /* Octal */
-0|[1-9][0-9]*                   { tokenize(LINT); return LINT; }            /* Int */
-(([1-9][0-9]*)?\.[0-9]+)        { tokenize(LFLOAT); return LFLOAT; }        /* Float */
-"0x"[a-fA-F0-9]+                { tokenize(LHEX); return LHEX; }            /* Hex */
-"0b"[01]+     			        { tokenize(LBIN); return LBIN; }            /* Binary */
-[a-zA-Z_][a-zA-Z0-9_]*	        { tokenize(LNAME); return LNAME; }          /* variable names */
-\"(\\|[^\n"\\])*\"		        { tokenize(LLITERAL); return LLITERAL; }    /* string literals */
-\'[^\\\n]\'|\'\\[ntNT'\\]\'     { tokenize(LRUNE); return LRUNE; }          /* Char (rune) */
+0[0-7]+                         { nodenize(LOCT); return LOCT; }            /* Octal */
+0|[1-9][0-9]*                   { nodenize(LINT); return LINT; }            /* Int */
+(([1-9][0-9]*)?\.[0-9]+)        { nodenize(LFLOAT); return LFLOAT; }        /* Float */
+"0x"[a-fA-F0-9]+                { nodenize(LHEX); return LHEX; }            /* Hex */
+"0b"[01]+     			        { nodenize(LBIN); return LBIN; }            /* Binary */
+[a-zA-Z_][a-zA-Z0-9_]*	        { nodenize(LNAME); return LNAME; }          /* variable names */
+\"(\\|[^\n"\\])*\"		        { nodenize(LLITERAL); return LLITERAL; }    /* string literals */
+\'[^\\\n]\'|\'\\[ntNT'\\]\'     { nodenize(LRUNE); return LRUNE; }          /* Char (rune) */
     /* non-accepted runed caught here */
 
 
@@ -137,3 +135,10 @@ void tokenize(int category)
 }
 
 %%
+
+void nodenize(int category)
+{
+    yytoken = tokenNew(category, yytext, yylineno, currentFile);
+    // yylval = node_create(NULL, yytoken);
+    
+}
