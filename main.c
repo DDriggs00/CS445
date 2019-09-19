@@ -25,6 +25,7 @@ struct node_t* nextNode;
 
 char** fileNames;
 char* currentFile;
+bool insertSemicolon = false;
 
 int yyparse();
 
@@ -103,11 +104,11 @@ int main(int argc, char* argv[]) {
         // Parse with Bison
         int yyreturn = yyparse();
         if(yyreturn == 1) {
-            fprintf(stderr, "Lexical Error");
+            // fprintf(stderr, "Lexical Error\n");
             return 1;
         }
         else if(yyreturn == 2) {
-            fprintf(stderr, "Parsing/Syntax Error");
+            // fprintf(stderr, "Parsing/Syntax Error\n");
             return 2;
         }
         else {
