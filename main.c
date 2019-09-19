@@ -22,9 +22,11 @@ struct token* yytoken;
 struct node_t* root;
 struct node_t* currentNode;
 struct node_t* nextNode;
+
 char** fileNames;
 char* currentFile;
-int yylex();
+
+int yyparse();
 
 // Return Codes:
 // 0: Success
@@ -91,37 +93,36 @@ int main(int argc, char* argv[]) {
         yylineno = 1; // Reset line counter to 0
         
         // prepare input file
-        yyin = fopen(fileNames[i], "r");
+        currentFile = fileNames[i]; //Needed for yylex
+        yyin = fopen(currentFile, "r");
 		if(yyin == NULL){
-			printf("invalid File: %s\n", fileNames[i]);
+			printf("invalid File: %s\n", currentFile);
 			return -1;
 		}
 
         // Parse with Bison
         int yyreturn = yyparse();
-        while((yyreturn = yylex()) != 0) {
-            if(yyreturn != 1 && yyreturn != LGOOPERATOR && yyreturn != LGOKEYWORD) {
-                currentNode = node_create(root, yytoken);
-                // tokenPrint(currentNode->data);
-            }
-            else if(yyreturn == 1 && returnval == 0){
-                returnval = 1;
-            }
-            else {
-                returnval = -1;
-                printf("Valid in Go, but not in VGo");
-            }
+        if(yyreturn == 1) {
+            fprintf(stderr, "Lexical Error");
+            return 1;
+        }
+        else if(yyreturn == 2) {
+            fprintf(stderr, "Parsing/Syntax Error");
+            return 2;
+        }
+        else {
+            return 0;
         }
     }
     
 
-    printf("Category Text                   LineNo  File\n");
+    // printf("Category Text                   LineNo  File\n");
 
-    node_t *node;
-    node_iterator_t* it = node_iterator_create(root->children);
-    while ((node = node_iterator_next(it))) {
-        tokenPrint(node->data);
-    }
+    // node_t *node;
+    // node_iterator_t* it = node_iterator_create(root->children);
+    // while ((node = node_iterator_next(it))) {
+    //     tokenPrint(node->data);
+    // }
 
     return  returnval;
 }
