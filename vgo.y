@@ -53,7 +53,7 @@ int yyerror(char* s);
 %token <t>  LTYPEINT LTYPESTRING LTYPEBOOL LTYPEFLOAT64 LTYPERUNE
 
 // Operators manually added (+=, -=)
-%token <t>  LPLASN LMIASN
+%token <t>  LPLASN LMIASN LINC LDEC
 
 // Assignment Operator
 %token <t>  LASOP
@@ -65,8 +65,8 @@ int yyerror(char* s);
 %token <t>  LTYPE LRANGE
 
 // Operators
-%token <t>  LANDAND LANDNOT LCOMM LDEC LEQ LGE LGT
-%token <t>  LIGNORE LINC LLE LLSH LLT LNE LOROR LRSH
+%token <t>  LANDAND LANDNOT LCOMM LEQ LGE LGT
+%token <t>  LIGNORE LLE LLSH LLT LNE LOROR LRSH
 %token <t> ';' '(' ')' '{' '}' '[' ']' '+' '-' '='
 %token <t> ',' '.' '*' '/' '@' '?' '!' ':' '&' '%'
 %token <t> '^' '|' '$'
@@ -75,7 +75,7 @@ int yyerror(char* s);
 %token <t>  LGOKEYWORD LGOOPERATOR
 %token <t>  LCOLAS LBREAK LCASE LCHAN LCONTINUE LDDD
 %token <t>  LDEFAULT LDEFER LFALL LGO LGOTO LINTERFACE
-%token <t>  LSELECT LSWITCH
+%token <t>  LSELECT LSWITCH LEOF
 
 // My added types
 %type <t>   literal
@@ -151,11 +151,9 @@ int yyerror(char* s);
 %left	    ')'
 %left	    PreferToRightParen
 
-// %start program
-
 %%
 file:	
-    package	imports	xdcl_list	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+    package	imports	xdcl_list LEOF  { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 package:
@@ -177,7 +175,9 @@ import:
     ;
 
 import_stmt:
-    import_here import_package import_there	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+    import_here     { $$ = $1; }
+|   import_package  { $$ = $1; }
+|   import_there    { $$ = $1; }
     ;
 
 import_stmt_list:
@@ -186,9 +186,9 @@ import_stmt_list:
     ;
 
 import_here:
-    literal	    { $$ = $1; }
-|	sym literal	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
-|	'.' literal	{ $$ = node_create2(NULL, NULL, 2, $1, $2); }
+    LLITERAL        { $$ = $1; }
+|	sym LLITERAL    { $$ = node_create2(NULL, NULL, 2, $1, $2); }
+|	'.' LLITERAL    { $$ = node_create2(NULL, NULL, 2, $1, $2); }
     ;
 
 import_package:
