@@ -159,10 +159,9 @@ file:
     ;
 
 package:
-    %prec NotPackage 
-    %empty {
+    %empty %prec NotPackage {
         yyerror("package statement must be first");
-        exit(1);
+        return 1;
     }
 |	LPACKAGE sym ';'	{ $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
@@ -981,5 +980,5 @@ hidden_interfacedcl_list:
 // Error handling
 int yyerror(char* s) {
     fprintf(stderr, "%s:%d: %s before '%s' token\n", currentFile, yylineno, s, yytext);
-    exit(2);
+    return 2;
 }
