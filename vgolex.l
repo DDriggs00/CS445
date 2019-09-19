@@ -14,7 +14,7 @@
 #include "vgo.tab.h"
 #include "node.h"
 
-extern struct token *yytoken;
+extern struct node_t *yytoken;
 extern char** fileNames;
 extern char* currentFile;
 
@@ -138,7 +138,6 @@ void nodenize(int category);
 
 void nodenize(int category)
 {
-    yytoken = tokenNew(category, yytext, yylineno, currentFile);
-    // yylval = node_create(NULL, yytoken);
+    yytoken = node_create(NULL, tokenNew(category, yytext, yylineno, currentFile));
     
 }
