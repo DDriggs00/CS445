@@ -27,7 +27,8 @@
 #include "node.h"
 #include "vgo.tab.h"
 
-#define YYDEBUG true
+// #define YYDEBUG true
+// yydebug = 1;
 
 // extern struct token *yytoken;
 extern char** fileNames;
@@ -75,7 +76,7 @@ int yyerror(char* s);
 %token <t>  LGOKEYWORD LGOOPERATOR
 %token <t>  LCOLAS LBREAK LCASE LCHAN LCONTINUE LDDD
 %token <t>  LDEFAULT LDEFER LFALL LGO LGOTO LINTERFACE
-%token <t>  LSELECT LSWITCH LEOF
+%token <t>  LSELECT LSWITCH
 
 // My added types
 %type <t>   literal
@@ -153,7 +154,7 @@ int yyerror(char* s);
 
 %%
 file:	
-    package	imports	xdcl_list LEOF  { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
+    package	imports	xdcl_list   { $$ = node_create2(NULL, NULL, 3, $1, $2, $3); }
     ;
 
 package:

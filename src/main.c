@@ -117,13 +117,23 @@ int main(int argc, char* argv[]) {
     }
     
 
-    // printf("Category Text                   LineNo  File\n");
+    printf("Category Text                   LineNo  File\n");
 
-    // node_t *node;
-    // node_iterator_t* it = node_iterator_create(root->children);
-    // while ((node = node_iterator_next(it))) {
-    //     tokenPrint(node->data);
-    // }
+    node_t *node;
+    node_iterator_t* it = node_iterator_create(root->children);
+    while ((node = node_iterator_next(it))) {
+        tokenPrint(node->data);
+    }
 
     return  returnval;
+}
+
+void node_full_iterate(node_t* root) {
+    node_t* node;
+    node_iterator_t* it = node_iterator_create(root->children);
+    while ((node = node_iterator_next(it))) {
+        if(node->children == 0) {
+            tokenPrint(node->data);
+        }
+    }
 }
