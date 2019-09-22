@@ -76,6 +76,15 @@ node_t* node_create(node_t* parent, void* data) {
 		}
 	}
 
+	if(data == NULL) {
+		node->hasData = 0;
+	}
+	else
+	{
+		node->hasData = 1;
+	}
+	
+
 	return node;
 }
 

@@ -40,6 +40,7 @@ typedef struct node_t {
 	// Local Properties
 	int isRoot;
 	int isLeaf;
+	int hasData;
 
 	// Local Members
 	void *data;
