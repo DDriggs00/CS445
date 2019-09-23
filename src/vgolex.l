@@ -30,12 +30,13 @@ void myerror(int category);
 
 %%
 
-((\/\/[^\n]*\n)|([ \r\t\v\f])|(\/\*[^*]*\*+(?:[^\/*][^*]*\*+)*\/))* { insertSemicolon = false; } /* eat whitespace and  comments (but not \n) */
+(([ \r\t\v\f])|(\/\*[^*]*\*+(?:[^\/*][^*]*\*+)*\/))* { insertSemicolon = false; } /* eat whitespace and  comments (but not \n) */
 
-\n  {
+(\n|([ ]*\/\/[^\n]*\n)|[ ]*(\/\*[^*]*\*+(?:[^\/*][^*]*\*+)*\/)\n)  {
     if (insertSemicolon) {
         insertSemicolon = false;
         yytext = ";";
+        // printf("inserted semicolon on line %i\n", yylineno - 1);
         yylval.t = node_create(NULL, tokenNew(';', yytext, yylineno - 1, currentFile), yytext);
         return ';';
     }
