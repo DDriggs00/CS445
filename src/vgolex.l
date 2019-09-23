@@ -15,11 +15,12 @@
 #include "vgo.tab.h"
 #include "node.h"
 
-extern struct node_t *yytoken;
+// extern struct node_t* yylval;
 extern char** fileNames;
 extern char* currentFile;
 extern bool insertSemicolon;
-/* allocates and prepares token, saving pointer into yytoken */
+
+/* allocates and prepares token, saving pointer into yylval.t */
 void nodenize(int category);
 
 %}
@@ -32,7 +33,7 @@ void nodenize(int category);
     if (insertSemicolon) {
         insertSemicolon = false;
         yytext = ";";
-        yytoken = node_create(NULL, tokenNew(';', yytext, yylineno - 1, currentFile));
+        yylval.t = node_create(NULL, tokenNew(';', yytext, yylineno - 1, currentFile), yytext);
         return ';';
     }
 }  
@@ -149,6 +150,6 @@ void nodenize(int category);
 
 void nodenize(int category)
 {
-    yytoken = node_create(NULL, tokenNew(category, yytext, yylineno, currentFile));
+    yylval.t = node_create(NULL, tokenNew(category, yytext, yylineno, currentFile), yytext);
     
 }
