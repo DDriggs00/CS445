@@ -7,9 +7,11 @@ func main() {
     // This also contains a //nested comment // that we don't even notice
     
     "Keep this string" // this is a comment "//... "
-    "This // is not a comment... " it is just a string
+    "This // is not a comment... " //it is just a string
     KEEPTHIS // Another comment. This line has an identifier on it
     x = 1 // Also a comment, after x = 1
+    x = 2/*test*/
+    x /*test*/ = /**/ 2 /*  */
     /*
      * what about this kind? should there be an error on line 13?
      */
