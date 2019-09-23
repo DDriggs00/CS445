@@ -45,7 +45,7 @@ void node_destroy(node_t* node) {
 	free(node);
 }
 
-node_t* node_create(node_t* parent, void* data) {
+node_t* node_create(node_t* parent, void* data, char* type) {
 	int error = 0;
 
 	node_t* node = (node_t*) malloc(sizeof(node_t));
@@ -63,6 +63,8 @@ node_t* node_create(node_t* parent, void* data) {
 	node->isRoot = TRUE;
 	node->parent = NULL;
 	node->children = node_list_create(node);
+	node->type = malloc((strlen(type) + 1) * sizeof(char));
+	strcpy(node->type, type);
 
 	// Pass NULL to create a root node
 	if(parent != NULL) {
@@ -88,18 +90,15 @@ node_t* node_create(node_t* parent, void* data) {
 	return node;
 }
 
-node_t* node_create2(struct node_t* parent, void* data, int count, ...) {
-	node_t* node = node_create(parent, data);
+node_t* node_create2(struct node_t* parent, void* data, char* type, int count, ...) {
+	node_t* node = node_create(parent, data, type);
 	
 	// for each additional arg (in the ...), add it as a child
-	// Loosely based on: https://github.com/andschwa/partial-cpp-compiler/blob/master/tree.c
-	va_list ap;
-	va_start(ap, count);
-	for (int i = 0; i < count; ++i) {
-		struct node_t* child = va_arg(ap, void *);
-		if (child != NULL) {
-			node_attach(node, child);
-		}
+	va_list va;
+	va_start(va, count);
+	for (int i = 0; i < count; i++) {
+		// struct node_t* child = va_arg(va, node_t*);
+		node_attach(node, va_arg(va, node_t*));
 	}
 
 	return node;
@@ -240,7 +239,9 @@ node_t* node_copy_deep(node_t* node, copy_func_t copy_func)
 	if (copy_func) {
 		data = copy_func(node->data);
 	}
-	node_t* copy = node_create(NULL, data);
+	char* type = malloc(sizeof(char) * (strlen(node->type) + 1));
+	strcpy(type, node->type);
+	node_t* copy = node_create(NULL, data, type);
 	node_t* ch;
 	for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {
 		node_t* cc = node_copy_deep(ch, copy_func);
