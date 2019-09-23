@@ -160,7 +160,7 @@ file:
 package:
     %empty %prec NotPackage {
         yyerror("package statement must be first");
-        return 1;
+        exit(2);
     }
 |	LPACKAGE sym ';'	{ $$ = node_create2(NULL, NULL, "package", 3, $1, $2, $3); }
     ;
@@ -276,6 +276,8 @@ simple_stmt:
 |	expr_list LCOLAS expr_list	{ $$ = node_create2(NULL, NULL, "simple_stmt", 3, $1, $2, $3); }
 |	expr LINC	    	    	{ $$ = node_create2(NULL, NULL, "simple_stmt", 2, $1, $2); }
 |	expr LDEC	    	    	{ $$ = node_create2(NULL, NULL, "simple_stmt", 2, $1, $2); }
+|	expr LPLASN expr            { $$ = node_create2(NULL, NULL, "simple_stmt", 3, $1, $2, $3); }
+|	expr LMIASN expr            { $$ = node_create2(NULL, NULL, "simple_stmt", 3, $1, $2, $3); }
     ;
 
 case:
@@ -537,7 +539,12 @@ dotdotdot:
     ;
 
 ntype:
-    recvchantype	{ $$ = $1; }
+    LTYPEBOOL       { $$ = $1; }
+|   LTYPEFLOAT64    { $$ = $1; }
+|   LTYPEINT        { $$ = $1; }
+|   LTYPESTRING     { $$ = $1; }
+|   LTYPERUNE       { $$ = $1; }
+|   recvchantype	{ $$ = $1; }
 |	fntype	    	{ $$ = $1; }
 |	othertype	    { $$ = $1; }
 |	ptrtype	    	{ $$ = $1; }
@@ -981,5 +988,5 @@ hidden_interfacedcl_list:
 // Error handling
 int yyerror(char* s) {
     fprintf(stderr, "%s:%d: %s before '%s' token\n", currentFile, yylineno, s, yytext);
-    return 2;
+    exit(2);
 }
