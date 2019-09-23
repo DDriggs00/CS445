@@ -76,22 +76,15 @@ int main(int argc, char* argv[]) {
 		}
 
         // Parse with Bison
-        int yyreturn = yyparse();
+        yyparse();
         treeRoots[i] = yytree;
-        if(yyreturn == 1) {
-            // fprintf(stderr, "Lexical Error\n");
-            return 1;
-        }
-        else if(yyreturn == 2) {
-            // fprintf(stderr, "Parsing/Syntax Error\n");
-            return 2;
-        }
-        else {
-            treePrint(treeRoots[0]);
-            return 0;
-        }
+        treePrint(treeRoots[i]);
     }
     
+    for(int i = 0; i < argc - 1; i++) {
+        node_destroy(treeRoots[i]);
+        // TODO: Destroy tokens as well
+    }
 
 
     return  returnval;
@@ -104,10 +97,7 @@ void treePrint(node_t* root) {
         printf("  ");
     }
     
-    printf("%s\n", root->type);
-    if(root->hasData) {
-        // tokenPrint(root->data);
-    }
+    printf("%s: %i\n", root->type, root->count);
     if (root->count <= 0)
     {
         return;
@@ -116,7 +106,8 @@ void treePrint(node_t* root) {
     while ((node = node_iterator_next(it))) {
         node->depth = root->depth + 1;
         treePrint(node);
-    } 
+    }
+    node_iterator_destroy(it);
 }
 
 
