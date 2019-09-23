@@ -13,48 +13,25 @@
 #include "node_iterator.h"
 
 // extern char *yytext;
-extern FILE *yyin;
+extern FILE *yyin;          // For sending the file to flex+bison
 extern int yylineno;        // For resetting lineno in each new file
 
-struct tree *yyprogram;
-struct list *typenames = NULL;
-struct token* yytoken;
-struct node_t* root;
-struct node_t* currentNode;
-struct node_t* nextNode;
+struct node_t* yytree;      // For receiving the tree from bison
 
 char** fileNames;
 char* currentFile;
 bool insertSemicolon = false;
 
 int yyparse();
+void treePrint(node_t* root);
+bool endsWith(const char *str, const char *suffix);
+bool hasExtention(const char* filename);
 
 // Return Codes:
 // 0: Success
 // 1: Lexical Error
 // 2: Parsing Error
 // -1: Other errors
-
-// https://stackoverflow.com/questions/744766
-bool endsWith(const char *str, const char *suffix)
-{
-    if (!str || !suffix)
-        return false;
-    size_t lenstr = strlen(str);
-    size_t lensuffix = strlen(suffix);
-    if (lensuffix >  lenstr)
-        return false;
-    return strncmp(str + lenstr - lensuffix, suffix, lensuffix) == 0;
-}
-
-// derived from https://stackoverflow.com/questions/5309471/
-bool hasExtention(const char* filename) {
-    const char* dot = strrchr(filename, '.');
-    if(!dot || dot == filename) return false;
-    char* pPosition = strchr(dot + 1, '/');
-    if(pPosition) return false;
-    return true;
-}
 
 int main(int argc, char* argv[]) {
     
@@ -88,9 +65,6 @@ int main(int argc, char* argv[]) {
 
     // For each filename, parse file
     for(int i = 0; i < argc - 1; i++) {
-        // Initialize root pointer
-        treeRoots[i] = node_create(NULL, NULL);
-        
         yylineno = 1; // Reset line counter to 0
         
         // prepare input file
@@ -103,6 +77,7 @@ int main(int argc, char* argv[]) {
 
         // Parse with Bison
         int yyreturn = yyparse();
+        treeRoots[i] = yytree;
         if(yyreturn == 1) {
             // fprintf(stderr, "Lexical Error\n");
             return 1;
@@ -112,28 +87,55 @@ int main(int argc, char* argv[]) {
             return 2;
         }
         else {
+            treePrint(treeRoots[0]);
             return 0;
         }
     }
     
 
-    printf("Category Text                   LineNo  File\n");
-
-    node_t *node;
-    node_iterator_t* it = node_iterator_create(root->children);
-    while ((node = node_iterator_next(it))) {
-        tokenPrint(node->data);
-    }
 
     return  returnval;
 }
 
-void node_full_iterate(node_t* root) {
+void treePrint(node_t* root) {
     node_t* node;
+    for (size_t i = 0; i < root->depth; i++)
+    {
+        printf("  ");
+    }
+    
+    printf("%s\n", root->type);
+    if(root->hasData) {
+        // tokenPrint(root->data);
+    }
+    if (root->count <= 0)
+    {
+        return;
+    }
     node_iterator_t* it = node_iterator_create(root->children);
     while ((node = node_iterator_next(it))) {
-        if(node->children == 0) {
-            tokenPrint(node->data);
-        }
-    }
+        node->depth = root->depth + 1;
+        treePrint(node);
+    } 
+}
+
+
+// https://stackoverflow.com/questions/744766
+bool endsWith(const char *str, const char *suffix) {
+    if (!str || !suffix)
+        return false;
+    size_t lenstr = strlen(str);
+    size_t lensuffix = strlen(suffix);
+    if (lensuffix >  lenstr)
+        return false;
+    return strncmp(str + lenstr - lensuffix, suffix, lensuffix) == 0;
+}
+
+// derived from https://stackoverflow.com/questions/5309471/
+bool hasExtention(const char* filename) {
+    const char* dot = strrchr(filename, '.');
+    if(!dot || dot == filename) return false;
+    char* pPosition = strchr(dot + 1, '/');
+    if(pPosition) return false;
+    return true;
 }
