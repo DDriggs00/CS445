@@ -78,6 +78,7 @@ int main(int argc, char* argv[]) {
         // Parse with Bison
         yyparse();
         treeRoots[i] = yytree;
+        printf("Tree for file: %s\n", currentFile);
         treePrint(treeRoots[i]);
     }
     
