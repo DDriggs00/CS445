@@ -27,8 +27,8 @@
 #include "node.h"
 #include "vgo.tab.h"
 
-#define YYDEBUG true
-yydebug = 1;
+// #define YYDEBUG true
+// yydebug = 1;
 
 extern char* currentFile;
 
