@@ -24,6 +24,7 @@ bool insertSemicolon = false;
 
 int yyparse();
 void treePrint(node_t* root);
+void createFileList(int count, char** args);
 bool endsWith(const char *str, const char *suffix);
 bool hasExtention(const char* filename);
 
@@ -42,24 +43,8 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    // create new array in memory, containing filenames
-    fileNames = (char**)malloc(sizeof(char*) * (argc - 1)); // Allocate memory for array
-    for (int i = 1; i < argc; i++) {
-        if (endsWith(argv[i], ".go")) {
-            fileNames[i - 1] = (char*)malloc(sizeof(char) * (strlen(argv[i]) + 1)); // Allocate memory for individual string
-            strcpy(fileNames[i - 1], argv[i]);
-        }
-        else {
-            // does not have .go extention
-            if (hasExtention(argv[i])) {
-                fprintf(stderr, "Only files with a .go extention are allowed\n");
-                return -1;
-            }
-            fileNames[i - 1] = (char*)malloc(sizeof(char) * (strlen(argv[i]) + 4)); // Allocate memory for individual string (+3 chars for )
-            strcpy(fileNames[i - 1], argv[i]);
-            fileNames[i - 1] = strcat(fileNames[i - 1], ".go");
-        }
-    }
+    createFileList(argc, argv);
+
     // Create an array of pointers to parse trees
     node_t** treeRoots = malloc(sizeof(node_t*) * (argc - 1));
 
@@ -116,6 +101,27 @@ void treePrint(node_t* root) {
     node_iterator_destroy(it);
 }
 
+// Uses global variable
+void createFileList(int count, char** args) {
+    // create new array in memory, containing filenames
+    fileNames = (char**)malloc(sizeof(char*) * (count - 1)); // Allocate memory for array
+    for (int i = 1; i < count; i++) {
+        if (endsWith(args[i], ".go")) {
+            fileNames[i - 1] = (char*)malloc(sizeof(char) * (strlen(args[i]) + 1)); // Allocate memory for individual string
+            strcpy(fileNames[i - 1], args[i]);
+        }
+        else {
+            // does not have .go extention
+            if (hasExtention(args[i])) {
+                fprintf(stderr, "Only files with a .go extention are allowed\n");
+                exit(-1);
+            }
+            fileNames[i - 1] = (char*)malloc(sizeof(char) * (strlen(args[i]) + 4)); // Allocate memory for individual string (+3 chars for )
+            strcpy(fileNames[i - 1], args[i]);
+            fileNames[i - 1] = strcat(fileNames[i - 1], ".go");
+        }
+    }
+}
 
 // https://stackoverflow.com/questions/744766
 bool endsWith(const char *str, const char *suffix) {
