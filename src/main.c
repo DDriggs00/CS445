@@ -38,13 +38,13 @@ int main(int argc, char* argv[]) {
     int returnval = 0;
 
     if(argc == 1){
-		fprintf(stderr, "No files were given\n");
-		return -1;
-	}
+        fprintf(stderr, "No files were given\n");
+        return -1;
+    }
 
     // create new array in memory, containing filenames
-	fileNames = (char**)malloc(sizeof(char*) * (argc - 1)); // Allocate memory for array
-	for (int i = 1; i < argc; i++) {
+    fileNames = (char**)malloc(sizeof(char*) * (argc - 1)); // Allocate memory for array
+    for (int i = 1; i < argc; i++) {
         if (endsWith(argv[i], ".go")) {
             fileNames[i - 1] = (char*)malloc(sizeof(char) * (strlen(argv[i]) + 1)); // Allocate memory for individual string
             strcpy(fileNames[i - 1], argv[i]);
@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
             strcpy(fileNames[i - 1], argv[i]);
             fileNames[i - 1] = strcat(fileNames[i - 1], ".go");
         }
-	}
+    }
     // Create an array of pointers to parse trees
     node_t** treeRoots = malloc(sizeof(node_t*) * (argc - 1));
 
@@ -70,10 +70,10 @@ int main(int argc, char* argv[]) {
         // prepare input file
         currentFile = fileNames[i]; //Needed for yylex
         yyin = fopen(currentFile, "r");
-		if(yyin == NULL){
-			printf("invalid File: %s\n", currentFile);
-			return -1;
-		}
+        if(yyin == NULL){
+            printf("invalid File: %s\n", currentFile);
+            return -1;
+        }
 
         // Parse with Bison
         yyparse();
@@ -97,8 +97,13 @@ void treePrint(node_t* root) {
     {
         printf("  ");
     }
-    
-    printf("%s: %i\n", root->type, root->count);
+    if (root->hasData) {
+        struct token* t = root->data;
+        printf("TOKEN %i: %s\n", t->category, t->text);
+    }
+    else {
+        printf("%s: %i\n", root->type, root->count);
+    }
     if (root->count <= 0)
     {
         return;
