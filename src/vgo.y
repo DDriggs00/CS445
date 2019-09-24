@@ -539,12 +539,7 @@ dotdotdot:
     ;
 
 ntype:
-    LTYPEBOOL       { $$ = $1; }
-|   LTYPEFLOAT64    { $$ = $1; }
-|   LTYPEINT        { $$ = $1; }
-|   LTYPESTRING     { $$ = $1; }
-|   LTYPERUNE       { $$ = $1; }
-|   recvchantype	{ $$ = $1; }
+    recvchantype	{ $$ = $1; }
 |	fntype	    	{ $$ = $1; }
 |	othertype	    { $$ = $1; }
 |	ptrtype	    	{ $$ = $1; }
@@ -589,7 +584,12 @@ dotname:
     ;
 
 othertype:
-    '[' oexpr ']' ntype	    	{ $$ = node_create2(NULL, NULL, "othertype", 4, $1, $2, $3, $4); }
+    LTYPEBOOL       { $$ = $1; }
+|   LTYPEFLOAT64    { $$ = $1; }
+|   LTYPEINT        { $$ = $1; }
+|   LTYPESTRING     { $$ = $1; }
+|   LTYPERUNE       { $$ = $1; }
+|   '[' oexpr ']' ntype	    	{ $$ = node_create2(NULL, NULL, "othertype", 4, $1, $2, $3, $4); }
 |	'[' LDDD ']' ntype	    	{ $$ = node_create2(NULL, NULL, "othertype", 4, $1, $2, $3, $4); }
 |	LCHAN non_recvchantype	    { $$ = node_create2(NULL, NULL, "othertype", 2, $1, $2); }
 |	LCHAN LCOMM ntype	    	{ $$ = node_create2(NULL, NULL, "othertype", 3, $1, $2, $3); }
