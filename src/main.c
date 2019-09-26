@@ -32,6 +32,7 @@ bool hasExtention(const char* filename);
 // 0: Success
 // 1: Lexical Error
 // 2: Parsing Error
+// 3. Go not VGo
 // -1: Other errors
 
 int main(int argc, char* argv[]) {

@@ -108,7 +108,7 @@ void myerror(int category);
 "-="            {nodenize(LMIASN); insertSemicolon = false; return LMIASN;}
 "++"            {nodenize(LINC); insertSemicolon = true; return LINC;}
 "--"            {nodenize(LDEC); insertSemicolon = true; return LDEC;}
-"="             {nodenize(LASOP); insertSemicolon = false; return LASOP;}
+"="             {nodenize('='); insertSemicolon = false; return '=';}
 "("             {nodenize('('); insertSemicolon = false; return '(';}
 ")"             {nodenize(')'); insertSemicolon = true; return ')';}
 "["             {nodenize('['); insertSemicolon = false; return '[';}
@@ -176,10 +176,10 @@ void myerror(int category) {
     }
     else if(category == LGOOPERATOR) {
         fprintf(stderr, "%s:%d: Go operator %s is not availible in VGo\n", currentFile, yylineno, yytext);
-        exit(1);
+        exit(3);
     }
     else if(category == LGOKEYWORD) {
         fprintf(stderr, "%s:%d: Go keyword %s is not availible in VGo\n", currentFile, yylineno, yytext);
-        exit(1);
+        exit(3);
     }
 }
