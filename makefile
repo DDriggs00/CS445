@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-c -g -std=c99 -D_POSIX_C_SOURCE=1 -Wall -Iinclude -I.
+CFLAGS=-c -std=c99 -D_POSIX_C_SOURCE=1 -Wall -Iinclude -I.
 # -D_POSIX_C_SOURCE=1 allows use of fileno in lex.yy.c
 OBJ=lex.yy.o vgo.tab.o main.o token.o list.o iterator.o node_iterator.o node_list.o node.o
 ASSIGN=2
@@ -48,11 +48,11 @@ node_list.o: $(SRC_DIR)/node_list.c
 # Clean
 .PHONY: clean
 clean:
-	@rm -f *.o vgo lex.yy.c vgo.tab.c vgo.tab.h
+	@rm -f *.o vgo lex.yy.c vgo.tab.c vgo.tab.h vgo.output
 
 # Create zip file
 .PHONY: zip
 zip:
 	make clean
-	@rm -f Driggs-Assign-$(ASSIGN).zip
-	zip -r hw$(ASSIGN).zip . -x *.git* LICENSE README.md vgo.tab.h vgo.tab.c "tests*"
+	@rm -f hw$(ASSIGN).zip
+	zip -r hw$(ASSIGN).zip . -x *.git* *.vscode* "tests*" "doc*" LICENSE README.md vgo.tab.h vgo.tab.c
