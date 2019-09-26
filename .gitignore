@@ -4,9 +4,6 @@
 # object files
 *.o
 
-# Editor debugger
-main
-
 # Executable
 vgo
 
@@ -17,3 +14,6 @@ vgo.tab.h
 
 # Bison file
 vgo.output
+
+# Homework zip files (they are labeled as releases)
+hw?.zip
