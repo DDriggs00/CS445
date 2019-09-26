@@ -271,7 +271,6 @@ typedcl:
 
 simple_stmt:
     expr	    	    	    { $$ = $1; }
-|	expr LASOP expr	    	    { $$ = node_create2(NULL, NULL, "simple_stmt", 3, $1, $2, $3); }
 |	expr_list '=' expr_list	    { $$ = node_create2(NULL, NULL, "simple_stmt", 3, $1, $2, $3); }
 |	expr_list LCOLAS expr_list	{ $$ = node_create2(NULL, NULL, "simple_stmt", 3, $1, $2, $3); }
 |	expr LINC	    	    	{ $$ = node_create2(NULL, NULL, "simple_stmt", 2, $1, $2); }
@@ -434,18 +433,19 @@ pseudocall:
     ;
 
 pexpr_no_paren:
-    literal	    	    	    	    	    	    	{ $$ = $1; }
-|	name	    	    	    	    	    	    	{ $$ = $1; }
-|	pexpr '.' sym	    	    	    	    	    	{ $$ = node_create2(NULL, NULL, "pexpr_no_paren", 3, $1, $2, $3); }
-|	pexpr '.' '(' expr_or_type ')'	    	    	    	{ $$ = node_create2(NULL, NULL, "pexpr_no_paren", 5, $1, $2, $3, $4, $5); }
-|	pexpr '.' '(' LTYPE ')'	    	    	    	    	{ $$ = node_create2(NULL, NULL, "pexpr_no_paren", 5, $1, $2, $3, $4, $5); }
-|	pexpr '[' expr ']'	    	    	    	    	    { $$ = node_create2(NULL, NULL, "pexpr_no_paren", 4, $1, $2, $3, $4); }
-|	pexpr '[' oexpr ':' oexpr ']'	    	    	    	{ $$ = node_create2(NULL, NULL, "pexpr_no_paren", 6, $1, $2, $3, $4, $5, $6); }
-|	pexpr '[' oexpr ':' oexpr ':' oexpr ']'	    	    	{ $$ = node_create2(NULL, NULL, "pexpr_no_paren", 8, $1, $2, $3, $4, $5, $6, $7, $8); }
-|	pseudocall      	    	    	    	    	    { $$ = $1; }
-|	convtype '(' expr ocomma ')'	    	    	    	{ $$ = node_create2(NULL, NULL, "pexpr_no_paren", 5, $1, $2, $3, $4, $5); }
-|	comptype lbrace start_complit braced_keyval_list '}'    { $$ = node_create2(NULL, NULL, "pexpr_no_paren", 5, $1, $2, $3, $4, $5); }
-|	fnliteral	    	    	    	    	    	    { $$ = $1; }
+    literal	    	    	    	    	{ $$ = $1; }
+|	name	    	    	    	    	{ $$ = $1; }
+|	pexpr '.' sym	    	    	    	{ $$ = node_create2(NULL, NULL, "pexpr_no_paren", 3, $1, $2, $3); }
+|	pexpr '.' '(' expr_or_type ')'	    	{ $$ = node_create2(NULL, NULL, "pexpr_no_paren", 5, $1, $2, $3, $4, $5); }
+|	pexpr '.' '(' LTYPE ')'	    	    	{ $$ = node_create2(NULL, NULL, "pexpr_no_paren", 5, $1, $2, $3, $4, $5); }
+|	pexpr '[' expr ']'	    	    	    { $$ = node_create2(NULL, NULL, "pexpr_no_paren", 4, $1, $2, $3, $4); }
+|	pexpr '[' oexpr ':' oexpr ']'	    	{ $$ = node_create2(NULL, NULL, "pexpr_no_paren", 6, $1, $2, $3, $4, $5, $6); }
+|	pexpr '[' oexpr ':' oexpr ':' oexpr ']'	{ $$ = node_create2(NULL, NULL, "pexpr_no_paren", 8, $1, $2, $3, $4, $5, $6, $7, $8); }
+|	pseudocall      	    	    	    { $$ = $1; }
+|	convtype '(' expr ocomma ')'	    	{ $$ = node_create2(NULL, NULL, "pexpr_no_paren", 5, $1, $2, $3, $4, $5); }
+|	comptype '{' braced_keyval_list '}'     { $$ = node_create2(NULL, NULL, "pexpr_no_paren", 4, $1, $2, $3, $4); }
+|	LNAME '{' expr_list '}'                 { $$ = node_create2(NULL, NULL, "pexpr_no_paren", 4, $1, $2, $3, $4); }
+|	fnliteral                               { $$ = $1; }
 
 start_complit:
     %empty {
