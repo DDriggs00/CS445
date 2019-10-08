@@ -26,7 +26,7 @@ char* currentFile;
 bool insertSemicolon = false;
 
 int yyparse();
-void treePrint(node_t* root);
+void treePrint(node_t* root, char* name = NULL);
 void createFileList(int count, char** args);
 bool endsWith(const char *str, const char *suffix);
 bool hasExtention(const char* filename);
@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
     // ===== Step 0: File list generation =====
     // ========================================
    
-    if(argc == 1){
+    if (argc == 1){
         fprintf(stderr, "No files were given\n");
         return -1;
     }
@@ -61,13 +61,13 @@ int main(int argc, char* argv[]) {
     node_t** treeRoots = malloc(sizeof(node_t*) * (argc - nonFileArguments));
 
     // For each filename, parse file
-    for(int i = 0; i < argc - nonFileArguments; i++) {
+    for (int i = 0; i < argc - nonFileArguments; i++) {
         yylineno = 1; // Reset line counter to 0
         
         // Prepare and validate input file
         currentFile = fileNames[i]; //Needed for yylex
         yyin = fopen(currentFile, "r");
-        if(yyin == NULL){
+        if (yyin == NULL){
             printf("invalid File: %s\n", currentFile);
             return -1;
         }
@@ -82,12 +82,12 @@ int main(int argc, char* argv[]) {
     // ===== Step 2: Variable Extraction ======
     // ========================================
 
-    // Parse out cariables and put them into hashtables
-    for(int i = 0; i < argc - nonFileArguments; i++) {
+    // Parse out variables and put them into hashtables
+    for (int i = 0; i < argc - nonFileArguments; i++) {
 
         // Generate symbol tables
-        list_t* list = genSymTab(treeRoots[i]);
-
+        // list_t* list = genSymTab(treeRoots[i]);
+        treePrint(treeRoots[i], "vardcl");
         // TODO print list
     }
     
@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
     // =============== Cleanup ================
     // ========================================
 
-    for(int i = 0; i < argc - nonFileArguments; i++) {
+    for (int i = 0; i < argc - nonFileArguments; i++) {
         node_destroy(treeRoots[i]);
         // TODO: Destroy tokens as well
     }
@@ -103,18 +103,20 @@ int main(int argc, char* argv[]) {
     return  returnval;
 }
 
-void treePrint(node_t* root) {
+void treePrint(node_t* root, char* name) {
     node_t* node;
-    for (size_t i = 0; i < root->depth; i++)
-    {
-        printf("  ");
-    }
-    if (root->hasData) {
-        struct token* t = root->data;
-        printf("TOKEN %i: %s\n", t->category, t->text);
-    }
-    else {
-        printf("%s: %i\n", root->type, root->count);
+    if (name == NULL || name == node->type) {
+        for (int i = 0; i < root->depth; i++)
+        {
+            printf("  ");
+        }
+        if (root->hasData) {
+            struct token* t = root->data;
+            printf("TOKEN %i: %s\n", t->category, t->text);
+        }
+        else {
+            printf("%s: %i\n", root->type, root->count);
+        }
     }
     if (root->count <= 0)
     {
@@ -123,12 +125,18 @@ void treePrint(node_t* root) {
     node_iterator_t* it = node_iterator_create(root->children);
     while ((node = node_iterator_next(it))) {
         node->depth = root->depth + 1;
-        treePrint(node);
+        
+        if (name == NULL || name == node->type) {
+            treePrint(node);
+        }
+        else {
+            treePrint(node, name);
+        }
     }
     node_iterator_destroy(it);
 }
 
-// Fixes the depth varaible in trees built backwards
+// Fixes the depth variable in trees built backwards
 void treeDepthFix(node_t* root) {
     node_t* node;
     if (root->count <= 0)
@@ -153,12 +161,12 @@ void createFileList(int count, char** args) {
             strcpy(fileNames[i - 1], args[i]);
         }
         else {
-            // does not have .go extention
+            // does not have .go extentions
             if (hasExtention(args[i])) {
                 fprintf(stderr, "Only files with a .go extention are allowed\n");
                 exit(-1);
             }
-            fileNames[i - 1] = (char*)malloc(sizeof(char) * (strlen(args[i]) + 4)); // Allocate memory for individual string (+3 chars for )
+            fileNames[i - 1] = (char*)malloc(sizeof(char) * (strlen(args[i]) + 4)); // Allocate memory for individual string (+3 chars for)
             strcpy(fileNames[i - 1], args[i]);
             fileNames[i - 1] = strcat(fileNames[i - 1], ".go");
         }
@@ -179,8 +187,8 @@ bool endsWith(const char *str, const char *suffix) {
 // derived from https://stackoverflow.com/questions/5309471/
 bool hasExtention(const char* filename) {
     const char* dot = strrchr(filename, '.');
-    if(!dot || dot == filename) return false;
+    if (!dot || dot == filename) return false;
     char* pPosition = strchr(dot + 1, '/');
-    if(pPosition) return false;
+    if (pPosition) return false;
     return true;
 }
