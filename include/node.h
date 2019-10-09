@@ -43,7 +43,7 @@ typedef struct node_t {
 	int hasData;
 
 	// Local Members
-	char *type;
+	int type;
 	void *data;
 	unsigned int depth;
 	struct node_t* parent;
@@ -56,11 +56,11 @@ typedef struct node_t {
 } node_t;
 
 void node_destroy(struct node_t* node);
-struct node_t* node_create(struct node_t* parent, void* data, char* type);
+struct node_t* node_create(struct node_t* parent, void* data, int type);
 
 // Same as above, but initializes children too
 // Used in parser
-struct node_t* node_create2(struct node_t* parent, void* data, char* type, int count, ...);
+struct node_t* node_create2(struct node_t* parent, void* data, int type, int count, ...);
 
 int node_attach(struct node_t* parent, struct node_t* child);
 int node_detach(struct node_t* parent, struct node_t* child);

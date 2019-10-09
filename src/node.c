@@ -45,7 +45,7 @@ void node_destroy(node_t* node) {
 	free(node);
 }
 
-node_t* node_create(node_t* parent, void* data, char* type) {
+node_t* node_create(node_t* parent, void* data, int type) {
 	int error = 0;
 
 	node_t* node = (node_t*) malloc(sizeof(node_t));
@@ -63,8 +63,7 @@ node_t* node_create(node_t* parent, void* data, char* type) {
 	node->isRoot = TRUE;
 	node->parent = NULL;
 	node->children = node_list_create(node);
-	node->type = malloc((strlen(type) + 1) * sizeof(char));
-	strcpy(node->type, type);
+	node->type = type;
 
 	// Pass NULL to create a root node
 	if(parent != NULL) {
@@ -90,7 +89,7 @@ node_t* node_create(node_t* parent, void* data, char* type) {
 	return node;
 }
 
-node_t* node_create2(struct node_t* parent, void* data, char* type, int count, ...) {
+node_t* node_create2(struct node_t* parent, void* data, int type, int count, ...) {
 	node_t* node = node_create(parent, data, type);
 	
 	// for each additional arg (in the ...), add it as a child
@@ -239,8 +238,7 @@ node_t* node_copy_deep(node_t* node, copy_func_t copy_func)
 	if (copy_func) {
 		data = copy_func(node->data);
 	}
-	char* type = malloc(sizeof(char) * (strlen(node->type) + 1));
-	strcpy(type, node->type);
+	int type = node->type;
 	node_t* copy = node_create(NULL, data, type);
 	node_t* ch;
 	for (ch = node_first_child(node); ch; ch = node_next_sibling(ch)) {

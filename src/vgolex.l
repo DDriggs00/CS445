@@ -37,7 +37,7 @@ void myerror(int category);
         insertSemicolon = false;
         yytext = ";";
         // printf("inserted semicolon on line %i\n", yylineno - 1);
-        yylval.t = node_create(NULL, tokenNew(';', yytext, yylineno - 1, currentFile), yytext);
+        yylval.t = node_create(NULL, tokenNew(';', yytext, yylineno - 1, currentFile), ';');
         return ';';
     }
 }  
@@ -149,7 +149,7 @@ void myerror(int category);
     if (insertSemicolon) {
         insertSemicolon = false;
         yytext = ";";
-        yylval.t = node_create(NULL, tokenNew(';', yytext, yylineno - 1, currentFile), yytext);
+        yylval.t = node_create(NULL, tokenNew(';', yytext, yylineno - 1, currentFile), ';');
         return ';';
     }
     else {
@@ -165,7 +165,7 @@ void myerror(int category);
 
 void nodenize(int category)
 {
-    yylval.t = node_create(NULL, tokenNew(category, yytext, yylineno, currentFile), yytext);
+    yylval.t = node_create(NULL, tokenNew(category, yytext, yylineno, currentFile), category);
     
 }
 
