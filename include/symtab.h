@@ -19,7 +19,7 @@ list_t* genSymTab(node_t* tree);
 // Traverses the given tree, and returns the node with *tag* 
 // Ignores the first n entries with *tag*
 // If no match (or not enough matches) found, returns NULL
-node_t* findNode(node_t* root, char* tag, int *n = NULL);
+node_t* findNode(node_t* root, char* tag, int *n);
 
 
 #endif					/* SYMTAB_H */
