@@ -14,6 +14,7 @@
 #include "list.h"           // For list of symbol tables
 #include "node_list.h"      // For tree
 #include "node_iterator.h"  // For printing out tree
+#include "nodeTypes.h"      // For more easily navigating the tree
 
 // extern char *yytext;
 extern FILE *yyin;          // For sending the file to flex+bison
@@ -26,7 +27,8 @@ char* currentFile;
 bool insertSemicolon = false;
 
 int yyparse();
-void treePrint(node_t* root, char* name = NULL);
+void treeDepthFix(node_t* root);
+void treePrint(node_t* root, int name);
 void createFileList(int count, char** args);
 bool endsWith(const char *str, const char *suffix);
 bool hasExtention(const char* filename);
@@ -87,7 +89,7 @@ int main(int argc, char* argv[]) {
 
         // Generate symbol tables
         // list_t* list = genSymTab(treeRoots[i]);
-        treePrint(treeRoots[i], "vardcl");
+        treePrint(treeRoots[i], tag_vardcl);
         // TODO print list
     }
     
@@ -103,9 +105,9 @@ int main(int argc, char* argv[]) {
     return  returnval;
 }
 
-void treePrint(node_t* root, char* name) {
+void treePrint(node_t* root, int type) {
     node_t* node;
-    if (name == NULL || name == node->type) {
+    if (type == 0 || type == root->type) {
         for (int i = 0; i < root->depth; i++)
         {
             printf("  ");
@@ -115,7 +117,7 @@ void treePrint(node_t* root, char* name) {
             printf("TOKEN %i: %s\n", t->category, t->text);
         }
         else {
-            printf("%s: %i\n", root->type, root->count);
+            printf("%i: %i\n", root->type, root->count);
         }
     }
     if (root->count <= 0)
@@ -126,11 +128,11 @@ void treePrint(node_t* root, char* name) {
     while ((node = node_iterator_next(it))) {
         node->depth = root->depth + 1;
         
-        if (name == NULL || name == node->type) {
-            treePrint(node);
+        if (type == 0 || type == root->type) {
+            treePrint(node, 0);
         }
         else {
-            treePrint(node, name);
+            treePrint(node, type);
         }
     }
     node_iterator_destroy(it);
