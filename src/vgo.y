@@ -25,6 +25,7 @@
 #include <stdbool.h>	// For boolean support
 
 #include "node.h"
+#include "nodeTypes.h"
 #include "vgo.tab.h"
 
 // #define YYDEBUG true
@@ -188,8 +189,8 @@ import_stmt_list:
 
 import_here:
     LLITERAL        { $$ = $1; }
-|	sym LLITERAL    { $$ = node_create2(NULL, NULL, tag_impoort_here, 2, $1, $2); }
-|	'.' LLITERAL    { $$ = node_create2(NULL, NULL, tag_impoort_here, 2, $1, $2); }
+|	sym LLITERAL    { $$ = node_create2(NULL, NULL, tag_import_here, 2, $1, $2); }
+|	'.' LLITERAL    { $$ = node_create2(NULL, NULL, tag_import_here, 2, $1, $2); }
     ;
 
 import_package:
@@ -253,7 +254,7 @@ constdcl:
 
 constdcl1:
     constdcl	    	{ $$ = $1; }
-|	dcl_name_list ntype	{ $$ = node_create2(NULL, NULL, "constdcl1", 2, $1, $2); }
+|	dcl_name_list ntype	{ $$ = node_create2(NULL, NULL, tag_constdcl1, 2, $1, $2); }
 |	dcl_name_list	    { $$ = $1; }
     ;
 
