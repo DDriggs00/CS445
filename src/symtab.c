@@ -1,7 +1,14 @@
-#include "hashtable.h"      // External hashtable library
+#include <string.h>
+#include <stdlib.h>
+
+#include "symtab.h"
+#include "cfuhash.h"        // For symbol tables
+#include "token.h"          // For reading the tree's leaf tokens
 #include "node.h"           // For using the tree
 #include "node_iterator.h"  // For using the tree
 #include "list.h"           // For a list of hashtables
+#include "nodeTypes.h"      // For easier navigation of the tree
+#include "vgo.tab.h"        // For the yytokentype enum
 
 // 1. Find each scope
 //  a. Main         "package"
@@ -13,29 +20,27 @@
 // 5. Add vardcl to symbol table
 // 6. For each varReference, check master and local symbol tables
 
-list_t* genSymTab( node_t* tree ) {
+node_t* genSymTab(node_t* tree) {
+    node_t* htTree;
+    htTree = initHashTables(tree);
+
 
 }
 
-node_t* findNode( node_t* root, char* tag, int* num ) {
-    if( root->type == tag ) {
-        if( num == NULL || *num <= 0 ) {
-            return root;
-        }
-        else {
-            *num--;
-        }
+node_t* findNode(node_t* root, int tag) {
+    if(root->type == tag) {
+        return root;
     }
-    if ( root->count <= 0 )
+    if (root->count <= 0)
     {
         return NULL;
     }
     node_t* node;
     node_t* result = NULL;
-    node_iterator_t* it = node_iterator_create( root->children );
-    while ( ( node = node_iterator_next( it ) ) ) {
-        result = findNode( node, tag, num );
-        if( result != NULL) {
+    node_iterator_t* it = node_iterator_create(root->children);
+    while ((node = node_iterator_next(it))) {
+        result = findNode(node, tag);
+        if(result != NULL) {
             return result;
         }
     }
@@ -43,4 +48,37 @@ node_t* findNode( node_t* root, char* tag, int* num ) {
     
     // If no match found, return NULL
     return NULL;
+}
+
+char* getPackageName(node_t* tree) {
+    node_t* nodeTemp;   // Will be used throughout
+
+    nodeTemp = findNode(tree, tag_package);
+    nodeTemp = findNode(nodeTemp, LNAME);
+
+    char* mainPkgName = malloc(sizeof(char) * (strlen(((token_t*)(nodeTemp->data))->text) + 1));
+    strcpy(mainPkgName, ((token_t*)(nodeTemp->data))->text);
+
+    return mainPkgName;
+}
+
+// Returns a tree of empty hashtables
+node_t* initHashTables(node_t* tree) {
+    cfuhash_table_t* ht = cfuhash_new();
+    node_t* root = node_create(NULL, ht, MAIN_TYPE);
+}
+
+// Fills the main hashtable
+void populateHashtableMain(node_t* tree, cfuhash_table_t* htTree) {
+
+}
+
+// Fills a struct's hashtable
+void populateHashtableStruct(node_t* tree, cfuhash_table_t* htTree) {
+
+}
+
+// Fills a function's hashtable
+void populateHashtableFunction(node_t* tree, cfuhash_table_t* htTree) {
+
 }
