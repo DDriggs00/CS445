@@ -1,7 +1,7 @@
 CC=gcc
-CFLAGS=-c -std=c99 -D_POSIX_C_SOURCE=1 -Wall -Iinclude -I.
+CFLAGS=-c -g -std=c99 -D_POSIX_C_SOURCE=1 -Wall -Iinclude -I.
 # -D_POSIX_C_SOURCE=1 allows use of fileno in lex.yy.c
-OBJ=lex.yy.o vgo.tab.o main.o token.o list.o iterator.o node_iterator.o node_list.o node.o cfu.o cfustring.o cfuhash.o
+OBJ=lex.yy.o vgo.tab.o main.o token.o list.o node.o iterator.o node_list.o node_iterator.o node_iterator_full.o cfu.o cfustring.o cfuhash.o
 ASSIGN=2
 
 SRC_DIR=src
@@ -41,6 +41,9 @@ iterator.o: $(SRC_DIR)/iterator.c
 
 node_iterator.o: $(SRC_DIR)/node_iterator.c
 	$(CC) $(CFLAGS) $(SRC_DIR)/node_iterator.c
+
+node_iterator_full.o: $(SRC_DIR)/node_iterator_full.c
+	$(CC) $(CFLAGS) $(SRC_DIR)/node_iterator_full.c
 
 node_list.o: $(SRC_DIR)/node_list.c
 	$(CC) $(CFLAGS) $(SRC_DIR)/node_list.c
