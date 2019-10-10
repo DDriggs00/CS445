@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-c -std=c99 -D_POSIX_C_SOURCE=1 -Wall -Iinclude -I.
 # -D_POSIX_C_SOURCE=1 allows use of fileno in lex.yy.c
-OBJ=lex.yy.o vgo.tab.o main.o token.o list.o iterator.o node_iterator.o node_list.o node.o murmur.o hashtable.o
+OBJ=lex.yy.o vgo.tab.o main.o token.o list.o iterator.o node_iterator.o node_list.o node.o cfu.o cfustring.o cfuhash.o
 ASSIGN=2
 
 SRC_DIR=src
@@ -46,11 +46,14 @@ node_list.o: $(SRC_DIR)/node_list.c
 	$(CC) $(CFLAGS) $(SRC_DIR)/node_list.c
 
 # hashtable
-murmur.o: $(SRC_DIR)/murmur.c
-	$(CC) $(CFLAGS) $(SRC_DIR)/murmur.c
+cfu.o: $(SRC_DIR)/cfu.c
+	$(CC) $(CFLAGS) $(SRC_DIR)/cfu.c
 
-hashtable.o: $(SRC_DIR)/hashtable.c
-	$(CC) $(CFLAGS) $(SRC_DIR)/hashtable.c
+cfustring.o: $(SRC_DIR)/cfustring.c
+	$(CC) $(CFLAGS) $(SRC_DIR)/cfustring.c
+
+cfuhash.o: $(SRC_DIR)/cfuhash.c
+	$(CC) $(CFLAGS) $(SRC_DIR)/cfuhash.c
 
 # Clean
 .PHONY: clean
