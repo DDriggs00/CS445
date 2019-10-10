@@ -6,6 +6,7 @@
 #include "token.h"          // For reading the tree's leaf tokens
 #include "node.h"           // For using the tree
 #include "node_iterator.h"  // For using the tree
+#include "node_iterator_full.h"  // For using the tree
 #include "list.h"           // For a list of hashtables
 #include "nodeTypes.h"      // For easier navigation of the tree
 #include "vgo.tab.h"        // For the yytokentype enum
@@ -22,7 +23,17 @@
 
 node_t* genSymTab(node_t* tree) {
     node_t* htTree;
-    htTree = initHashTables(tree);
+    
+    // Initialize Root
+    node_t* root = node_create(NULL, cfuhash_new(), MAIN_TYPE);
+
+    node_iterator_full_t* it = node_iterator_full_create(tree);
+    node_t* node;
+    while ((node = node_iterator_full_next(it))) {
+        if (node->type == tag_xfndcl) {
+            
+        }
+    }
 
 
 }
@@ -64,8 +75,9 @@ char* getPackageName(node_t* tree) {
 
 // Returns a tree of empty hashtables
 node_t* initHashTables(node_t* tree) {
-    cfuhash_table_t* ht = cfuhash_new();
-    node_t* root = node_create(NULL, ht, MAIN_TYPE);
+    
+    
+
 }
 
 // Fills the main hashtable
