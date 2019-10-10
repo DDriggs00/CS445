@@ -14,7 +14,9 @@
 #include "list.h"           // For list of symbol tables
 #include "node_list.h"      // For tree
 #include "node_iterator.h"  // For printing out tree
+#include "node_iterator_full.h" // testing
 #include "nodeTypes.h"      // For more easily navigating the tree
+#include "cfuhash.h"        // For symbol tables
 
 // extern char *yytext;
 extern FILE *yyin;          // For sending the file to flex+bison
@@ -27,7 +29,7 @@ char* currentFile;
 bool insertSemicolon = false;
 
 int yyparse();
-void treeDepthFix(node_t* root);
+void treeFix(node_t* root);
 void treePrint(node_t* root, int name);
 void createFileList(int count, char** args);
 bool endsWith(const char *str, const char *suffix);
@@ -77,19 +79,45 @@ int main(int argc, char* argv[]) {
         // Parse with Bison (which calls flex)
         yyparse();
         treeRoots[i] = yytree;
-        treeDepthFix(treeRoots[i]);
+        treeFix(treeRoots[i]);
     }
 
     // ========================================
     // ===== Step 2: Variable Extraction ======
     // ========================================
 
+    node_iterator_full_t* it2 = node_iterator_full_create(treeRoots[0]);
+    node_t* node;
+    while ((node = node_iterator_full_next(it2))) {
+        for (int i = 0; i < node->depth; i++)
+        {
+            printf("  ");
+        }
+        if (node->hasData) {
+            struct token* t = node->data;
+            printf("TOKEN %i: %s\n", t->category, t->text);
+        }
+        else {
+            printf("%i: %i\n", node->type, node->count);
+        }
+    }
+
+
+    // cfuhash_table_t *ht = cfuhash_new();
+    // cfuhash_put(ht, "var1", "value1");
+    // cfuhash_delete(ht, "var3");
+    // cfuhash_pretty_print(ht, stdout);
+    // char* val = cfuhash_get(ht, "var2");
+
+    // Create table of hashtable pointers
+    // node_t** hashTables = malloc(sizeof(cfuhash_table_t*) * (argc - nonFileArguments));
+    
     // Parse out variables and put them into hashtables
     for (int i = 0; i < argc - nonFileArguments; i++) {
-
+        // hashTables[i] = genSymTab(treeRoots[i]);
         // Generate symbol tables
-        // list_t* list = genSymTab(treeRoots[i]);
-        treePrint(treeRoots[i], tag_vardcl);
+        
+        // treePrint(treeRoots[i], tag_vardcl);
         // TODO print list
     }
     
@@ -139,7 +167,7 @@ void treePrint(node_t* root, int type) {
 }
 
 // Fixes the depth variable in trees built backwards
-void treeDepthFix(node_t* root) {
+void treeFix(node_t* root) {
     node_t* node;
     if (root->count <= 0)
     {
@@ -148,7 +176,9 @@ void treeDepthFix(node_t* root) {
     node_iterator_t* it = node_iterator_create(root->children);
     while ((node = node_iterator_next(it))) {
         node->depth = root->depth + 1;
-        treeDepthFix(node);
+        node->isLeaf = (node->count == 0);
+        node->isRoot = (node->parent == NULL);
+        treeFix(node);
     }
     node_iterator_destroy(it);
 }
