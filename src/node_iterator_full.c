@@ -24,6 +24,12 @@ node_iterator_full_t* node_iterator_full_create(node_t* root) {
 }
 
 struct node_t* node_iterator_full_next(struct node_iterator_full_t* iterator) {
+    // Return first token first
+    if(iterator->count == 0) {
+        iterator->count++;
+        return iterator->current;
+    }
+
     if(iterator->current->count > 0) {
         iterator->current = iterator->current->children->begin;
         iterator->count++;
