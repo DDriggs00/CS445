@@ -86,23 +86,6 @@ int main(int argc, char* argv[]) {
     // ===== Step 2: Variable Extraction ======
     // ========================================
 
-    node_iterator_full_t* it2 = node_iterator_full_create(treeRoots[0]);
-    node_t* node;
-    while ((node = node_iterator_full_next(it2))) {
-        for (int i = 0; i < node->depth; i++)
-        {
-            printf("  ");
-        }
-        if (node->hasData) {
-            struct token* t = node->data;
-            printf("TOKEN %i: %s\n", t->category, t->text);
-        }
-        else {
-            printf("%i: %i\n", node->type, node->count);
-        }
-    }
-
-
     // cfuhash_table_t *ht = cfuhash_new();
     // cfuhash_put(ht, "var1", "value1");
     // cfuhash_delete(ht, "var3");
