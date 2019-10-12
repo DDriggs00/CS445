@@ -83,10 +83,7 @@ int yyerror(char* s);
 %type <t>   literal
 
 // Non-Terminal symbols
-%type <t>	lbrace import_here
-%type <t>	sym packname
-%type <t>	oliteral
-
+%type <t>	import_here sym packname oliteral
 %type <t>	stmt ntype file package imports import import_stmt
 %type <t>	arg_type hidden_import ocomma osemi fnlitdcl error
 %type <t>	case caseblock hidden_import_list import_stmt_list
@@ -102,7 +99,7 @@ int yyerror(char* s);
 %type <t>	pseudocall range_stmt select_stmt
 %type <t>	simple_stmt
 %type <t>	switch_stmt uexpr
-%type <t>	xfndcl typedcl start_complit
+%type <t>	xfndcl typedcl
 
 %type <t>	xdcl fnbody fnres loop_body dcl_name_list
 %type <t>	new_name_list expr_list keyval_list braced_keyval_list expr_or_type_list xdcl_list
@@ -448,25 +445,18 @@ pexpr_no_paren:
 |	LNAME '{' expr_list '}'                 { $$ = node_create2(NULL, NULL, tag_pexpr_no_paren, 4, $1, $2, $3, $4); }
 |	fnliteral                               { $$ = $1; }
 
-start_complit:
-    %empty {
-        // composite expression.
-        // make node early so we get the right line number.
-    }
-    ;
-
 keyval:
     expr ':' complitexpr	{ $$ = node_create2(NULL, NULL, tag_keyval, 3, $1, $2, $3); }
     ;
 
 bare_complitexpr:
     expr	    	    	    	    	    { $$ = $1; }
-|	'{' start_complit braced_keyval_list '}'	{ $$ = node_create2(NULL, NULL, tag_bare_complicitexpr, 4, $1, $2, $3, $4); }
+|	'{' braced_keyval_list '}'	{ $$ = node_create2(NULL, NULL, tag_bare_complicitexpr, 4, $1, $2, $3, $4); }
     ;
 
 complitexpr:
     expr	    	    	    	    	    { $$ = $1; }
-|	'{' start_complit braced_keyval_list '}'	{ $$ = node_create2(NULL, NULL, tag_complicitexpr, 4, $1, $2, $3, $4); }
+|	'{' braced_keyval_list '}'	{ $$ = node_create2(NULL, NULL, tag_complicitexpr, 4, $1, $2, $3, $4); }
     ;
 
 pexpr:
@@ -480,10 +470,6 @@ expr_or_type:
 
 name_or_type:
     ntype	{ $$ = $1; }
-
-lbrace:
-    '{'	    { $$ = $1; }
-    ;
 
 /*
  * names and types
@@ -608,13 +594,13 @@ recvchantype:
     ;
 
 structtype:
-    LSTRUCT lbrace structdcl_list osemi '}'	{ $$ = node_create2(NULL, NULL, tag_structtype, 5, $1, $2, $3, $4, $5); }
-|	LSTRUCT lbrace '}'	    	    	    { $$ = node_create2(NULL, NULL, tag_structtype, 3, $1, $2, $3); }
+    LSTRUCT '{' structdcl_list osemi '}'	{ $$ = node_create2(NULL, NULL, tag_structtype, 5, $1, $2, $3, $4, $5); }
+|	LSTRUCT '{' '}'	    	    	    { $$ = node_create2(NULL, NULL, tag_structtype, 3, $1, $2, $3); }
     ;
 
 interfacetype:
-    LINTERFACE lbrace interfacedcl_list osemi '}'	{ $$ = node_create2(NULL, NULL, tag_interfacetype, 5, $1, $2, $3, $4, $5); }
-|	LINTERFACE lbrace '}'	    	    	    	{ $$ = node_create2(NULL, NULL, tag_interfacetype, 3, $1, $2, $3); }
+    LINTERFACE '{' interfacedcl_list osemi '}'	{ $$ = node_create2(NULL, NULL, tag_interfacetype, 5, $1, $2, $3, $4, $5); }
+|	LINTERFACE '{' '}'	    	    	    	{ $$ = node_create2(NULL, NULL, tag_interfacetype, 3, $1, $2, $3); }
     ;
 
 /*
@@ -655,7 +641,7 @@ fnlitdcl:
     ;
 
 fnliteral:
-    fnlitdcl lbrace stmt_list '}'	{ $$ = node_create2(NULL, NULL, tag_fnliteral, 4, $1, $2, $3, $4); }
+    fnlitdcl '{' stmt_list '}'	{ $$ = node_create2(NULL, NULL, tag_fnliteral, 4, $1, $2, $3, $4); }
 |	fnlitdcl error	    	    	{ $$ = node_create2(NULL, NULL, tag_fnliteral, 2, $1, $2); }
     ;
 
