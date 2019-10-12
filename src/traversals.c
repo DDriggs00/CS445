@@ -47,7 +47,7 @@ node_t* findNodeShallow(node_t* tree, int tag) {
 node_t* getSibling(node_t* tree, int nthSibling) {
     if (!tree) return NULL;
     if (nthSibling == 0) return tree;
-    
+
     node_t* node = tree;
     if (nthSibling > 0) {
         for (int i = nthSibling; i > 0; i--) {
@@ -63,4 +63,7 @@ node_t* getSibling(node_t* tree, int nthSibling) {
         }
         return node;
     }
+
+    // Should never be reached, but there was a warning
+    return NULL;
 }
