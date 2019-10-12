@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
         // hashTables[i] = genSymTab(treeRoots[i]);
         // Generate symbol tables
         
-        // treePrint(treeRoots[i], tag_vardcl);
+        treePrint(treeRoots[i], 0);
         // TODO print list
     }
     
