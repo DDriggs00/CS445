@@ -256,11 +256,7 @@ constdcl1:
     ;
 
 typedclname:
-    sym
-    {
-        // the name becomes visible right here, not at the end
-        // of the declaration.
-    }
+    sym { $$ = $1; }
     ;
 
 typedcl:
@@ -451,12 +447,12 @@ keyval:
 
 bare_complitexpr:
     expr	    	    	    	    	    { $$ = $1; }
-|	'{' braced_keyval_list '}'	{ $$ = node_create2(NULL, NULL, tag_bare_complicitexpr, 4, $1, $2, $3, $4); }
+|	'{' braced_keyval_list '}'	{ $$ = node_create2(NULL, NULL, tag_bare_complicitexpr, 3, $1, $2, $3); }
     ;
 
 complitexpr:
     expr	    	    	    	    	    { $$ = $1; }
-|	'{' braced_keyval_list '}'	{ $$ = node_create2(NULL, NULL, tag_complicitexpr, 4, $1, $2, $3, $4); }
+|	'{' braced_keyval_list '}'	{ $$ = node_create2(NULL, NULL, tag_complicitexpr, 3, $1, $2, $3); }
     ;
 
 pexpr:
