@@ -6,7 +6,7 @@
 #include "list.h"       // For a list of hashtables
 
 // Returns a tree containing all symbol tables from the given tree
-node_t* genSymTab(node_t* tree);
+cfuhash_table_t* genSymTab(node_t* tree);
 
 // gets the name contained in the package statement, given a tree
 char* getPackageName(node_t* tree);

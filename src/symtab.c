@@ -11,6 +11,7 @@
 #include "nodeTypes.h"      // For easier navigation of the tree
 #include "vgo.tab.h"        // For the yytokentype enum
 #include "traversals.h"     
+#include "varToken.h"
 
 // 1. Find each scope
 //  a. Main         "package"
@@ -22,59 +23,71 @@
 // 5. Add vardcl to symbol table
 // 6. For each varReference, check master and local symbol tables
 
-node_t* genSymTab(node_t* tree) {
-    node_t* htTree;
-    
-    // Initialize Root
-    node_t* root = node_create(NULL, cfuhash_new(), MAIN_TYPE);
+cfuhash_table_t* genSymTab(node_t* tree) {
+    // Initialize root
+    cfuhash_table_t* htTree = cfuhash_new();
 
-    // Create pointer to root ht for easier access.
-    cfuhash_table_t* mainHT = root->data;
+    // Main scope name is used throughout
+    char* packageName = getPackageName(tree);
+    if (!packageName) { // If name not found
+        fprintf(stderr, "Error finding function name.\n");
+        return NULL;
+    }
 
     // Add global variables to root ht
-    populateHashtableMain(tree, mainHT);
+    populateHashtableMain(tree, htTree);
 
     // Find function declarations and structs
     node_iterator_full_t* it = node_iterator_full_create(tree);
-    node_t* node, * node2;
+    node_t* node;
     char* name;
+    varToken_t* vt;
+    cfuhash_table_t* ht;
     while ((node = node_iterator_full_next(it))) {
-        switch (node->type) {
+        switch (node->tag) {
             case tag_xfndcl:
-                // Create entry in main hashtable
-                if (!(name = getFuncName(node))) {
+                name = getFuncName(node);
+                if (!name) {    // If name could not be found, return NULL
                     fprintf(stderr, "Error finding function name.\n");
                     return NULL;
                 }
-                if (cfuhash_put(mainHT, name, FUNC_TYPE)) {
+
+                // Create own hashtable
+                ht = cfuhash_new();
+
+                // Populate own hashtable
+                populateHashtableFunction(node, ht);
+
+                // Create entry in main hashtable
+                vt = varToken_create_func(packageName, name, ht);
+                if (cfuhash_put(htTree, name, vt)) {
                     // Key already existed
                     fprintf(stderr, "Error: Redeclaration of function %s\n", name);
                     return NULL;
                 }
-
-                // Build own hashtable
-                node2 = node_create(root, cfuhash_new(), FUNC_TYPE);
                 
-                // Populate own hashtable
-                populateHashtableFunction(node, node2->data);
                 break;
             case tag_structtype:
-                // Create entry in main hashtable
-                if (!(name = getStructName(node))) {
+                name = getStructName(node);
+                if (!name) {    // If name could not be found, return NULL
                     fprintf(stderr, "Error finding struct name.\n");
                     return NULL;
                 }
-                if (cfuhash_put(mainHT, name, STRUCT_TYPE)) {
+
+                // Create own hashtable
+                ht = cfuhash_new();
+
+                // Populate own hashtable
+                populateHashtableStruct(node, ht);
+
+                // Create entry in main hashtable
+                vt = varToken_create_struct(packageName, name, ht);
+                if (cfuhash_put(htTree, name, vt)) {
                     // Key already existed
                     fprintf(stderr, "Error: Redeclaration of struct %s\n", name);
                     return NULL;
                 }
-
-                // Build own hashtable
-                node2 = node_create(root, cfuhash_new(), FUNC_TYPE);
                 
-                // Populate own hashtable
-                populateHashtableFunction(node, node2->data);
                 break;
             default:
                 break;
@@ -82,7 +95,7 @@ node_t* genSymTab(node_t* tree) {
         
     }
 
-
+    return htTree;
 }
 
 char* getPackageName(node_t* tree) {
@@ -103,7 +116,7 @@ char* getFuncName(node_t* tree) {
 
     nodeTemp = findNode(tree, tag_fndcl);
 
-    switch (nodeTemp->children->begin->type) {
+    switch (nodeTemp->children->begin->tag) {
         case LNAME:
             // Rule 1
             name = malloc(sizeof(char) * strlen(((token_t*)nodeTemp->children->begin->data)->text) + 1);
@@ -122,7 +135,6 @@ char* getFuncName(node_t* tree) {
 
 char* getStructName(node_t* tree) {
     node_t* nodeTemp;   // Will be used throughout
-    char* name;
 
     nodeTemp = getSibling(tree, -1);
     
@@ -130,14 +142,27 @@ char* getStructName(node_t* tree) {
     if (!nodeTemp) return NULL;
     
     // if node is not the correct node;
-    if (nodeTemp->type != LNAME) return NULL;
+    if (nodeTemp->tag != LNAME) return NULL;
 
     return ((token_t*)(nodeTemp->data))->text;
 }
 
 // Fills the main hashtable
 void populateHashtableMain(node_t* tree, cfuhash_table_t* ht) {
-
+    
+    
+    node_t* node;
+    node_iterator_full_t* it = node_iterator_full_create(tree);
+    while ((node = node_iterator_full_next(it))) {
+        switch (node->tag) {
+            case tag_vardcl_list:
+                // node_iterator_full_t* it2 = node_iterator_full_create(node);
+            case tag_xfndcl:
+            case tag_structtype:
+                return;
+        }
+    }
+    
 }
 
 // Fills a struct's hashtable
