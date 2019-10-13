@@ -70,3 +70,39 @@ struct node_t* node_iterator_full_next(struct node_iterator_full_t* iterator) {
     }
     return NULL;
 }
+
+struct node_t* node_iterator_full_skip_subtree(struct node_iterator_full_t* iterator) {
+
+    if (iterator->current->parent == NULL) {
+        return NULL;
+    }
+    node_iterator_t* it = node_iterator_create(iterator->current->parent->children);
+    node_t* temp = iterator->current;
+    node_t* temp2;
+    while ((temp2 = node_iterator_next(it))) {
+        if (temp2 == temp) {
+            // Iterator has reached current child
+            if ((temp2 = node_iterator_next(it))) {
+                // item was not last in parent
+                iterator->current = temp2;
+                iterator->count++;
+                node_iterator_destroy(it);
+                return iterator->current;
+            }
+            else {
+                // Node was last in parent tree
+
+                // replace the currently iterating iterator with the parent
+                temp = temp->parent;
+                if (temp->parent == NULL) {
+                    node_iterator_destroy(it);
+                    return NULL;
+                }
+                node_iterator_destroy(it);
+                it = node_iterator_create(temp->parent->children);
+                // the same while loop will move to the parent
+            }
+        }
+    }
+    return NULL;
+}
