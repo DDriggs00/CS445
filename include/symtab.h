@@ -1,15 +1,6 @@
 #ifndef SYMTAB_H
 #define SYMTAB_H
 
-#define NULL_TYPE    10000
-#define INT_TYPE     10001
-#define STRUCT_TYPE  10002
-#define ARRAY_TYPE   10003
-#define FLOAT64_TYPE 10004
-#define FUNC_TYPE    10005
-#define MAP_TYPE     10006
-#define MAIN_TYPE    10007
-
 #include "cfuhash.h"    // External hashtable library
 #include "node.h"       // For using the tree
 #include "list.h"       // For a list of hashtables
