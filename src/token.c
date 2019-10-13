@@ -9,6 +9,8 @@
 // -1: Memory Error
 
 char* formatString(char* s) {
+    if (!s) return NULL;
+    
 	char* iterator = s;
 	char* newString = malloc(strlen(s));
     
@@ -93,6 +95,8 @@ struct token *tokenNew(int category,
 }
 
 void tokenRemove(struct token *t) {
+    if (!t) return;
+
     // First free text values
 	free(t->text);
 	free(t->filename);
@@ -104,6 +108,8 @@ void tokenRemove(struct token *t) {
 }
 
 void tokenPrint(struct token *t) {
+    if (!t) return;
+
     printf("%-i\t %-20s\t%-3i\t%-20s\t", t->category, t->text, t->lineno, t->filename);
         
     if (t->category == LINT) {

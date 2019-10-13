@@ -122,6 +122,7 @@ bool varToken_set_symTab(varToken_t* token, cfuhash_table_t* ht) {
 }
 
 void varToken_print(varToken_t* token) {
+    if (!token) return;
 
     printf("Scope: %s, Name: %s, ", token->scope, token->name);
     switch(token->type) {
@@ -167,6 +168,7 @@ void varToken_print(varToken_t* token) {
 
 
 void varToken_remove(varToken_t* token) {
+    if (!token) return;
     free(token->name);
     free(token->scope);
     if (token->type == STRING_TYPE) {
