@@ -17,6 +17,7 @@
 #include "node_iterator_full.h" // testing
 #include "nodeTypes.h"      // For more easily navigating the tree
 #include "cfuhash.h"        // For symbol tables
+#include "varToken.h"
 
 // extern char *yytext;
 extern FILE *yyin;          // For sending the file to flex+bison
@@ -31,6 +32,7 @@ bool insertSemicolon = false;
 int yyparse();
 void treeFix(node_t* root);
 void treePrint(node_t* root, int name);
+void symTabPrint(cfuhash_table_t* ht);
 void createFileList(int count, char** args);
 bool endsWith(const char *str, const char *suffix);
 bool hasExtention(const char* filename);
@@ -93,15 +95,16 @@ int main(int argc, char* argv[]) {
     // char* val = cfuhash_get(ht, "var2");
 
     // Create table of hashtable pointers
-    // node_t** hashTables = malloc(sizeof(cfuhash_table_t*) * (argc - nonFileArguments));
+    cfuhash_table_t** hashTables = malloc(sizeof(cfuhash_table_t*) * (argc - nonFileArguments));
     
     // Parse out variables and put them into hashtables
     for (int i = 0; i < argc - nonFileArguments; i++) {
-        // hashTables[i] = genSymTab(treeRoots[i]);
-        // Generate symbol tables
-        
         treePrint(treeRoots[i], 0);
-        // TODO print list
+     
+        hashTables[i] = genSymTab(treeRoots[i]);
+        // Generate symbol tables
+
+        symTabPrint(hashTables[i]);   
     }
     
     // ========================================
@@ -147,6 +150,21 @@ void treePrint(node_t* root, int tag) {
         }
     }
     node_iterator_destroy(it);
+}
+
+void symTabPrint(cfuhash_table_t* ht) {
+
+    varToken_t* token;
+    char* name;
+    size_t y, z;
+    int x =  cfuhash_each_data(ht, (void**)(&name), &y, (void**)(&token), &z);
+    if (x == 0) return;
+    printf("%s: ", name);
+    varToken_print(token);
+    while (cfuhash_next_data(ht, (void**)(&name), &y, (void**)(&token), &z)) {
+        printf("%s: ", name);
+        varToken_print(token);
+    }
 }
 
 // Fixes the depth variable in trees built backwards
