@@ -116,9 +116,9 @@ int main(int argc, char* argv[]) {
     return  returnval;
 }
 
-void treePrint(node_t* root, int type) {
+void treePrint(node_t* root, int tag) {
     node_t* node;
-    if (type == 0 || type == root->type) {
+    if (tag == 0 || tag == root->tag) {
         for (int i = 0; i < root->depth; i++)
         {
             printf("  ");
@@ -128,7 +128,7 @@ void treePrint(node_t* root, int type) {
             printf("TOKEN %i: %s\n", t->category, t->text);
         }
         else {
-            printf("%i: %i\n", root->type, root->count);
+            printf("%i: %i\n", root->tag, root->count);
         }
     }
     if (root->count <= 0)
@@ -139,11 +139,11 @@ void treePrint(node_t* root, int type) {
     while ((node = node_iterator_next(it))) {
         node->depth = root->depth + 1;
         
-        if (type == 0 || type == root->type) {
+        if (tag == 0 || tag == root->tag) {
             treePrint(node, 0);
         }
         else {
-            treePrint(node, type);
+            treePrint(node, tag);
         }
     }
     node_iterator_destroy(it);

@@ -5,7 +5,7 @@
 
 node_t* findNode(node_t* tree, int tag) {
     if (!tree) return NULL;
-    if(tree->type == tag) {
+    if(tree->tag == tag) {
         return tree;
     }
     if (tree->count <= 0) {
@@ -33,7 +33,7 @@ node_t* findNodeShallow(node_t* tree, int tag) {
     node_t* node;
     node_iterator_t* it = node_iterator_create(tree->children);
     while ((node = node_iterator_next(it))) {
-        if (node->type == tag) {
+        if (node->tag == tag) {
             node_iterator_destroy(it);
             return node;
         }

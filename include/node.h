@@ -43,8 +43,9 @@ typedef struct node_t {
 	int hasData;
 
 	// Local Members
-	int type;
-	void *data;
+	int tag;
+	char* name;
+	void* data;
 	unsigned int depth;
 	struct node_t* parent;
 	struct node_list_t* children;
@@ -56,11 +57,11 @@ typedef struct node_t {
 } node_t;
 
 void node_destroy(struct node_t* node);
-struct node_t* node_create(struct node_t* parent, void* data, int type);
+struct node_t* node_create(struct node_t* parent, void* data, int tag);
 
 // Same as above, but initializes children too
 // Used in parser
-struct node_t* node_create2(struct node_t* parent, void* data, int type, int count, ...);
+struct node_t* node_create2(struct node_t* parent, void* data, int tag, int count, ...);
 
 int node_attach(struct node_t* parent, struct node_t* child);
 int node_detach(struct node_t* parent, struct node_t* child);
@@ -77,5 +78,7 @@ typedef void* (*copy_func_t)(const void *src);
 node_t* node_copy_deep(node_t* node, copy_func_t copy_func);
 
 void node_debug(struct node_t* node);
+
+void node_add_name(node_t* node, char* name);
 
 #endif /* NODE_H_ */
