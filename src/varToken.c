@@ -110,7 +110,7 @@ bool varToken_set_float(varToken_t* token, double val) {
     return true;
 }
 
-cfuhash_table_t* varToken_set_symTab(varToken_t* token, cfuhash_table_t* ht) {
+bool varToken_set_symTab(varToken_t* token, cfuhash_table_t* ht) {
     if (!token) return false;
     if (token->type != STRUCT_TYPE && token->type != FUNC_TYPE) return false;
     if (token->isConst) return false;
@@ -121,7 +121,7 @@ cfuhash_table_t* varToken_set_symTab(varToken_t* token, cfuhash_table_t* ht) {
     return true;
 }
 
-varTokenPrint(varToken_t* token) {
+void varToken_print(varToken_t* token) {
 
     printf("Scope: %s, Name: %s, ", token->scope, token->name);
     switch(token->type) {
@@ -135,7 +135,7 @@ varTokenPrint(varToken_t* token) {
             break;
         case FLOAT64_TYPE:
             if (token->isInitialized) {
-                printf("Type: Float, Value: %d", token->dval);
+                printf("Type: Float, Value: %f", token->dval);
             }
             else {
                 printf("Type: Float (uninitialized)");
