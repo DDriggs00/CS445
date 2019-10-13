@@ -1,5 +1,8 @@
 package main
+
 var x int
+var y float64
+var z string
 
 type person struct {
     name string
