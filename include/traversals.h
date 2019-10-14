@@ -18,5 +18,7 @@ node_t* findNodeShallow(node_t* tree, int tag);
 // If the desired sibling does not exist, returns NULL
 node_t* getSibling(node_t* tree, int nthSibling);
 
+// counts occurances of *tag* in the given tree
+int treeCount(node_t* tree, int tag);
 
 #endif // TRAVERSALS_H

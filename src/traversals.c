@@ -1,7 +1,8 @@
 #include <stdlib.h>         // for NULL, MALLOC
 
-#include "node.h"           // for pretty much everything
-#include "node_iterator.h"  // for pretty much everything
+#include "node.h"               // for pretty much everything
+#include "node_iterator.h"      // for pretty much everything
+#include "node_iterator_full.h" // for count function
 
 node_t* findNode(node_t* tree, int tag) {
     if (!tree) return NULL;
@@ -66,4 +67,19 @@ node_t* getSibling(node_t* tree, int nthSibling) {
 
     // Should never be reached, but there was a warning
     return NULL;
+}
+
+int treeCount(node_t* tree, int tag) {
+    if (!tree) return -1;
+
+    int count = 0;
+    node_t* node;
+    node_iterator_full_t* it = node_iterator_full_create(tree);
+    while ((node = node_iterator_full_next(it))) {
+        if (node->tag == tag) {
+            count++;
+        }
+    }
+
+    return tag;
 }
