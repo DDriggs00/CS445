@@ -44,6 +44,8 @@ bool hasExtention(const char* filename);
 // 3. Semantic Error (including Go-Not-VGo)
 // -1: Other errors
 
+//TODO const
+
 int main(int argc, char* argv[]) {
     
     int returnval = 0;
