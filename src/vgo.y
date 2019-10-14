@@ -241,7 +241,6 @@ lconst:
 vardcl:
     dcl_name_list ntype	    	    	{ $$ = node_create2(NULL, NULL, tag_vardcl, 2, $1, $2); }
 |	dcl_name_list ntype '=' expr_list	{ $$ = node_create2(NULL, NULL, tag_vardcl, 4, $1, $2, $3, $4); }
-|	dcl_name_list '=' expr_list	    	{ $$ = node_create2(NULL, NULL, tag_vardcl, 3, $1, $2, $3); }
     ;
 
 constdcl:
