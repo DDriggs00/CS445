@@ -149,14 +149,16 @@ char* getStructName(node_t* tree) {
 
 // Fills the main hashtable
 void populateHashtableMain(node_t* tree, cfuhash_table_t* ht) {
-    
-    
+    bool skip = false;
     node_t* node;
     node_iterator_full_t* it = node_iterator_full_create(tree);
     while ((node = node_iterator_full_next(it))) {
         switch (node->tag) {
             case tag_vardcl_list:
-                // node_iterator_full_t* it2 = node_iterator_full_create(node);
+                break;
+            case tag_vardcl:
+                break;
+            // global vars must be before function declarations
             case tag_xfndcl:
             case tag_structtype:
                 return;
@@ -173,4 +175,62 @@ void populateHashtableStruct(node_t* tree, cfuhash_table_t* ht) {
 // Fills a function's hashtable
 void populateHashtableFunction(node_t* tree, cfuhash_table_t* ht) {
 
+}
+
+varToken_t** parseVarDcl(node_t* tree, char* scope) {
+    if (!tree) return NULL;
+    if (tree->tag != tag_vardcl) return NULL;
+
+    // get variable name array
+    node_t* node = tree->children->begin;
+    char** names = parseDclNameList(node);
+
+    // count names
+    int numVars;
+    for (numVars = 0; names[numVars] != NULL; numVars++);
+
+    // get variable type
+    node = node->next;
+    int type = tree->children->begin->next->tag;
+
+    node = node->next;
+    if (node) {
+        // variables are assigned
+        
+    }
+    
+}
+
+list_t* parseVarDclList(node_t* tree) {
+    if (!tree) return NULL;
+    if (tree->tag != tag_vardcl_list) return NULL;
+}
+
+char** parseDclNameList(node_t* tree) {
+    if (!tree) return NULL;
+    if (tree->tag == LNAME) {
+        char** names = malloc(sizeof(char*) * 2);
+        names[0] = malloc(sizeof(char) * (1 + strlen(((token_t*)(tree->data))->text)));
+        strcpy(names[0], ((token_t*)(tree->data))->text);
+        names[1] = NULL;
+        return names;
+    }
+    if (tree->tag != tag_dcl_name_list) return NULL;
+
+    int count = treeCount(tree, LNAME);
+
+    char** names = malloc(sizeof(char*) * (count + 1));
+
+    int i = 0;
+    node_t* node;
+    node_iterator_full_t* it = node_iterator_full_create(tree);
+    while ((node = node_iterator_full_next(it))) {
+        if (node->tag == LNAME) {
+            names[i] = malloc(sizeof(char) * (1 + strlen(((token_t*)(node->data))->text)));
+            strcpy(names[i], ((token_t*)(node->data))->text);
+            i++;
+        }
+    }
+    names[i] = NULL;
+    return names;
 }

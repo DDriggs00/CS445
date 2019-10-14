@@ -26,4 +26,13 @@ void populateHashtableStruct(node_t* tree, cfuhash_table_t* ht);
 // Fills a function's hashtable
 void populateHashtableFunction(node_t* tree, cfuhash_table_t* ht);
 
+// returns a list of varTokens given a tree rooted at a vardcl
+varToken_t** parseVarDcl(node_t* tree, char* scope);
+
+// returns a list of varTokens given a tree rooted at a vardcllist
+list_t* parseVarDclList(node_t* tree);
+
+// returns a list of strings given a tree rooted at a DclName or DclNameList
+char** parseDclNameList(node_t* tree);
+
 #endif // SYMTAB_H
