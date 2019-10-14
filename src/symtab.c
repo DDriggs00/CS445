@@ -35,7 +35,7 @@ cfuhash_table_t* genSymTab(node_t* tree) {
     }
 
     // Add global variables to root ht
-    populateHashtableMain(tree, htTree);
+    populateHashtableMain(tree, htTree, packageName);
 
     // Find function declarations and structs
     node_iterator_full_t* it = node_iterator_full_create(tree);
@@ -56,7 +56,7 @@ cfuhash_table_t* genSymTab(node_t* tree) {
                 ht = cfuhash_new();
 
                 // Populate own hashtable
-                populateHashtableFunction(node, ht);
+                populateHashtableFunction(node, ht, name);
 
                 // Create entry in main hashtable
                 vt = varToken_create_func(packageName, name, ht);
@@ -78,7 +78,7 @@ cfuhash_table_t* genSymTab(node_t* tree) {
                 ht = cfuhash_new();
 
                 // Populate own hashtable
-                populateHashtableStruct(node, ht);
+                populateHashtableStruct(node, ht, name);
 
                 // Create entry in main hashtable
                 vt = varToken_create_struct(packageName, name, ht);
@@ -148,15 +148,23 @@ char* getStructName(node_t* tree) {
 }
 
 // Fills the main hashtable
-void populateHashtableMain(node_t* tree, cfuhash_table_t* ht) {
+void populateHashtableMain(node_t* tree, cfuhash_table_t* ht, char* scope) {
     bool skip = false;
     node_t* node;
     node_iterator_full_t* it = node_iterator_full_create(tree);
     while ((node = node_iterator_full_next(it))) {
         switch (node->tag) {
             case tag_vardcl_list:
+                vartoken_t** newVars = parseVarDclList(node, scope);
+                for (int i = 0; newVars[i] != NULL; i++) {
+                    cfuhash_put(ht, newvars[i]->name, newVars[i]);
+                }
                 break;
             case tag_vardcl:
+                vartoken_t** newVars = parseVarDcl(node, scope);
+                for (int i = 0; newVars[i] != NULL; i++) {
+                    cfuhash_put(ht, newvars[i]->name, newVars[i]);
+                }
                 break;
             // global vars must be before function declarations
             case tag_xfndcl:
@@ -168,16 +176,16 @@ void populateHashtableMain(node_t* tree, cfuhash_table_t* ht) {
 }
 
 // Fills a struct's hashtable
-void populateHashtableStruct(node_t* tree, cfuhash_table_t* ht) {
+void populateHashtableStruct(node_t* tree, cfuhash_table_t* ht, char* scope) {
 
 }
 
 // Fills a function's hashtable
-void populateHashtableFunction(node_t* tree, cfuhash_table_t* ht) {
+void populateHashtableFunction(node_t* tree, cfuhash_table_t* ht, char* scope) {
 
 }
 
-varToken_t** parseVarDcl(node_t* tree, char* scope) {
+varToken_t** parseVarDcl(node_t* tree, char* scope, bool isConst) {
     if (!tree) return NULL;
     if (tree->tag != tag_vardcl) return NULL;
 
@@ -193,15 +201,22 @@ varToken_t** parseVarDcl(node_t* tree, char* scope) {
     node = node->next;
     int type = tree->children->begin->next->tag;
 
+    varToken_t** vts = malloc(sizeof(vartoken_t*) * (numVars + 1));
+    for (int i = 0; names[i] != NULL; i++) {
+        vts[i] = varToken_create(scope, names[i], type);
+    }
+
     node = node->next;
     if (node) {
         // variables are assigned
-        
+        node = node->next;
+        // Not in this homework
     }
-    
+
+    return vts;
 }
 
-list_t* parseVarDclList(node_t* tree) {
+varToken_t** parseVarDclList(node_t* tree, char* scope, bool isConst) {
     if (!tree) return NULL;
     if (tree->tag != tag_vardcl_list) return NULL;
 }
