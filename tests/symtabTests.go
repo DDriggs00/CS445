@@ -4,7 +4,7 @@ var x int
 var y float64
 var z bool
 var a []rune
-var b string
+const b string = "test"
 var m map[string]int
 
 type person struct {
