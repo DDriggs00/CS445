@@ -24,6 +24,7 @@
 // 6. For each varReference, check master and local symbol tables
 
 cfuhash_table_t* genSymTab(node_t* tree) {
+    if (!tree) return NULL;
     // Initialize root
     cfuhash_table_t* htTree = cfuhash_new();
 
@@ -149,28 +150,27 @@ char* getStructName(node_t* tree) {
 
 // Fills the main hashtable
 void populateHashtableMain(node_t* tree, cfuhash_table_t* ht, char* scope) {
-    bool skip = false;
+    // bool skip = false;
     node_t* node;
     node_iterator_full_t* it = node_iterator_full_create(tree);
-    while ((node = node_iterator_full_next(it))) {
+    varToken_t** newVars;
+    node = node_iterator_full_next(it);
+    while (node) {
         switch (node->tag) {
-            case tag_vardcl_list:
-                vartoken_t** newVars = parseVarDclList(node, scope);
-                for (int i = 0; newVars[i] != NULL; i++) {
-                    cfuhash_put(ht, newvars[i]->name, newVars[i]);
-                }
-                break;
             case tag_vardcl:
-                vartoken_t** newVars = parseVarDcl(node, scope);
+                newVars = parseVarDcl(node, scope, false);
                 for (int i = 0; newVars[i] != NULL; i++) {
-                    cfuhash_put(ht, newvars[i]->name, newVars[i]);
+                    cfuhash_put(ht, newVars[i]->name, newVars[i]);
                 }
+                free(newVars);
+                // skip = true;
                 break;
             // global vars must be before function declarations
             case tag_xfndcl:
             case tag_structtype:
                 return;
         }
+        node = node_iterator_full_next(it);
     }
     
 }
@@ -187,7 +187,7 @@ void populateHashtableFunction(node_t* tree, cfuhash_table_t* ht, char* scope) {
 
 varToken_t** parseVarDcl(node_t* tree, char* scope, bool isConst) {
     if (!tree) return NULL;
-    if (tree->tag != tag_vardcl) return NULL;
+    if (tree->tag != tag_vardcl && tree->tag != tag_constdcl) return NULL;
 
     // get variable name array
     node_t* node = tree->children->begin;
@@ -201,9 +201,12 @@ varToken_t** parseVarDcl(node_t* tree, char* scope, bool isConst) {
     node = node->next;
     int type = tree->children->begin->next->tag;
 
-    varToken_t** vts = malloc(sizeof(vartoken_t*) * (numVars + 1));
+    varToken_t** vts = malloc(sizeof(varToken_t*) * (numVars + 1));
     for (int i = 0; names[i] != NULL; i++) {
         vts[i] = varToken_create(scope, names[i], type);
+        if (isConst) {
+            vts[i]->isConst = true;
+        }
     }
 
     node = node->next;
@@ -219,6 +222,7 @@ varToken_t** parseVarDcl(node_t* tree, char* scope, bool isConst) {
 varToken_t** parseVarDclList(node_t* tree, char* scope, bool isConst) {
     if (!tree) return NULL;
     if (tree->tag != tag_vardcl_list) return NULL;
+    return NULL;
 }
 
 char** parseDclNameList(node_t* tree) {

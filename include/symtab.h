@@ -4,6 +4,7 @@
 #include "cfuhash.h"    // External hashtable library
 #include "node.h"       // For using the tree
 #include "list.h"       // For a list of hashtables
+#include "varToken.h"
 
 // Returns a tree containing all symbol tables from the given tree
 cfuhash_table_t* genSymTab(node_t* tree);
