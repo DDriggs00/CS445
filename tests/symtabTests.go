@@ -1,5 +1,9 @@
 package main
 
+import "fmt"
+import "math/rand"
+import "time"
+
 var x int
 var y float64
 var z bool

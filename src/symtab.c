@@ -330,3 +330,19 @@ char** parseDclNameList(node_t* tree) {
     names[i] = NULL;
     return names;
 }
+
+varToken_t** getImports(node_t* tree, char* scope) {
+    
+    node_t* node;
+    node_iterator_full_t* it = node_iterator_full_create(tree);
+    while((node = node_iterator_full_next(it))) {
+        switch (node->tag) {
+            case tag_import:
+                
+                break;
+            case tag_xdcl_list:
+                // All imports have been imported
+                break;
+        }
+    }
+}
