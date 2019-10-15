@@ -44,7 +44,9 @@ bool hasExtention(const char* filename);
 // 3. Semantic Error (including Go-Not-VGo)
 // -1: Other errors
 
-//TODO const
+// TODO arg to enable symtab print
+// TODO predefined symbol tables
+// TODO find varaible usages
 
 int main(int argc, char* argv[]) {
     

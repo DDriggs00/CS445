@@ -87,7 +87,6 @@ struct token *tokenNew(int category,
         t->dval = atof(text);
     }
     if (category == LLITERAL) {
-        // TODO correct string
         t->sval = formatString((text));
     }
 
