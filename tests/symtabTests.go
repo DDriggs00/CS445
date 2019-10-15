@@ -2,7 +2,10 @@ package main
 
 var x int
 var y float64
-var z string
+var z bool
+var a []rune
+var b string
+var m map[string]int
 
 type person struct {
     name string
