@@ -158,6 +158,18 @@ void populateHashtableMain(node_t* tree, cfuhash_table_t* ht, char* scope) {
     node = node_iterator_full_next(it);
     while (node) {
         switch (node->tag) {
+            case tag_constdcl:
+                newVars = parseVarDcl(node, scope, true);
+                for (int i = 0; newVars[i] != NULL; i++) {
+                    if (cfuhash_put(ht, newVars[i]->name, newVars[i])) {
+                        // Key already existed
+                        token_t* firstToken = getFirstTerminal(node)->data;
+                        fprintf(stderr, "%s:%i: Error: Redeclaration of variable %s\n", firstToken->filename, firstToken->lineno, newVars[i]->name);
+                        exit(3);
+                    }
+                }
+                free(newVars);
+                break;
             case tag_vardcl:
                 newVars = parseVarDcl(node, scope, false);
                 for (int i = 0; newVars[i] != NULL; i++) {
@@ -169,7 +181,6 @@ void populateHashtableMain(node_t* tree, cfuhash_table_t* ht, char* scope) {
                     }
                 }
                 free(newVars);
-                // skip = true;
                 break;
             // global vars must be before function declarations
             case tag_xfndcl:

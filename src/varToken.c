@@ -239,7 +239,7 @@ void varToken_print(varToken_t* token) {
             break;
     }
     if (token->isConst) {
-        printf(", Constant");
+        printf("\tConstant");
     }
     printf("\n");
 }
