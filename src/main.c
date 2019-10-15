@@ -32,7 +32,7 @@ bool insertSemicolon = false;
 int yyparse();
 void treeFix(node_t* root);
 void treePrint(node_t* root, int name);
-void symTabPrint(cfuhash_table_t* ht);
+void symTabPrint(cfuhash_table_t* ht, bool subTable);
 void createFileList(int count, char** args);
 bool endsWith(const char *str, const char *suffix);
 bool hasExtention(const char* filename);
@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
         hashTables[i] = genSymTab(treeRoots[i]);
         // Generate symbol tables
 
-        symTabPrint(hashTables[i]);   
+        symTabPrint(hashTables[i], false);   
     }
     
     // ========================================
@@ -154,19 +154,21 @@ void treePrint(node_t* root, int tag) {
     node_iterator_destroy(it);
 }
 
-void symTabPrint(cfuhash_table_t* ht) {
-
+void symTabPrint(cfuhash_table_t* ht, bool subTable) {
+    
     varToken_t* token;
     char* name;
     size_t y, z;
     int x =  cfuhash_each_data(ht, (void**)(&name), &y, (void**)(&token), &z);
     if (x == 0) return;
-    printf("%s: ", name);
-    varToken_print(token);
-    while (cfuhash_next_data(ht, (void**)(&name), &y, (void**)(&token), &z)) {
-        printf("%s: ", name);
+    do {
+        if(subTable) printf("    ");
+        printf("var: %-10s ", name);
         varToken_print(token);
-    }
+        if (token->type == FUNC_TYPE || token->type == STRUCT_TYPE) {
+            symTabPrint(token->symTab, true);
+        }
+    } while (cfuhash_next_data(ht, (void**)(&name), &y, (void**)(&token), &z));
 }
 
 // Fixes the depth variable in trees built backwards
