@@ -65,7 +65,7 @@ node_t* getSibling(node_t* tree, int nthSibling) {
         return node;
     }
 
-    // Should never be reached, but there was a warning
+    // Should never be reached
     return NULL;
 }
 
@@ -82,4 +82,15 @@ int treeCount(node_t* tree, int tag) {
     }
 
     return tag;
+}
+
+node_t* getFirstTerminal(node_t* node) {
+    if (!node) return NULL;
+    if (node->hasData) return node;
+
+    node_iterator_full_t* it = node_iterator_full_create(node);
+    while ((node = node_iterator_full_next(it))) {
+        if (node->hasData) return node;
+    }
+    return NULL;
 }

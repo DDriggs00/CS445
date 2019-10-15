@@ -21,4 +21,7 @@ node_t* getSibling(node_t* tree, int nthSibling);
 // counts occurances of *tag* in the given tree
 int treeCount(node_t* tree, int tag);
 
+// traverses the tree to get the first node containing a token symbol
+node_t* getFirstTerminal(node_t* node);
+
 #endif // TRAVERSALS_H
