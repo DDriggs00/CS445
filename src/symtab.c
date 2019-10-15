@@ -50,21 +50,22 @@ cfuhash_table_t* genSymTab(node_t* tree) {
                 name = getFuncName(node);
                 if (!name) {    // If name could not be found, return NULL
                     fprintf(stderr, "Error finding function name.\n");
-                    return NULL;
+                    exit(3);
                 }
 
                 // Create own hashtable
                 ht = cfuhash_new();
 
                 // Populate own hashtable
-                populateHashtableFunction(node, ht, name);
+                populateHashtable(node, ht, name);
 
                 // Create entry in main hashtable
                 vt = varToken_create_func(packageName, name, ht);
                 if (cfuhash_put(htTree, name, vt)) {
                     // Key already existed
-                    fprintf(stderr, "Error: Redeclaration of function %s\n", name);
-                    return NULL;
+                    token_t* firstToken = getFirstTerminal(node)->data;
+                    fprintf(stderr, "%s:%i: Error: Redeclaration of function %s\n", firstToken->filename, firstToken->lineno, name);
+                    exit(3);
                 }
                 
                 break;
@@ -72,21 +73,22 @@ cfuhash_table_t* genSymTab(node_t* tree) {
                 name = getStructName(node);
                 if (!name) {    // If name could not be found, return NULL
                     fprintf(stderr, "Error finding struct name.\n");
-                    return NULL;
+                    exit(3);
                 }
 
                 // Create own hashtable
                 ht = cfuhash_new();
 
                 // Populate own hashtable
-                populateHashtableStruct(node, ht, name);
+                populateHashtable(node, ht, name);
 
                 // Create entry in main hashtable
                 vt = varToken_create_struct(packageName, name, ht);
                 if (cfuhash_put(htTree, name, vt)) {
                     // Key already existed
-                    fprintf(stderr, "Error: Redeclaration of struct %s\n", name);
-                    return NULL;
+                    token_t* firstToken = getFirstTerminal(node)->data;
+                    fprintf(stderr, "%s:%i: Error: Redeclaration of struct %s\n", firstToken->filename, firstToken->lineno, name);
+                    exit(3);
                 }
                 
                 break;
@@ -150,7 +152,6 @@ char* getStructName(node_t* tree) {
 
 // Fills the main hashtable
 void populateHashtableMain(node_t* tree, cfuhash_table_t* ht, char* scope) {
-    // bool skip = false;
     node_t* node;
     node_iterator_full_t* it = node_iterator_full_create(tree);
     varToken_t** newVars;
@@ -160,7 +161,12 @@ void populateHashtableMain(node_t* tree, cfuhash_table_t* ht, char* scope) {
             case tag_vardcl:
                 newVars = parseVarDcl(node, scope, false);
                 for (int i = 0; newVars[i] != NULL; i++) {
-                    cfuhash_put(ht, newVars[i]->name, newVars[i]);
+                    if (cfuhash_put(ht, newVars[i]->name, newVars[i])) {
+                        // Key already existed
+                        token_t* firstToken = getFirstTerminal(node)->data;
+                        fprintf(stderr, "%s:%i: Error: Redeclaration of variable %s\n", firstToken->filename, firstToken->lineno, newVars[i]->name);
+                        exit(3);
+                    }
                 }
                 free(newVars);
                 // skip = true;
@@ -175,19 +181,60 @@ void populateHashtableMain(node_t* tree, cfuhash_table_t* ht, char* scope) {
     
 }
 
-// Fills a struct's hashtable
-void populateHashtableStruct(node_t* tree, cfuhash_table_t* ht, char* scope) {
+// Fills a function or struct's hashtable
+void populateHashtable(node_t* tree, cfuhash_table_t* ht, char* scope) {
+    node_t* node;
+    node_iterator_full_t* it = node_iterator_full_create(tree);
+    varToken_t** newVars;
+    token_t* firstToken; // for Errors
+    node = node_iterator_full_next(it);
+    if (node->tag == tag_structtype || node->tag == tag_xfndcl) {
+        // prevent false flagging of nested structdcl
+        node = node_iterator_full_next(it);
+    }
+    while (node) {
+        switch (node->tag) {
+            case tag_constdcl:
+                newVars = parseVarDcl(node, scope, true);
+                for (int i = 0; newVars[i] != NULL; i++) {
+                    if (cfuhash_put(ht, newVars[i]->name, newVars[i])) {
+                        // Key already existed
+                        token_t* firstToken = getFirstTerminal(node)->data;
+                        fprintf(stderr, "%s:%i: Error: Redeclaration of variable %s\n", firstToken->filename, firstToken->lineno, newVars[i]->name);
+                        exit(3);
+                    }
+                }
+                break;
+            case tag_structdcl:
+            case tag_vardcl:
+                newVars = parseVarDcl(node, scope, false);
+                for (int i = 0; newVars[i] != NULL; i++) {
+                    if (cfuhash_put(ht, newVars[i]->name, newVars[i])) {
+                        // Key already existed
+                        token_t* firstToken = getFirstTerminal(node)->data;
+                        fprintf(stderr, "%s:%i: Error: Redeclaration of variable %s\n", firstToken->filename, firstToken->lineno, newVars[i]->name);
+                        exit(3);
+                    }
+                }
+                break;
 
-}
-
-// Fills a function's hashtable
-void populateHashtableFunction(node_t* tree, cfuhash_table_t* ht, char* scope) {
-
+            // no nested functions/structs
+            case tag_xfndcl:
+                firstToken = getFirstTerminal(node)->data;
+                fprintf(stderr, "%s:%i Error: Nested function declaration\n", firstToken->filename, firstToken->lineno);
+                exit(3);
+            case tag_structtype:
+                firstToken = getFirstTerminal(node)->data;
+                fprintf(stderr, "%s:%i Error: Nested struct declaration\n", firstToken->filename, firstToken->lineno);
+                exit(3);
+        }
+        node = node_iterator_full_next(it);
+    }
 }
 
 varToken_t** parseVarDcl(node_t* tree, char* scope, bool isConst) {
     if (!tree) return NULL;
-    if (tree->tag != tag_vardcl && tree->tag != tag_constdcl) return NULL;
+    if (tree->tag != tag_vardcl && tree->tag != tag_constdcl && tree->tag != tag_structdcl) return NULL;
 
     // get variable name array
     node_t* node = tree->children->begin;
@@ -229,7 +276,7 @@ varToken_t** parseVarDcl(node_t* tree, char* scope, bool isConst) {
     }
 
     node = node->next;
-    if (node) {
+    if (node && node->tag != tag_empty) {
         // variables are assigned
         node = node->next;
         // Not in this homework

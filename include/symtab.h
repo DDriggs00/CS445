@@ -21,11 +21,8 @@ char* getStructName(node_t* tree);
 // Fills the main hashtable
 void populateHashtableMain(node_t* tree, cfuhash_table_t* ht, char* scope);
 
-// Fills a struct's hashtable
-void populateHashtableStruct(node_t* tree, cfuhash_table_t* ht, char* scope);
-
-// Fills a function's hashtable
-void populateHashtableFunction(node_t* tree, cfuhash_table_t* ht, char* scope);
+// Fills a function or struct's hashtable
+void populateHashtable(node_t* tree, cfuhash_table_t* ht, char* scope);
 
 // returns a list of varTokens given a tree rooted at a vardcl
 varToken_t** parseVarDcl(node_t* tree, char* scope, bool isConst);
