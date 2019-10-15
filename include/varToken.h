@@ -26,6 +26,7 @@ typedef struct varToken_t {
 
     // For array and map
     int subType1, subType2;
+    int arrSize;
 
     bool isConst;
     bool isInitialized;
