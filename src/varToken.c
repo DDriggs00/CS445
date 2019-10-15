@@ -17,7 +17,7 @@ varToken_t* varToken_create(char* scope, char* name, int type) {
 
     vt->name = malloc(sizeof(char) * (strlen(name) + 1));
     strcpy(vt->name, name);
-    vt->type = type;
+    vt->type = getProperTypeInt(type);
 
     vt->isInitialized = false;
 
@@ -127,35 +127,56 @@ void varToken_print(varToken_t* token) {
     printf("Scope: %s, Name: %s, ", token->scope, token->name);
     switch(token->type) {
         case INT_TYPE:
+            printf("Type: Integer");
             if (token->isInitialized) {
-                printf("Type: Integer, Value: %i", token->ival);
-            }
-            else {
-                printf("Type: Integer (uninitialized)");
+                printf(", Value: %i", token->ival);
             }
             break;
+
+        case RUNE_TYPE:
+            printf("Type: Rune");
+            if (token->isInitialized) {
+                printf(", Value: %s", token->sval);
+            }
+            break;
+
+        case BOOL_TYPE:
+            printf("Type: Boolean");
+            if (token->isInitialized) {
+                printf(", Value: %i", token->ival);
+            }
+            break;
+
         case FLOAT64_TYPE:
+            printf("Type: Float");
             if (token->isInitialized) {
-                printf("Type: Float, Value: %f", token->dval);
-            }
-            else {
-                printf("Type: Float (uninitialized)");
+                printf(", Value: %f", token->dval);
             }
             break;
+
         case STRING_TYPE:
+            printf("Type: String");
             if (token->isInitialized) {
                 printf("Type: String, Value: %s", token->sval);
             }
-            else {
-                printf("Type: String (uninitialized)");
-            }
             break;
+
         case FUNC_TYPE:
             printf("Type: Function");
             break;
+
         case STRUCT_TYPE:
             printf("Type: Struct");
             break;
+
+        case ARRAY_TYPE:
+            printf("Type: Array");
+            break;
+
+        case MAP_TYPE:
+            printf("Type: Map");
+            break;
+
         default:
             printf("Unknown Type: %i", token->type);
             break;
@@ -176,4 +197,15 @@ void varToken_remove(varToken_t* token) {
     }
 
     free(token);
+}
+
+int getProperTypeInt(int oldType) {
+    switch (oldType) {
+        case 266: return INT_TYPE;
+        case 267: return STRING_TYPE;
+        case 268: return BOOL_TYPE;
+        case 269: return FLOAT64_TYPE;
+        case 270: return RUNE_TYPE;
+        default:  return oldType;
+    }
 }

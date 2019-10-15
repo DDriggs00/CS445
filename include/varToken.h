@@ -6,14 +6,16 @@
 #include "cfuhash.h"
 
 #define NULL_TYPE    10000
-#define INT_TYPE     10001
 #define STRUCT_TYPE  10002
 #define ARRAY_TYPE   10003
-#define FLOAT64_TYPE 10004
 #define FUNC_TYPE    10005
 #define MAP_TYPE     10006
 #define MAIN_TYPE    10007
-#define STRING_TYPE  10008
+#define INT_TYPE     10266
+#define STRING_TYPE  10267
+#define BOOL_TYPE    10268
+#define FLOAT64_TYPE 10269
+#define RUNE_TYPE    10270
 
 typedef struct varToken_t {
     
@@ -52,5 +54,8 @@ void varToken_print(varToken_t* token);
 
 // Removes the token
 void varToken_remove();
+
+// Converts flex symbol to proper value
+int getProperTypeInt(int oldType);
 
 #endif // VARTOKEN_H
