@@ -40,7 +40,7 @@ struct node_t* node_iterator_full_next(struct node_iterator_full_t* iterator) {
         return iterator->current;
     }
     else {
-        if (iterator->current->parent == NULL) {
+        if (iterator->current->parent == NULL || iterator->current->parent->depth < iterator->root->depth) {
             return NULL;
         }
         node_iterator_t* it = node_iterator_create(iterator->current->parent->children);
