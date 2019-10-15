@@ -161,6 +161,7 @@ void symTabPrint(cfuhash_table_t* ht, bool subTable) {
     size_t y, z;
     int x =  cfuhash_each_data(ht, (void**)(&name), &y, (void**)(&token), &z);
     if (x == 0) return;
+    printf("Symbol table for %s\n", token->scope);
     do {
         if(subTable) printf("    ");
         printf("var: %-10s ", name);
