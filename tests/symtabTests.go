@@ -4,6 +4,7 @@ var x int
 var y float64
 var z bool
 var a []rune
+var n [5]rune
 const b string = "test"
 var m map[string]int
 
