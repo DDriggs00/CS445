@@ -199,11 +199,30 @@ varToken_t** parseVarDcl(node_t* tree, char* scope, bool isConst) {
 
     // get variable type
     node = node->next;
-    int type = tree->children->begin->next->tag;
+    int type = node->tag;
+    int subTypeA = 0, subTypeB = 0;
+    if(type == tag_othertype) {
+        switch (node->children->begin->tag) {
+            case '[':
+                // Array
+                type = ARRAY_TYPE;
+                subTypeA = node->children->begin->next->next->next->tag;
+                break;
+            case LMAP:
+                type = MAP_TYPE;
+                subTypeA = node->children->begin->next->next->tag;
+                subTypeB = node->children->begin->next->next->next->next->tag;
+                break;
+            default:
+                break;
+        }
+    }
 
     varToken_t** vts = malloc(sizeof(varToken_t*) * (numVars + 1));
     for (int i = 0; names[i] != NULL; i++) {
         vts[i] = varToken_create(scope, names[i], type);
+        vts[i]->subType1 = getProperTypeInt(subTypeA);
+        vts[i]->subType2 = getProperTypeInt(subTypeB);
         if (isConst) {
             vts[i]->isConst = true;
         }

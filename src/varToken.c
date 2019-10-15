@@ -124,38 +124,38 @@ bool varToken_set_symTab(varToken_t* token, cfuhash_table_t* ht) {
 void varToken_print(varToken_t* token) {
     if (!token) return;
 
-    printf("Scope: %s, Name: %s, ", token->scope, token->name);
+    printf("Scope: %-10s Name: %-10s ", token->scope, token->name);
     switch(token->type) {
         case INT_TYPE:
-            printf("Type: Integer");
+            printf("Type: Integer ");
             if (token->isInitialized) {
                 printf(", Value: %i", token->ival);
             }
             break;
 
         case RUNE_TYPE:
-            printf("Type: Rune");
+            printf("Type: Rune    ");
             if (token->isInitialized) {
                 printf(", Value: %s", token->sval);
             }
             break;
 
         case BOOL_TYPE:
-            printf("Type: Boolean");
+            printf("Type: Boolean ");
             if (token->isInitialized) {
                 printf(", Value: %i", token->ival);
             }
             break;
 
         case FLOAT64_TYPE:
-            printf("Type: Float");
+            printf("Type: Float   ");
             if (token->isInitialized) {
                 printf(", Value: %f", token->dval);
             }
             break;
 
         case STRING_TYPE:
-            printf("Type: String");
+            printf("Type: String  ");
             if (token->isInitialized) {
                 printf("Type: String, Value: %s", token->sval);
             }
@@ -166,15 +166,72 @@ void varToken_print(varToken_t* token) {
             break;
 
         case STRUCT_TYPE:
-            printf("Type: Struct");
+            printf("Type: Struct  ");
             break;
 
         case ARRAY_TYPE:
             printf("Type: Array");
+            switch (token->subType1) {
+                case INT_TYPE:
+                    printf(" (int)");
+                    break;
+                case FLOAT64_TYPE:
+                    printf(" (float)");
+                    break;
+                case STRING_TYPE:
+                    printf(" (str)");
+                    break;
+                case RUNE_TYPE:
+                    printf(" (rune)");
+                    break;
+                case BOOL_TYPE:
+                    printf(" (bool)");
+                    break;
+                default:
+                    printf(" (typedef'd other)");
+            }
             break;
 
         case MAP_TYPE:
             printf("Type: Map");
+            switch (token->subType1) {
+                case INT_TYPE:
+                    printf(" (int->");
+                    break;
+                case FLOAT64_TYPE:
+                    printf(" (float->");
+                    break;
+                case STRING_TYPE:
+                    printf(" (str->");
+                    break;
+                case RUNE_TYPE:
+                    printf(" (rune->");
+                    break;
+                case BOOL_TYPE:
+                    printf(" (bool->");
+                    break;
+                default:
+                    printf(" (typedef'd other->");
+            }
+            switch (token->subType2) {
+                case INT_TYPE:
+                    printf("int)");
+                    break;
+                case FLOAT64_TYPE:
+                    printf("float)");
+                    break;
+                case STRING_TYPE:
+                    printf("str)");
+                    break;
+                case RUNE_TYPE:
+                    printf("rune)");
+                    break;
+                case BOOL_TYPE:
+                    printf("bool)");
+                    break;
+                default:
+                    printf("typedef'd other)");
+            }
             break;
 
         default:

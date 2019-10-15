@@ -24,6 +24,9 @@ typedef struct varToken_t {
     char* name;
     int type;
 
+    // For array and map
+    int subType1, subType2;
+
     bool isConst;
     bool isInitialized;
     
