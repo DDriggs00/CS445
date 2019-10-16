@@ -20,6 +20,7 @@ varToken_t* varToken_create(char* scope, char* name, int type) {
     vt->type = getProperTypeInt(type);
 
     vt->isInitialized = false;
+    vt->isConst = false;
 
     return vt;
 }
