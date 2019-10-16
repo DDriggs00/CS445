@@ -33,7 +33,7 @@ int yyparse();
 void treeFix(node_t* root);
 void treePrint(node_t* root, int name);
 void symTabPrint(cfuhash_table_t* ht, bool subTable);
-void createFileList(int count, char** args);
+void createFileList(int count, char** args, int* nonFileArgs);
 bool endsWith(const char *str, const char *suffix);
 bool hasExtention(const char* filename);
 
@@ -51,6 +51,7 @@ int main(int argc, char* argv[]) {
     
     int returnval = 0;
     int nonFileArguments = 1;
+    bool printSymTab = false;
  
     // ========================================
     // ===== Step 0: File list generation =====
@@ -60,7 +61,18 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "No files were given\n");
         return -1;
     }
-    createFileList(argc, argv);
+    createFileList(argc, argv, &nonFileArguments);
+    for (int i = 1; i < argc; i++) {
+        if (argv[i][0] == '-') {
+            if (!strcmp(argv[i], "-symtab")) {
+                printSymTab = true;
+            }
+            else {
+                fprintf(stderr, "unsupported argument\n");
+                return -1;
+            }
+        }
+    }
 
     // ========================================
     // ======= Step 1: Tree Generation ========
@@ -102,12 +114,14 @@ int main(int argc, char* argv[]) {
     
     // Parse out variables and put them into hashtables
     for (int i = 0; i < argc - nonFileArguments; i++) {
-        treePrint(treeRoots[i], 0);
+        // treePrint(treeRoots[i], 0);
      
         hashTables[i] = genSymTab(treeRoots[i]);
         // Generate symbol tables
 
-        symTabPrint(hashTables[i], false);   
+        if (printSymTab) {
+            symTabPrint(hashTables[i], false);
+        }
     }
     
     // ========================================
@@ -191,10 +205,14 @@ void treeFix(node_t* root) {
 }
 
 // Uses global variable as output
-void createFileList(int count, char** args) {
+void createFileList(int count, char** args, int* nonFileArgs) {
     // create new array in memory, containing filenames
     fileNames = (char**)calloc(sizeof(char*), (count - 1)); // Allocate memory for array
     for (int i = 1; i < count; i++) {
+        if (args[i][0] == '-') {
+            (*nonFileArgs)++;
+            continue;
+        }
         if (endsWith(args[i], ".go")) {
             fileNames[i - 1] = (char*)calloc(sizeof(char), (strlen(args[i]) + 1)); // Allocate memory for individual string
             strcpy(fileNames[i - 1], args[i]);
