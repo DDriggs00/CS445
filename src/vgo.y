@@ -107,7 +107,7 @@ int yyerror(char* s);
 %type <t>	interfacedcl_list vardcl vardcl_list structdcl structdcl_list
 %type <t>	common_dcl constdcl constdcl1 constdcl_list typedcl_list
 
-%type <t>	convtype comptype dotdotdot
+%type <t>	convtype comptype
 %type <t>	indcl interfacetype structtype ptrtype
 %type <t>	recvchantype non_recvchantype othertype fnret_type fntype
 
@@ -503,23 +503,6 @@ labelname:
     new_name	{ $$ = $1; }
     ;
 
-/*
- * to avoid parsing conflicts, type is split into
- *	channel types
- *	function types
- *	parenthesized types
- *	any other type
- * the type system makes additional restrictions,
- * but those are not implemented in the grammar.
- */
-dotdotdot:
-    LDDD
-    {
-        yyerror("final argument in variadic function missing type");
-    }
-|	LDDD ntype	{ $$ = node_create2(NULL, NULL, tag_dotdotdot, 2, $1, $2); }
-    ;
-
 ntype:
     recvchantype	{ $$ = $1; }
 |	fntype	    	{ $$ = $1; }
@@ -707,10 +690,7 @@ indcl:
  * function arguments.
  */
 arg_type:
-    name_or_type	    { $$ = $1; }
-|	sym name_or_type	{ $$ = node_create2(NULL, NULL, tag_arg_type, 2, $1, $2); }
-|	sym dotdotdot	    { $$ = node_create2(NULL, NULL, tag_arg_type, 2, $1, $2); }
-|	dotdotdot	    	{ $$ = $1; }
+    dcl_name_list name_or_type	{ $$ = node_create2(NULL, NULL, tag_arg_type, 2, $1, $2); }
     ;
 
 arg_type_list:
