@@ -28,11 +28,15 @@ cfuhash_table_t* genSymTab(node_t* tree) {
     // Add global variables to root ht
     populateHashtableMain(tree, htTree, packageName);
 
+    // Check main ht for undeclared variables
+    detectUndeclaredVars(tree, htTree, NULL);
+
     // Find function declarations and structs
     node_iterator_full_t* it = node_iterator_full_create(tree);
     node_t* node;
     char* name;
     varToken_t* vt;
+    token_t* firstToken;
     cfuhash_table_t* ht;
     while ((node = node_iterator_full_next(it))) {
         switch (node->tag) {
@@ -43,17 +47,23 @@ cfuhash_table_t* genSymTab(node_t* tree) {
                     exit(3);
                 }
 
+                // get line number
+                firstToken = getFirstTerminal(node)->data;
+
+
                 // Create own hashtable
                 ht = cfuhash_new();
 
                 // Populate own hashtable
                 populateHashtable(node, ht, name);
 
+                // Check ht for undeclared variables
+                detectUndeclaredVars(node, htTree, ht);
+
                 // Create entry in main hashtable
-                vt = varToken_create_func(packageName, name, ht);
+                vt = varToken_create_func(packageName, name, firstToken->lineno, ht);
                 if (cfuhash_put(htTree, name, vt)) {
                     // Key already existed
-                    token_t* firstToken = getFirstTerminal(node)->data;
                     fprintf(stderr, "%s:%i: Error: Redeclaration of function %s\n", firstToken->filename, firstToken->lineno, name);
                     exit(3);
                 }
@@ -66,17 +76,21 @@ cfuhash_table_t* genSymTab(node_t* tree) {
                     exit(3);
                 }
 
+                firstToken = getFirstTerminal(node)->data;
+                
                 // Create own hashtable
                 ht = cfuhash_new();
 
                 // Populate own hashtable
                 populateHashtable(node, ht, name);
 
+                // Check ht for undeclared variables
+                detectUndeclaredVars(node, htTree, ht);
+
                 // Create entry in main hashtable
-                vt = varToken_create_struct(packageName, name, ht);
+                vt = varToken_create_struct(packageName, name, firstToken->lineno, ht);
                 if (cfuhash_put(htTree, name, vt)) {
                     // Key already existed
-                    token_t* firstToken = getFirstTerminal(node)->data;
                     fprintf(stderr, "%s:%i: Error: Redeclaration of struct %s\n", firstToken->filename, firstToken->lineno, name);
                     exit(3);
                 }
@@ -97,7 +111,7 @@ char* getPackageName(node_t* tree) {
     nodeTemp = findNode(tree, tag_package);
     nodeTemp = findNode(nodeTemp, LNAME);
 
-    char* mainPkgName = malloc(sizeof(char) * (strlen(((token_t*)(nodeTemp->data))->text) + 1));
+    char* mainPkgName = calloc(sizeof(char), (strlen(((token_t*)(nodeTemp->data))->text) + 1));
     strcpy(mainPkgName, ((token_t*)(nodeTemp->data))->text);
 
     return mainPkgName;
@@ -112,13 +126,13 @@ char* getFuncName(node_t* tree) {
     switch (nodeTemp->children->begin->tag) {
         case LNAME:
             // Rule 1
-            name = malloc(sizeof(char) * strlen(((token_t*)nodeTemp->children->begin->data)->text) + 1);
+            name = calloc(sizeof(char), strlen(((token_t*)nodeTemp->children->begin->data)->text) + 1);
             strcpy(name, ((token_t*)nodeTemp->children->begin->data)->text);
             return name;
         case '(':
             // Rule 2
             if (!(nodeTemp = findNodeShallow(nodeTemp, LNAME))) return NULL;    // LNAME not found
-            name = malloc(sizeof(char) * strlen(((token_t*)nodeTemp->data)->text) + 1);
+            name = calloc(sizeof(char), strlen(((token_t*)nodeTemp->data)->text) + 1);
             strcpy(name, ((token_t*)nodeTemp->data)->text);
             return name;
         default:
@@ -250,14 +264,18 @@ varToken_t** parseVarDcl(node_t* tree, char* scope, bool isConst) {
         && tree->tag != tag_structdcl
         && tree->tag != tag_arg_type) return NULL;
 
+    // get Line number
+    node_t* node = getFirstTerminal(tree);
+    int line = ((token_t*)(node->data))->lineno;
+
     // get variable name array
-    node_t* node = tree->children->begin;
+    node = tree->children->begin;
     char** names = parseDclNameList(node);
 
     // count names
     int numVars;
     for (numVars = 0; names[numVars] != NULL; numVars++);
-
+    
     // get variable type
     node = node->next;
     int type = node->tag;
@@ -279,9 +297,9 @@ varToken_t** parseVarDcl(node_t* tree, char* scope, bool isConst) {
         }
     }
 
-    varToken_t** vts = malloc(sizeof(varToken_t*) * (numVars + 1));
+    varToken_t** vts = calloc(sizeof(varToken_t*), (numVars + 1));
     for (int i = 0; names[i] != NULL; i++) {
-        vts[i] = varToken_create(scope, names[i], type);
+        vts[i] = varToken_create(scope, names[i], type, line);
         vts[i]->subType1 = getProperTypeInt(subTypeA);
         vts[i]->subType2 = getProperTypeInt(subTypeB);
         if (isConst) {
@@ -302,35 +320,33 @@ varToken_t** parseVarDcl(node_t* tree, char* scope, bool isConst) {
 varToken_t** parseVarDclList(node_t* tree, char* scope, bool isConst) {
     if (!tree) return NULL;
     if (tree->tag != tag_vardcl_list) return NULL;
-    return NULL;
+    return NULL; //TODO
 }
 
 char** parseDclNameList(node_t* tree) {
     if (!tree) return NULL;
     if (tree->tag == LNAME) {
-        char** names = malloc(sizeof(char*) * 2);
-        names[0] = malloc(sizeof(char) * (1 + strlen(((token_t*)(tree->data))->text)));
+        char** names = calloc(sizeof(char*), 2);
+        names[0] = calloc(sizeof(char), (strlen(((token_t*)(tree->data))->text)) + 1);
         strcpy(names[0], ((token_t*)(tree->data))->text);
-        names[1] = NULL;
         return names;
     }
     if (tree->tag != tag_dcl_name_list) return NULL;
 
     int count = treeCount(tree, LNAME);
 
-    char** names = malloc(sizeof(char*) * (count + 1));
+    char** names = calloc(sizeof(char*), count + 1);
 
     int i = 0;
     node_t* node;
     node_iterator_full_t* it = node_iterator_full_create(tree);
     while ((node = node_iterator_full_next(it))) {
         if (node->tag == LNAME) {
-            names[i] = malloc(sizeof(char) * (1 + strlen(((token_t*)(node->data))->text)));
+            names[i] = calloc(sizeof(char), (1 + strlen(((token_t*)(node->data))->text)));
             strcpy(names[i], ((token_t*)(node->data))->text);
             i++;
         }
     }
-    names[i] = NULL;
     return names;
 }
 
@@ -347,15 +363,15 @@ varToken_t** getImports(node_t* tree, char* scope) {
             case tag_import:
                 token = node->children->begin->next->data;
                 if (!strcmp(token->text, "\"fmt\"")) {
-                    vts[pos] = varToken_create_func("fmt", "Println", cfuhash_new());
+                    vts[pos] = varToken_create_func("fmt", "Println", token->lineno, cfuhash_new());
                     pos++;
                 }
                 else if (!strcmp(token->text, "\"time\"")) {
-                    vts[pos] = varToken_create_func("time", "Now", cfuhash_new());
+                    vts[pos] = varToken_create_func("time", "Now", token->lineno, cfuhash_new());
                     pos++;
                 }
                 else if (!strcmp(token->text, "\"math/rand\"")) {
-                    vts[pos] = varToken_create_func("rand", "Intn", cfuhash_new());
+                    vts[pos] = varToken_create_func("rand", "Intn", token->lineno, cfuhash_new());
                     pos++;
 
                 }
@@ -370,4 +386,54 @@ varToken_t** getImports(node_t* tree, char* scope) {
         }
     }
     return vts;
+}
+
+void detectUndeclaredVars(node_t* tree, cfuhash_table_t* rootHT, cfuhash_table_t* funcHT) {
+    if (!tree) return;
+    if (!rootHT) return;
+
+    token_t* token;
+    varToken_t* vt;
+    node_t* node;
+    node_iterator_full_t* it = node_iterator_full_create(tree);
+    node = node_iterator_full_next(it);
+    if (node->tag == tag_structtype || node->tag == tag_xfndcl) {
+        // prevent false flagging of nested structdcl
+        node = node_iterator_full_next(it);
+    }
+    while((node = node_iterator_full_next(it))) {
+        switch (node->tag) {
+            case LNAME:
+                token = node->data;
+                if(funcHT && cfuhash_exists(funcHT, token->text)) {
+                    vt = cfuhash_get(funcHT, token->text);
+                }
+                else if(cfuhash_exists(rootHT, token->text)) {
+                    vt = cfuhash_get(rootHT, token->text);
+                }
+                else if (hasParent(node, tag_package)) {
+                    break;
+                }
+                else if (hasParent(node, tag_fndcl)) {
+                    break;
+                }
+                else if (hasParent(node, tag_typedcl)) {
+                    break;
+                }
+                else {
+                    fprintf(stderr, "%s:%i Error: Usage of variable %s before declaration\n", token->filename, token->lineno, token->text);
+                    exit(3);
+                }
+                if (vt->lineDeclared > token->lineno) {
+                    fprintf(stderr, "%s:%i Error: Usage of variable %s before declaration\n", token->filename, token->lineno, token->text);
+                    exit(3);
+                }
+                break;
+            case tag_xfndcl:
+                return;
+            case tag_structtype:
+                return;
+        }
+    }
+
 }

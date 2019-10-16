@@ -39,4 +39,7 @@ varToken_t** getImports(node_t* tree, char* scope);
 // Adds function arguments to the functions hashtable
 void parseFuncArgList(node_t* tree, cfuhash_table_t* ht, char* scope);
 
+// Checks for undeclared variables
+void detectUndeclaredVars(node_t* tree, cfuhash_table_t* rootHT, cfuhash_table_t* funcHT);
+
 #endif // SYMTAB_H
