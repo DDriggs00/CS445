@@ -173,16 +173,25 @@ void treePrint(node_t* root, int tag) {
 
 void symTabPrint(cfuhash_table_t* ht, bool subTable) {
     
-    varToken_t* token;
-    char* name;
-    size_t y, z;
-    int x =  cfuhash_each_data(ht, (void**)(&name), &y, (void**)(&token), &z);
+    varToken_t* token = NULL;
+    char* name = NULL;
+    size_t y = 0, z = 0;
+    int x = cfuhash_each_data(ht, (void**)(&name), &y, (void**)(&token), &z);
     if (x == 0) return;
-    printf("Symbol table for %s\n", token->scope);
+    printf("--- Symbol table for: %s ---\n", token->scope);
     do {
-        if(subTable) printf("    ");
-        printf("var: %-10s ", name);
-        varToken_print(token);
+        printf("%10s %s\n", name, varToken_typeString(token));
+        // varToken_print(token);
+    } while (cfuhash_next_data(ht, (void**)(&name), &y, (void**)(&token), &z));
+
+    printf("---\n");
+
+    if (subTable) return;
+
+    // Iterate through again to process child hashtables
+    y = z = 0;
+    x = cfuhash_each_data(ht, (void**)(&name), &y, (void**)(&token), &z);
+    do {
         if (token->type == FUNC_TYPE || token->type == STRUCT_TYPE) {
             symTabPrint(token->symTab, true);
         }
