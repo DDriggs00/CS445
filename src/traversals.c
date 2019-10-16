@@ -82,7 +82,7 @@ int treeCount(node_t* tree, int tag) {
         }
     }
 
-    return tag;
+    return count;
 }
 
 node_t* getFirstTerminal(node_t* node) {
