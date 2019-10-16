@@ -23,6 +23,7 @@ typedef struct varToken_t {
 
     char* name;
     int type;
+    int lineDeclared;
 
     // For array and map
     int subType1, subType2;
@@ -39,12 +40,12 @@ typedef struct varToken_t {
 } varToken_t;
 
 // Creates a varToken with the given parameters
-varToken_t* varToken_create(char* scope, char* name, int type);
-varToken_t* varToken_create_int(char* scope, char* name, int val, bool isConst);
-varToken_t* varToken_create_str(char* scope, char* name, char* val, bool isConst);
-varToken_t* varToken_create_float(char* scope, char* name, double val, bool isConst);
-varToken_t* varToken_create_struct(char* scope, char* name, cfuhash_table_t* ht);
-varToken_t* varToken_create_func(char* scope, char* name, cfuhash_table_t* ht);
+varToken_t* varToken_create(char* scope, char* name, int type, int line);
+varToken_t* varToken_create_int(char* scope, char* name, int val, int line, bool isConst);
+varToken_t* varToken_create_str(char* scope, char* name, char* val, int line, bool isConst);
+varToken_t* varToken_create_float(char* scope, char* name, double val, int line, bool isConst);
+varToken_t* varToken_create_struct(char* scope, char* name, int line, cfuhash_table_t* ht);
+varToken_t* varToken_create_func(char* scope, char* name, int line, cfuhash_table_t* ht);
 
 // Assign the given value to the given variable.
 // Returns true upon success, false upon failure.

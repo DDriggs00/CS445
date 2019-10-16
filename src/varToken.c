@@ -6,7 +6,7 @@
 #include "varToken.h"
 
 
-varToken_t* varToken_create(char* scope, char* name, int type) {
+varToken_t* varToken_create(char* scope, char* name, int type, int line) {
     
     // Create token
     varToken_t* vt = malloc(sizeof(*vt));
@@ -17,16 +17,17 @@ varToken_t* varToken_create(char* scope, char* name, int type) {
 
     vt->name = malloc(sizeof(char) * (strlen(name) + 1));
     strcpy(vt->name, name);
-    vt->type = getProperTypeInt(type);
 
+    vt->type = getProperTypeInt(type);
+    vt->lineDeclared = line;
     vt->isInitialized = false;
     vt->isConst = false;
 
     return vt;
 }
 
-varToken_t* varToken_create_int(char* scope, char* name, int val, bool isConst) {
-    varToken_t* vt = varToken_create(scope, name, INT_TYPE);
+varToken_t* varToken_create_int(char* scope, char* name, int val, int line, bool isConst) {
+    varToken_t* vt = varToken_create(scope, name, INT_TYPE, line);
 
     vt->isConst = isConst;
     vt->isInitialized = true;
@@ -34,8 +35,8 @@ varToken_t* varToken_create_int(char* scope, char* name, int val, bool isConst) 
 
     return vt;
 }
-varToken_t* varToken_create_str(char* scope, char* name, char* val, bool isConst) {
-    varToken_t* vt = varToken_create(scope, name, STRING_TYPE);
+varToken_t* varToken_create_str(char* scope, char* name, char* val, int line, bool isConst) {
+    varToken_t* vt = varToken_create(scope, name, STRING_TYPE, line);
 
     vt->isConst = isConst;
     vt->isInitialized = true;
@@ -45,8 +46,8 @@ varToken_t* varToken_create_str(char* scope, char* name, char* val, bool isConst
     return vt;
 }
 
-varToken_t* varToken_create_float(char* scope, char* name, double val, bool isConst) {
-    varToken_t* vt = varToken_create(scope, name, FLOAT64_TYPE);
+varToken_t* varToken_create_float(char* scope, char* name, double val, int line, bool isConst) {
+    varToken_t* vt = varToken_create(scope, name, FLOAT64_TYPE, line);
 
     vt->isConst = isConst;
     vt->isInitialized = true;
@@ -55,8 +56,8 @@ varToken_t* varToken_create_float(char* scope, char* name, double val, bool isCo
     return vt;
 }
 
-varToken_t* varToken_create_struct(char* scope, char* name, cfuhash_table_t* ht) {
-    varToken_t* vt = varToken_create(scope, name, STRUCT_TYPE);
+varToken_t* varToken_create_struct(char* scope, char* name, int line, cfuhash_table_t* ht) {
+    varToken_t* vt = varToken_create(scope, name, STRUCT_TYPE, line);
 
     vt->isConst = false;
     vt->isInitialized = true;
@@ -65,8 +66,8 @@ varToken_t* varToken_create_struct(char* scope, char* name, cfuhash_table_t* ht)
     return vt;
 }
 
-varToken_t* varToken_create_func(char* scope, char* name, cfuhash_table_t* ht) {
-    varToken_t* vt = varToken_create(scope, name, FUNC_TYPE);
+varToken_t* varToken_create_func(char* scope, char* name, int line, cfuhash_table_t* ht) {
+    varToken_t* vt = varToken_create(scope, name, FUNC_TYPE, line);
 
     vt->isConst = false;
     vt->isInitialized = true;
