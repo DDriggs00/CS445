@@ -155,7 +155,17 @@ void populateHashtableMain(node_t* tree, cfuhash_table_t* ht, char* scope) {
     node_t* node;
     node_iterator_full_t* it = node_iterator_full_create(tree);
     varToken_t** newVars;
+    
+    newVars = getImports(tree, scope);
     node = node_iterator_full_next(it);
+    for (int i = 0; newVars[i] != NULL; i++) {
+        if (cfuhash_put(ht, newVars[i]->name, newVars[i])) {
+            // Key already existed
+            token_t* firstToken = getFirstTerminal(node)->data;
+            fprintf(stderr, "%s:%i: Error: Redeclaration of variable %s\n", firstToken->filename, firstToken->lineno, newVars[i]->name);
+            exit(3);
+        }
+    }
     while (node) {
         switch (node->tag) {
             case tag_constdcl:
@@ -333,16 +343,38 @@ char** parseDclNameList(node_t* tree) {
 
 varToken_t** getImports(node_t* tree, char* scope) {
     
+    varToken_t** vts = calloc(sizeof(char*), 4);
+    u_int8_t pos = 0;
+    token_t* token;
+    
     node_t* node;
     node_iterator_full_t* it = node_iterator_full_create(tree);
     while((node = node_iterator_full_next(it))) {
         switch (node->tag) {
             case tag_import:
-                
+                token = node->children->begin->next->data;
+                if (!strcmp(token->text, "\"fmt\"")) {
+                    vts[pos] = varToken_create_func("fmt", "Println", cfuhash_new());
+                    pos++;
+                }
+                else if (!strcmp(token->text, "\"time\"")) {
+                    vts[pos] = varToken_create_func("time", "Now", cfuhash_new());
+                    pos++;
+                }
+                else if (!strcmp(token->text, "\"math/rand\"")) {
+                    vts[pos] = varToken_create_func("rand", "Intn", cfuhash_new());
+                    pos++;
+
+                }
+                else {
+                    fprintf(stderr, "%s:%i Error: %s is not a valid import in VGo\n", token->filename, token->lineno, token->text);
+                    exit(3);
+                }
                 break;
             case tag_xdcl_list:
+                return vts;
                 // All imports have been imported
-                break;
         }
     }
+    return vts;
 }

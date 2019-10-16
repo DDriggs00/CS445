@@ -33,4 +33,7 @@ varToken_t** parseVarDclList(node_t* tree, char* scope, bool isConst);
 // returns a list of strings given a tree rooted at a DclName or DclNameList
 char** parseDclNameList(node_t* tree);
 
+// Adds the predefined symbol tables when they are imported
+varToken_t** getImports(node_t* tree, char* scope);
+
 #endif // SYMTAB_H

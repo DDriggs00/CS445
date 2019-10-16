@@ -45,7 +45,6 @@ bool hasExtention(const char* filename);
 // -1: Other errors
 
 // TODO arg to enable symtab print
-// TODO predefined symbol tables
 // TODO find varaible usages
 
 int main(int argc, char* argv[]) {
