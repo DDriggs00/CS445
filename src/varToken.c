@@ -12,10 +12,10 @@ varToken_t* varToken_create(char* scope, char* name, int type, int line) {
     varToken_t* vt = malloc(sizeof(*vt));
     if (vt == NULL) return NULL;
 
-    vt->scope = malloc(sizeof(char) * (strlen(scope) + 1));
+    vt->scope = calloc(sizeof(char), (strlen(scope) + 1));
     strcpy(vt->scope, scope);
 
-    vt->name = malloc(sizeof(char) * (strlen(name) + 1));
+    vt->name = calloc(sizeof(char), (strlen(name) + 1));
     strcpy(vt->name, name);
 
     vt->type = getProperTypeInt(type);
@@ -40,7 +40,7 @@ varToken_t* varToken_create_str(char* scope, char* name, char* val, int line, bo
 
     vt->isConst = isConst;
     vt->isInitialized = true;
-    vt->sval = malloc(sizeof(char) * (strlen(val) + 1));
+    vt->sval = calloc(sizeof(char), (strlen(val) + 1));
     strcpy(vt->sval, val);
 
     return vt;
@@ -95,7 +95,7 @@ bool varToken_set_str(varToken_t* token, char* val) {
     if (token->isConst) return false;
 
     token->isInitialized = true;
-    token->sval = malloc(sizeof(char) * (strlen(val) + 1));
+    token->sval = calloc(sizeof(char), (strlen(val) + 1));
     strcpy(token->sval, val);
 
     return true;

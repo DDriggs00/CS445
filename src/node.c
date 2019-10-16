@@ -250,7 +250,7 @@ node_t* node_copy_deep(node_t* node, copy_func_t copy_func)
 }
 
 void node_add_name(node_t* node, char* name) {
-	node->name = malloc(sizeof(char) * (strlen(name) + 1));
+	node->name = calloc(sizeof(char), (strlen(name) + 1));
 	strcpy(node->name, name);
 	node->hasName = TRUE;
 }

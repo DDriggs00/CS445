@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
     // ========================================
 
     // Create an array of pointers to parse trees
-    node_t** treeRoots = malloc(sizeof(node_t*) * (argc - nonFileArguments));
+    node_t** treeRoots = calloc(sizeof(node_t*), (argc - nonFileArguments));
 
     // For each filename, parse file
     for (int i = 0; i < argc - nonFileArguments; i++) {
@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
     // char* val = cfuhash_get(ht, "var2");
 
     // Create table of hashtable pointers
-    cfuhash_table_t** hashTables = malloc(sizeof(cfuhash_table_t*) * (argc - nonFileArguments));
+    cfuhash_table_t** hashTables = calloc(sizeof(cfuhash_table_t*), (argc - nonFileArguments));
     
     // Parse out variables and put them into hashtables
     for (int i = 0; i < argc - nonFileArguments; i++) {
@@ -193,10 +193,10 @@ void treeFix(node_t* root) {
 // Uses global variable as output
 void createFileList(int count, char** args) {
     // create new array in memory, containing filenames
-    fileNames = (char**)malloc(sizeof(char*) * (count - 1)); // Allocate memory for array
+    fileNames = (char**)calloc(sizeof(char*), (count - 1)); // Allocate memory for array
     for (int i = 1; i < count; i++) {
         if (endsWith(args[i], ".go")) {
-            fileNames[i - 1] = (char*)malloc(sizeof(char) * (strlen(args[i]) + 1)); // Allocate memory for individual string
+            fileNames[i - 1] = (char*)calloc(sizeof(char), (strlen(args[i]) + 1)); // Allocate memory for individual string
             strcpy(fileNames[i - 1], args[i]);
         }
         else {
@@ -205,7 +205,7 @@ void createFileList(int count, char** args) {
                 fprintf(stderr, "Only files with a .go extention are allowed\n");
                 exit(-1);
             }
-            fileNames[i - 1] = (char*)malloc(sizeof(char) * (strlen(args[i]) + 4)); // Allocate memory for individual string (+3 chars for)
+            fileNames[i - 1] = (char*)calloc(sizeof(char), (strlen(args[i]) + 4)); // Allocate memory for individual string (+3 chars for)
             strcpy(fileNames[i - 1], args[i]);
             fileNames[i - 1] = strcat(fileNames[i - 1], ".go");
         }

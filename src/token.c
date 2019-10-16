@@ -12,7 +12,7 @@ char* formatString(char* s) {
     if (!s) return NULL;
     
 	char* iterator = s;
-	char* newString = malloc(strlen(s));
+	char* newString = calloc(sizeof(char), strlen(s) + 1);
     
     int pos = 0;
 	while(*iterator != '\0')
@@ -72,10 +72,10 @@ struct token *tokenNew(int category,
 	t->lineno = lineno;
 
     // Copy strings
-	t->text = malloc((strlen(text) + 1) * sizeof(char));
+	t->text = calloc(sizeof(char), strlen(text) + 1);
 	strcpy(t->text, text);
 
-	t->filename = malloc((strlen(filename) + 1) * sizeof(char));
+	t->filename = calloc(sizeof(char), strlen(filename) + 1);
 	strcpy(t->filename, filename);
 
     // Copy value
