@@ -123,7 +123,7 @@ bool varToken_set_symTab(varToken_t* token, cfuhash_table_t* ht) {
     return true;
 }
 
-void varToken_print(varToken_t* token) {
+void varToken_print(varToken_t* token) { //TODO cleanup
     if (!token) return;
 
     printf("Scope: %-10s Name: %-10s ", token->scope, token->name);
@@ -244,6 +244,106 @@ void varToken_print(varToken_t* token) {
         printf("\tConstant");
     }
     printf("\n");
+}
+
+char* varToken_typeString(varToken_t* token) {
+    char* buffer = calloc(sizeof(char), 50);
+
+    switch(token->type) {
+        case INT_TYPE:
+            buffer = strcat(buffer, "Integer");
+            break;
+
+        case RUNE_TYPE:
+            buffer = strcat(buffer, "Rune");
+            break;
+
+        case BOOL_TYPE:
+            buffer = strcat(buffer, "Boolean");
+            break;
+
+        case FLOAT64_TYPE:
+            buffer = strcat(buffer, "Float");
+            break;
+
+        case STRING_TYPE:
+            buffer = strcat(buffer, "String");
+            break;
+
+        case FUNC_TYPE:
+            buffer = strcat(buffer, "Function");
+            break;
+
+        case STRUCT_TYPE:
+            buffer = strcat(buffer, "Struct");
+            break;
+
+        case ARRAY_TYPE:
+            buffer = strcat(buffer, "Array");
+            switch (token->subType1) {
+                case INT_TYPE:
+                    buffer = strcat(buffer, " (int)");
+                    break;
+                case FLOAT64_TYPE:
+                    buffer = strcat(buffer, " (float)");
+                    break;
+                case STRING_TYPE:
+                    buffer = strcat(buffer, " (str)");
+                    break;
+                case RUNE_TYPE:
+                    buffer = strcat(buffer, " (rune)");
+                    break;
+                case BOOL_TYPE:
+                    buffer = strcat(buffer, " (bool)");
+                    break;
+                default:
+                    printf(" (typedef'd other)");
+            }
+            break;
+
+        case MAP_TYPE:
+            buffer = strcat(buffer, "Map");
+            switch (token->subType1) {
+                case INT_TYPE:
+                    buffer = strcat(buffer, " (int->");
+                    break;
+                case FLOAT64_TYPE:
+                    buffer = strcat(buffer, " (float->");
+                    break;
+                case STRING_TYPE:
+                    buffer = strcat(buffer, " (str->");
+                    break;
+                case RUNE_TYPE:
+                    buffer = strcat(buffer, " (rune->");
+                    break;
+                case BOOL_TYPE:
+                    buffer = strcat(buffer, " (bool->");
+                    break;
+                default:
+                    printf(" (typedef'd other->");
+            }
+            switch (token->subType2) {
+                case INT_TYPE:
+                    buffer = strcat(buffer, "int)");
+                    break;
+                case FLOAT64_TYPE:
+                    buffer = strcat(buffer, "float)");
+                    break;
+                case STRING_TYPE:
+                    buffer = strcat(buffer, "str)");
+                    break;
+                case RUNE_TYPE:
+                    buffer = strcat(buffer, "rune)");
+                    break;
+                case BOOL_TYPE:
+                    buffer = strcat(buffer, "bool)");
+                    break;
+                default:
+                    printf("typedef'd other)");
+            }
+            break;
+    }
+    return buffer;
 }
 
 
