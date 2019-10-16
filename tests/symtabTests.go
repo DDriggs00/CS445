@@ -17,7 +17,12 @@ type person struct {
     age  int
 }
 
-func main() {}
-func f2() {
+func main() {
+    x = 2;
+    if x > 0 {
+        x += 1
+    }
+}
+func f2(x1, x2 float64, y1, y2 int) {
 	var y float64
 }
