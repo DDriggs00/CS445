@@ -103,27 +103,29 @@ int main(int argc, char* argv[]) {
     // ===== Step 2: Variable Extraction ======
     // ========================================
 
-    // cfuhash_table_t *ht = cfuhash_new();
-    // cfuhash_put(ht, "var1", "value1");
-    // cfuhash_delete(ht, "var3");
-    // cfuhash_pretty_print(ht, stdout);
-    // char* val = cfuhash_get(ht, "var2");
-
     // Create table of hashtable pointers
     cfuhash_table_t** hashTables = calloc(sizeof(cfuhash_table_t*), (argc - nonFileArguments));
     
     // Parse out variables and put them into hashtables
     for (int i = 0; i < argc - nonFileArguments; i++) {
-        // treePrint(treeRoots[i], 0);
      
         hashTables[i] = genSymTab(treeRoots[i]);
         // Generate symbol tables
 
+    }
+
+    // ========================================
+    // =============== Printing ===============
+    // ========================================
+
+    for (int i = 0; i < argc - nonFileArguments; i++) {
         if (printSymTab) {
+            printf("\nFILE: %s\n\n", fileNames[i]);
             symTabPrint(hashTables[i], false);
         }
+
     }
-    
+
     // ========================================
     // =============== Cleanup ================
     // ========================================
