@@ -1,8 +1,8 @@
 CC=gcc
-CFLAGS=-c -g -std=c99 -D_POSIX_C_SOURCE=1 -Wall -Iinclude -I.
+CFLAGS=-c -std=c99 -D_POSIX_C_SOURCE=1 -Wall -Iinclude -I.
 # -D_POSIX_C_SOURCE=1 allows use of fileno in lex.yy.c
 OBJ=lex.yy.o vgo.tab.o main.o token.o list.o node.o iterator.o node_list.o node_iterator.o node_iterator_full.o cfu.o cfustring.o cfuhash.o traversals.o symtab.o varToken.o
-ASSIGN=2
+ASSIGN=3
 
 SRC_DIR=src
 
@@ -77,4 +77,4 @@ clean:
 zip:
 	make clean
 	@rm -f hw$(ASSIGN).zip
-	zip -r hw$(ASSIGN).zip . -x *.git* *.vscode* "tests*" "doc*" LICENSE README.md vgo.tab.h vgo.tab.c
+	zip -r hw$(ASSIGN).zip . -x *.git* *.vscode* "tests*" "doc*" vgo.tab.h vgo.tab.c
