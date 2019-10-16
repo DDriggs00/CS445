@@ -36,4 +36,7 @@ char** parseDclNameList(node_t* tree);
 // Adds the predefined symbol tables when they are imported
 varToken_t** getImports(node_t* tree, char* scope);
 
+// Adds function arguments to the functions hashtable
+void parseFuncArgList(node_t* tree, cfuhash_table_t* ht, char* scope);
+
 #endif // SYMTAB_H

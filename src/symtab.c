@@ -13,16 +13,6 @@
 #include "traversals.h"     
 #include "varToken.h"
 
-// 1. Find each scope
-//  a. Main         "package"
-//  b. Functions    "xfndcl"
-//  c. Structs      "structtype"
-// 2. For each scope, generate an empty hashtable, and link that hashtable in the list
-// 2. For each scope, find all varDCLs
-// 3. For each varDCL, Check if already exists in master or local scope
-// 5. Add vardcl to symbol table
-// 6. For each varReference, check master and local symbol tables
-
 cfuhash_table_t* genSymTab(node_t* tree) {
     if (!tree) return NULL;
     // Initialize root
@@ -227,6 +217,7 @@ void populateHashtable(node_t* tree, cfuhash_table_t* ht, char* scope) {
                 }
                 break;
             case tag_structdcl:
+            case tag_arg_type:
             case tag_vardcl:
                 newVars = parseVarDcl(node, scope, false);
                 for (int i = 0; newVars[i] != NULL; i++) {
@@ -238,7 +229,6 @@ void populateHashtable(node_t* tree, cfuhash_table_t* ht, char* scope) {
                     }
                 }
                 break;
-
             // no nested functions/structs
             case tag_xfndcl:
                 firstToken = getFirstTerminal(node)->data;
@@ -255,7 +245,10 @@ void populateHashtable(node_t* tree, cfuhash_table_t* ht, char* scope) {
 
 varToken_t** parseVarDcl(node_t* tree, char* scope, bool isConst) {
     if (!tree) return NULL;
-    if (tree->tag != tag_vardcl && tree->tag != tag_constdcl && tree->tag != tag_structdcl) return NULL;
+    if (tree->tag != tag_vardcl
+        && tree->tag != tag_constdcl
+        && tree->tag != tag_structdcl
+        && tree->tag != tag_arg_type) return NULL;
 
     // get variable name array
     node_t* node = tree->children->begin;
