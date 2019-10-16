@@ -18,10 +18,10 @@ type person struct {
 }
 
 func main() {
-    x = 2;
-    if x > 0 {
-        x += 1
-    }
+    var q int
+    q = 5
+    z = false
+    
 }
 func f2(x1, x2 float64, y1, y2 int) {
 	var y float64
