@@ -1,6 +1,8 @@
 #ifndef TRAVERSALS_H
 #define TRAVERSALS_H
 
+#include <stdbool.h>
+
 #include "node.h"
 
 
@@ -23,5 +25,8 @@ int treeCount(node_t* tree, int tag);
 
 // traverses the tree to get the first node containing a token symbol
 node_t* getFirstTerminal(node_t* node);
+
+// returns true of the node has a parent with *tag*, otherwise false
+bool hasParent(node_t* node, int tag);
 
 #endif // TRAVERSALS_H

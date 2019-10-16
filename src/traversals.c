@@ -1,4 +1,5 @@
 #include <stdlib.h>         // for NULL, MALLOC
+#include <stdbool.h>
 
 #include "node.h"               // for pretty much everything
 #include "node_iterator.h"      // for pretty much everything
@@ -93,4 +94,16 @@ node_t* getFirstTerminal(node_t* node) {
         if (node->hasData) return node;
     }
     return NULL;
+}
+
+bool hasParent(node_t* node, int tag) {
+    if (!node) return NULL;
+
+    node_t* node2 = node;
+    while((node2 = node2->parent)) {
+        if (node2->tag == tag) {
+            return true;
+        }
+    }
+    return false;
 }
