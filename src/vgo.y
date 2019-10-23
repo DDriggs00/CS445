@@ -255,7 +255,7 @@ constdcl1:
     ;
 
 typedclname:
-    sym { $$ = $1; }
+    sym { $$ = node_create2(NULL, NULL, tag_typedclname, 1, $1); }
     ;
 
 typedcl:
@@ -395,13 +395,10 @@ expr:
 |	expr LANDNOT expr	{ $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
 |	expr LLSH expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
 |	expr LRSH expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
-
-    /* not an expression anymore, but left in so we can give a good error */
-|	expr LCOMM expr	    { $$ = node_create2(NULL, NULL, tag_bad_expr, 3, $1, $2, $3); }
     ;
 
 uexpr:
-    pexpr	    { $$ = $1; }
+    pexpr	    { $$ = node_create2(NULL, NULL, tag_uexpr, 1, $1); }
 |	'*' uexpr	{ $$ = node_create2(NULL, NULL, tag_uexpr, 2, $1, $2); }
 |	'&' uexpr	{ $$ = node_create2(NULL, NULL, tag_uexpr, 2, $1, $2); }
 |	'+' uexpr	{ $$ = node_create2(NULL, NULL, tag_uexpr, 2, $1, $2); }
@@ -472,11 +469,11 @@ name_or_type:
  *	oldname is used after declared
  */
 new_name:
-    sym	{ $$ = $1; }
+    sym	{ $$ = node_create2(NULL, NULL, tag_new_name, 1, $1); }
     ;
 
 dcl_name:
-    sym	{ $$ = $1; }
+    sym	{ $$ = node_create2(NULL, NULL, tag_dcl_name, 1, $1); }
     ;
 
 onew_name:
@@ -496,7 +493,7 @@ hidden_importsym:
     ;
 
 name:
-    sym	{ $$ = $1; }	%prec NotParen
+    sym	{ $$ = node_create2(NULL, NULL, tag_name, 1, $1); }	%prec NotParen
     ;
 
 labelname:
@@ -544,7 +541,7 @@ fnret_type:
     ;
 
 dotname:
-    name	    	{ $$ = $1; }
+    name	    	{ $$ = node_create2(NULL, NULL, tag_dotname, 1, $1); }
 |	name '.' sym	{ $$ = node_create2(NULL, NULL, tag_dotname, 3, $1, $2, $3); }
     ;
 
