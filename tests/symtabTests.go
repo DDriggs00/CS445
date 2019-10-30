@@ -21,6 +21,9 @@ func main() {
     var q int
     q = 5
     z = false
+
+    var n1 float64
+    fmt.Println(n1)
     
 }
 func f2(x1, x2 float64, y1, y2 int) {
