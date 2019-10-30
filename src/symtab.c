@@ -149,9 +149,9 @@ char* getStructName(node_t* tree) {
     if (!nodeTemp) return NULL;
     
     // if node is not the correct node;
-    if (nodeTemp->tag != LNAME) return NULL;
+    if (nodeTemp->children->begin->tag != LNAME) return NULL;
 
-    return ((token_t*)(nodeTemp->data))->text;
+    return ((token_t*)(nodeTemp->children->begin->data))->text;
 }
 
 // Fills the main hashtable
@@ -331,6 +331,12 @@ char** parseDclNameList(node_t* tree) {
         strcpy(names[0], ((token_t*)(tree->data))->text);
         return names;
     }
+    if (tree->tag == tag_dcl_name || tree->tag == tag_new_name || tree->tag == tag_typedclname || tree->tag == tag_name) {
+        char** names = calloc(sizeof(char*), 2);
+        names[0] = calloc(sizeof(char), (strlen(((token_t*)(tree->children->begin->data))->text)) + 1);
+        strcpy(names[0], ((token_t*)(tree->children->begin->data))->text);
+        return names;
+    }
     if (tree->tag != tag_dcl_name_list) return NULL;
 
     int count = treeCount(tree, LNAME);
@@ -418,6 +424,9 @@ void detectUndeclaredVars(node_t* tree, cfuhash_table_t* rootHT, cfuhash_table_t
                     break;
                 }
                 else if (hasParent(node, tag_typedcl)) {
+                    break;
+                }
+                else if (hasParent(node, tag_pexpr_no_paren_dot)) {
                     break;
                 }
                 else {
