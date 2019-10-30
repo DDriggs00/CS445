@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
     
     // Parse out variables and put them into hashtables
     for (int i = 0; i < argc - nonFileArguments; i++) {
-     
+        
         hashTables[i] = genSymTab(treeRoots[i]);
         // Generate symbol tables
 
@@ -225,8 +225,8 @@ void createFileList(int count, char** args, int* nonFileArgs) {
             continue;
         }
         if (endsWith(args[i], ".go")) {
-            fileNames[i - 1] = (char*)calloc(sizeof(char), (strlen(args[i]) + 1)); // Allocate memory for individual string
-            strcpy(fileNames[i - 1], args[i]);
+            fileNames[i - *nonFileArgs] = (char*)calloc(sizeof(char), (strlen(args[i]) + 1)); // Allocate memory for individual string
+            strcpy(fileNames[i - *nonFileArgs], args[i]);
         }
         else {
             // does not have .go extentions
