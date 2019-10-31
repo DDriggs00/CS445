@@ -386,8 +386,6 @@ expr:
 |	expr LGT expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
 |	expr '+' expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
 |	expr '-' expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
-|	expr '|' expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
-|	expr '^' expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
 |	expr '*' expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
 |	expr '/' expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
 |	expr '%' expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
@@ -404,11 +402,6 @@ uexpr:
 |	'+' uexpr	{ $$ = node_create2(NULL, NULL, tag_uexpr, 2, $1, $2); }
 |	'-' uexpr	{ $$ = node_create2(NULL, NULL, tag_uexpr, 2, $1, $2); }
 |	'!' uexpr	{ $$ = node_create2(NULL, NULL, tag_uexpr, 2, $1, $2); }
-|	'~' uexpr
-    {
-        yyerror("the bitwise complement operator is ^");
-    }
-|	'^' uexpr
 |	LCOMM uexpr	{ $$ = node_create2(NULL, NULL, tag_uexpr, 2, $1, $2); }
     ;
 
