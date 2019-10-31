@@ -446,3 +446,52 @@ void detectUndeclaredVars(node_t* tree, cfuhash_table_t* rootHT, cfuhash_table_t
     }
 
 }
+
+// Do the type checking
+int typeCheck(node_t* tree) {
+    if (!tree) return 0;
+    int type1 = 0, type2 = 0;
+    int operator = 0;
+    switch (tree->tag) {
+        case tag_uexpr:
+            if (tree->count == 1) {
+                return typeCheck(tree->children->begin);
+            }
+            else {
+                type1 = typeCheck(tree->children->end);
+                operator = tree->children->begin->tag;
+                if (isCompatibleType(operator, type1, 0)) {
+                    return type1;
+                }
+                else {
+                    token_t* first = getFirstTerminal(tree->children->begin)->data;
+                    fprintf(stderr, "%s:%d Type %s is not compatible with operator %s\n", first->filename, first->lineno, getTypeName(type1) , first->text);
+                    exit(3);
+                }
+            }
+        default:
+            return 0;
+    }
+}
+bool isCompatibleType(int operator, int type1, int type2);
+
+char* getTypeName(int typeInt) {
+    switch (typeInt) {
+        case LINT:
+        case INT_TYPE:
+            return "Int";
+        case LFLOAT:
+        case FLOAT64_TYPE:
+            return "Float64";
+        case LLITERAL:
+        case STRING_TYPE:
+            return "String";
+        case LBOOL:
+        case BOOL_TYPE:
+            return "Boolean";
+        case LRUNE:
+        case RUNE_TYPE:
+            return "Rune";
+    }
+
+}

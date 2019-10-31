@@ -1,6 +1,8 @@
 #ifndef SYMTAB_H
 #define SYMTAB_H
 
+#include <stdbool.h>
+
 #include "cfuhash.h"    // External hashtable library
 #include "node.h"       // For using the tree
 #include "list.h"       // For a list of hashtables
@@ -41,5 +43,9 @@ void parseFuncArgList(node_t* tree, cfuhash_table_t* ht, char* scope);
 
 // Checks for undeclared variables
 void detectUndeclaredVars(node_t* tree, cfuhash_table_t* rootHT, cfuhash_table_t* funcHT);
+
+// Do the type checking
+int typeCheck(node_t* tree);
+bool isCompatibleType(int operator, int type1, int type2);
 
 #endif // SYMTAB_H
