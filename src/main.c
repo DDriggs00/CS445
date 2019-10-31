@@ -52,6 +52,7 @@ int main(int argc, char* argv[]) {
     int returnval = 0;
     int nonFileArguments = 1;
     bool printSymTab = false;
+    bool printTree = false;
  
     // ========================================
     // ===== Step 0: File list generation =====
@@ -66,6 +67,9 @@ int main(int argc, char* argv[]) {
         if (argv[i][0] == '-') {
             if (!strcmp(argv[i], "-symtab")) {
                 printSymTab = true;
+            }
+            else if (!strcmp(argv[i], "-tree")) {
+                printTree = true;
             }
             else {
                 fprintf(stderr, "unsupported argument\n");
@@ -119,6 +123,10 @@ int main(int argc, char* argv[]) {
     // ========================================
 
     for (int i = 0; i < argc - nonFileArguments; i++) {
+        if (printTree) {
+            printf("\nFILE: %s\n\n", fileNames[i]);
+            treePrint(treeRoots[i], 0);
+        }
         if (printSymTab) {
             printf("\nFILE: %s\n\n", fileNames[i]);
             symTabPrint(hashTables[i], false);
