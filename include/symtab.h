@@ -47,5 +47,7 @@ void detectUndeclaredVars(node_t* tree, cfuhash_table_t* rootHT, cfuhash_table_t
 // Do the type checking
 int typeCheck(node_t* tree);
 bool isCompatibleType(int operator, int type1, int type2);
+typeErr(node_t* tree, int type, int type2);
+
 
 #endif // SYMTAB_H

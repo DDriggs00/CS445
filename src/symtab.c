@@ -450,30 +450,78 @@ void detectUndeclaredVars(node_t* tree, cfuhash_table_t* rootHT, cfuhash_table_t
 // Do the type checking
 int typeCheck(node_t* tree) {
     if (!tree) return 0;
-    int type1 = 0, type2 = 0;
-    int operator = 0;
+
+    if (tree->count == 1) return typeCheck(tree->children->begin);
+
+    int t1 = 0, t2 = 0;
+    int op = 0;
     switch (tree->tag) {
-        case tag_uexpr:
-            if (tree->count == 1) {
-                return typeCheck(tree->children->begin);
-            }
-            else {
-                type1 = typeCheck(tree->children->end);
-                operator = tree->children->begin->tag;
-                if (isCompatibleType(operator, type1, 0)) {
-                    return type1;
-                }
-                else {
-                    token_t* first = getFirstTerminal(tree->children->begin)->data;
-                    fprintf(stderr, "%s:%d Type %s is not compatible with operator %s\n", first->filename, first->lineno, getTypeName(type1) , first->text);
-                    exit(3);
-                }
-            }
+        case tag_uexpr:     // Unary expression (Operator typeval)
+            // OP VAL
+            t1 = typeCheck(tree->children->end);
+            op = tree->children->begin->tag;
+            
+            if (isCompatibleType(op, t1, 0)) return t1;
+            else typeErr(tree->children->begin, t1);
+
+            break;
+        case tag_expr:      // Normal Expression
+            // VAL OP VAL
+            
+            t1 = typeCheck(tree->children->begin);
+            op = typeCheck(tree->children->begin->next);
+            t2 = typeCheck(tree->children->end);
+
+            if (isCompatibleType(op, t1, 0)) return t1;
+            else typeErr(tree->children->begin, t1, 0);
+
+            break;
         default:
-            return 0;
+            // node didn't need checked (but it's children might)
+            switch (tree->count) {
+                case 0: return 0;
+                case 1: return typeCheck(tree->children->begin);
+                default:
+                    node_iterator_t* it = node_iterator_create(tree->children);
+                    node_t* node;
+                    while ((node = node_iterator_next(it))) {
+                        typeCheck(node);
+                    }
+                    return 0;
+            }
+            break;
+                    
     }
+    fprintf(stderr, "Error Occured (Impossible state reached during type checking)\n");
+    exit(3);
 }
+
+typeErr(node_t* operatorTree, int type, int type2) {
+    token_t* first = getFirstTerminal(operatorTree)->data;
+    if (type2 == 0) {
+        // unary
+        fprintf(stderr, "%s:%d Type %s is not compatible with operator %s\n", first->filename, first->lineno, getTypeName(type), first->text);
+    }
+    else {
+        fprintf(stderr, "%s:%d Type %s is not compatible with type %s using operator %s\n", first->filename, first->lineno, getTypeName(type), getTypeName(type2), first->text);
+    }
+    exit(3);
+}
+
 bool isCompatibleType(int operator, int type1, int type2);
+
+int getLeafType(node_t* leaf) {
+    if (!leaf) return 0;
+    if (leaf->count > 0) return 0;
+
+    token_t* token = leaf->data;
+
+    if (token->category == LLITERAL) {
+        // Probably a variable
+        
+    }
+
+}
 
 char* getTypeName(int typeInt) {
     switch (typeInt) {

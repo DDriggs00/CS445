@@ -4,10 +4,10 @@ import "fmt"
 import "math/rand"
 import "time"
 
-var x int
-var y float64
-var z bool
-var a []rune
+var x int = 5
+var y float64 = 10.5
+var z bool = true
+var a []rune = 'a'
 var n [5]rune
 const b string = "test"
 var m map[string]int
