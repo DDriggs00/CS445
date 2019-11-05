@@ -472,7 +472,7 @@ int typeCheck(node_t* tree) {
             op = typeCheck(tree->children->begin->next);
             t2 = typeCheck(tree->children->end);
 
-            if (isCompatibleType(op, t1, 0)) return t1;
+            if (isCompatibleType(op, t1, t2)) return t1;
             else typeErr(tree->children->begin, t1, 0);
 
             break;
@@ -503,12 +503,36 @@ typeErr(node_t* operatorTree, int type, int type2) {
         fprintf(stderr, "%s:%d Type %s is not compatible with operator %s\n", first->filename, first->lineno, getTypeName(type), first->text);
     }
     else {
+        // Binary
         fprintf(stderr, "%s:%d Type %s is not compatible with type %s using operator %s\n", first->filename, first->lineno, getTypeName(type), getTypeName(type2), first->text);
     }
     exit(3);
 }
 
-bool isCompatibleType(int operator, int type1, int type2);
+int isCompatibleType(int operator, int type1, int type2) {
+    switch (operator) {
+        case '=':
+            if (type1 == type2) return type1;
+            else return 0;
+        case LLT:
+        case LLE:
+        case LGT:
+        case LGE:
+        case LEQ:
+            if ((type1 == type2) && (type1 == INT_TYPE || type1 == FLOAT64_TYPE || type1 == BOOL_TYPE || type1 == RUNE_TYPE)) return type1;
+            else return 0;
+
+        case '+':
+            if (type1 == type2 && (type1 == INT_TYPE || type1 == FLOAT64_TYPE || type1 == STRING_TYPE)) return type1;
+            else return 0;
+        case '-':
+        case '*':
+        case '/':
+            if (type1 == type2 && (type1 == INT_TYPE || type1 == FLOAT64_TYPE)) return type1;
+            else return 0;
+        
+    }
+}
 
 int getLeafType(node_t* leaf) {
     if (!leaf) return 0;
