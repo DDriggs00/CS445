@@ -134,6 +134,11 @@ enum nodeTypes {
     tag_complicitexpr               = 1129,
     tag_import_here                 = 1130,
     tag_pexpr_no_paren_dot          = 1131,
+    tag_simple_stmt2                = 1132,
+    tag_assignment                  = 1133,
+    tag_vardcl_init                 = 1134,
+    tag_othertype_arr               = 1135,
+    tag_othertype_map               = 1136,
     tag_empty                       = 2000
 };
 

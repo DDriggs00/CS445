@@ -240,7 +240,7 @@ lconst:
 
 vardcl:
     dcl_name_list ntype	    	    	{ $$ = node_create2(NULL, NULL, tag_vardcl, 2, $1, $2); }
-|	dcl_name_list ntype '=' expr_list	{ $$ = node_create2(NULL, NULL, tag_vardcl, 4, $1, $2, $3, $4); }
+|	dcl_name_list ntype '=' expr_list	{ $$ = node_create2(NULL, NULL, tag_vardcl_init, 4, $1, $2, $3, $4); }
     ;
 
 constdcl:
@@ -264,12 +264,11 @@ typedcl:
 
 simple_stmt:
     expr	    	    	    { $$ = $1; }
-|	expr_list '=' expr_list	    { $$ = node_create2(NULL, NULL, tag_simple_stmt, 3, $1, $2, $3); }
-|	expr_list LCOLAS expr_list	{ $$ = node_create2(NULL, NULL, tag_simple_stmt, 3, $1, $2, $3); }
+|	expr_list '=' expr_list	    { $$ = node_create2(NULL, NULL, tag_assignment, 3, $1, $2, $3); }
 |	expr LINC	    	    	{ $$ = node_create2(NULL, NULL, tag_simple_stmt, 2, $1, $2); }
 |	expr LDEC	    	    	{ $$ = node_create2(NULL, NULL, tag_simple_stmt, 2, $1, $2); }
-|	expr LPLASN expr            { $$ = node_create2(NULL, NULL, tag_simple_stmt, 3, $1, $2, $3); }
-|	expr LMIASN expr            { $$ = node_create2(NULL, NULL, tag_simple_stmt, 3, $1, $2, $3); }
+|	expr LPLASN expr            { $$ = node_create2(NULL, NULL, tag_simple_stmt2, 3, $1, $2, $3); }
+|	expr LMIASN expr            { $$ = node_create2(NULL, NULL, tag_simple_stmt2, 3, $1, $2, $3); }
     ;
 
 case:
@@ -544,11 +543,10 @@ othertype:
 |   LTYPEINT        { $$ = $1; }
 |   LTYPESTRING     { $$ = $1; }
 |   LTYPERUNE       { $$ = $1; }
-|   '[' oexpr ']' ntype	    	{ $$ = node_create2(NULL, NULL, tag_othertype, 4, $1, $2, $3, $4); }
-|	'[' LDDD ']' ntype	    	{ $$ = node_create2(NULL, NULL, tag_othertype, 4, $1, $2, $3, $4); }
+|   '[' oexpr ']' ntype	    	{ $$ = node_create2(NULL, NULL, tag_othertype_arr, 4, $1, $2, $3, $4); }
 |	LCHAN non_recvchantype	    { $$ = node_create2(NULL, NULL, tag_othertype, 2, $1, $2); }
 |	LCHAN LCOMM ntype	    	{ $$ = node_create2(NULL, NULL, tag_othertype, 3, $1, $2, $3); }
-|	LMAP '[' ntype ']' ntype	{ $$ = node_create2(NULL, NULL, tag_othertype, 5, $1, $2, $3, $4, $5); }
+|	LMAP '[' ntype ']' ntype	{ $$ = node_create2(NULL, NULL, tag_othertype_map, 5, $1, $2, $3, $4, $5); }
 |	structtype	    	    	{ $$ = $1; }
 |	interfacetype	    	    { $$ = $1; }
     ;
