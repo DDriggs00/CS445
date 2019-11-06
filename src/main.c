@@ -19,11 +19,12 @@
 #include "cfuhash.h"        // For symbol tables
 #include "varToken.h"
 
-// extern char *yytext;
 extern FILE *yyin;          // For sending the file to flex+bison
 extern int yylineno;        // For resetting lineno in each new file
 
 struct node_t* yytree;      // For receiving the tree from bison
+
+cfuhash_table_t* hashTable; // For easier type checking
 
 char** fileNames;
 char* currentFile;
@@ -116,6 +117,16 @@ int main(int argc, char* argv[]) {
         hashTables[i] = genSymTab(treeRoots[i]);
         // Generate symbol tables
 
+    }
+
+    // ========================================
+    // ======== Step 3: Type Checking =========
+    // ========================================
+
+    // Check each file for type issues
+    for (int i = 0; i < argc - nonFileArguments; i++) {
+        hashTable = hashTables[i];
+        typeCheck(treeRoots[i], NULL);
     }
 
     // ========================================
