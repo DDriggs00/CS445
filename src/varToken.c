@@ -23,6 +23,9 @@ varToken_t* varToken_create(char* scope, char* name, int type, int line) {
     vt->isInitialized = false;
     vt->isConst = false;
 
+    // Create type object
+    vt->type2 = type_obj_create(type);
+
     return vt;
 }
 
@@ -50,9 +53,24 @@ varToken_t* varToken_create_float(char* scope, char* name, double val, int line,
     varToken_t* vt = varToken_create(scope, name, FLOAT64_TYPE, line);
 
     vt->isConst = isConst;
-    vt->isInitialized = true;
     vt->dval = val;
 
+    return vt;
+}
+
+varToken_t* varToken_create_map(char* scope, char* name, int from, int to, int line) {
+    varToken_t* vt = varToken_create(scope, name, MAP_TYPE, line);
+    vt->subType1 = getProperTypeInt(from);
+    vt->type2->subType1 = getProperTypeInt(from);
+    vt->subType2 = getProperTypeInt(to);
+    vt->type2->subType2 = getProperTypeInt(to);
+    return vt;
+}
+
+varToken_t* varToken_create_arr(char* scope, char* name, int type, int line) {
+    varToken_t* vt = varToken_create(scope, name, ARRAY_TYPE, line);
+    vt->subType1 = type;
+    vt->type2->subType1 = type;
     return vt;
 }
 
@@ -358,13 +376,6 @@ void varToken_remove(varToken_t* token) {
     free(token);
 }
 
-int getProperTypeInt(int oldType) {
-    switch (oldType) {
-        case 266: return INT_TYPE;
-        case 267: return STRING_TYPE;
-        case 268: return BOOL_TYPE;
-        case 269: return FLOAT64_TYPE;
-        case 270: return RUNE_TYPE;
-        default:  return oldType;
-    }
+type_t* varToken_getType(varToken_t* token) {
+    return token->type2;
 }
