@@ -12,6 +12,7 @@
 #include "vgo.tab.h"        // For the yytokentype enum
 #include "traversals.h"     
 #include "varToken.h"
+#include "type.h"
 
 cfuhash_table_t* genSymTab(node_t* tree) {
     if (!tree) return NULL;
@@ -185,6 +186,7 @@ void populateHashtableMain(node_t* tree, cfuhash_table_t* ht, char* scope) {
                 free(newVars);
                 break;
             case tag_vardcl:
+            case tag_vardcl_init:
                 newVars = parseVarDcl(node, scope, false);
                 for (int i = 0; newVars[i] != NULL; i++) {
                     if (cfuhash_put(ht, newVars[i]->name, newVars[i])) {
@@ -233,6 +235,7 @@ void populateHashtable(node_t* tree, cfuhash_table_t* ht, char* scope) {
             case tag_structdcl:
             case tag_arg_type:
             case tag_vardcl:
+            case tag_vardcl_init:
                 newVars = parseVarDcl(node, scope, false);
                 for (int i = 0; newVars[i] != NULL; i++) {
                     if (cfuhash_put(ht, newVars[i]->name, newVars[i])) {
@@ -260,6 +263,7 @@ void populateHashtable(node_t* tree, cfuhash_table_t* ht, char* scope) {
 varToken_t** parseVarDcl(node_t* tree, char* scope, bool isConst) {
     if (!tree) return NULL;
     if (tree->tag != tag_vardcl
+        && tree->tag != tag_vardcl_init
         && tree->tag != tag_constdcl
         && tree->tag != tag_structdcl
         && tree->tag != tag_arg_type) return NULL;
@@ -299,9 +303,16 @@ varToken_t** parseVarDcl(node_t* tree, char* scope, bool isConst) {
 
     varToken_t** vts = calloc(sizeof(varToken_t*), (numVars + 1));
     for (int i = 0; names[i] != NULL; i++) {
-        vts[i] = varToken_create(scope, names[i], type, line);
-        vts[i]->subType1 = getProperTypeInt(subTypeA);
-        vts[i]->subType2 = getProperTypeInt(subTypeB);
+        if (type == ARRAY_TYPE) {
+            vts[i] = varToken_create_arr(scope, names[i], subTypeA, line);
+        }
+        else if (type == MAP_TYPE) {
+            vts[i] = varToken_create_map(scope, names[i], subTypeA, subTypeB, line);
+
+        }
+        else {
+            vts[i] = varToken_create(scope, names[i], type, line);
+        }
         if (isConst) {
             vts[i]->isConst = true;
         }
@@ -448,44 +459,74 @@ void detectUndeclaredVars(node_t* tree, cfuhash_table_t* rootHT, cfuhash_table_t
 }
 
 // Do the type checking
-int typeCheck(node_t* tree) {
-    if (!tree) return 0;
+type_t* typeCheck(node_t* tree, char* scope) {
+    if (!tree) return NULL;
 
-    if (tree->count == 1) return typeCheck(tree->children->begin);
+    if (tree->count == 1) return typeCheck(tree->children->begin, scope);
 
-    int t1 = 0, t2 = 0;
-    int op = 0;
+    type_t* t1;
+    type_t* t2;
+    type_t* op;
+    type_t* returnType;
+
+    // These need to be declared outside the switch
+    node_iterator_t* it;
+    node_t* node;
+    
+    printf("%i\n", tree->tag);
     switch (tree->tag) {
         case tag_uexpr:     // Unary expression (Operator typeval)
             // OP VAL
-            t1 = typeCheck(tree->children->end);
-            op = tree->children->begin->tag;
+            t1 = typeCheck(tree->children->end, scope);
+            op = typeCheck(tree->children->begin, scope);
             
-            if (isCompatibleType(op, t1, 0)) return t1;
-            else typeErr(tree->children->begin, t1);
+            if (isCompatibleType(op, t1, 0)) {free(op); return t1;}
+            else typeErr(tree->children->begin, t1, NULL);
 
             break;
-        case tag_expr:      // Normal Expression
+        case tag_expr_list:     // Chain of normal expressions
+        case tag_expr:          // Normal Expression
+        case tag_assignment:    // Assignment
+        case tag_simple_stmt2:  // +=, -=
             // VAL OP VAL
             
-            t1 = typeCheck(tree->children->begin);
-            op = typeCheck(tree->children->begin->next);
-            t2 = typeCheck(tree->children->end);
-
-            if (isCompatibleType(op, t1, t2)) return t1;
-            else typeErr(tree->children->begin, t1, 0);
+            t1 = typeCheck(tree->children->begin, scope);
+            op = typeCheck(tree->children->begin->next, scope);
+            t2 = typeCheck(tree->children->end, scope);
+            
+            returnType = isCompatibleType(op, t1, t2);
+            if (returnType)  {free(t2); free(op); return returnType;}
+            else typeErr(tree->children->begin, t1, t2);
 
             break;
+        case tag_vardcl_init:
+            // FLUFF VAL OP VAL
+
+            t1 = typeCheck(tree->children->begin->next, scope);
+            op = typeCheck(tree->children->begin->next->next, scope);
+            t2 = typeCheck(tree->children->end, scope);
+
+            returnType = isCompatibleType(op, t1, t2);
+            if (returnType)  {free(t2); free(op); return returnType;}
+            else typeErr(tree->children->begin, t1, t2);
+
+            break;
+        case tag_xfndcl:
+            scope = getFuncName(tree);
+            // No break here
+        case tag_othertype_arr:
+            // [ VAL ] VAL
+        case tag_othertype_map:
+            // Fluff [ VAL ] VAL
         default:
             // node didn't need checked (but it's children might)
             switch (tree->count) {
-                case 0: return 0;
-                case 1: return typeCheck(tree->children->begin);
+                case 0: return getLeafType(tree, scope);
+                case 1: return typeCheck(tree->children->begin, scope);
                 default:
-                    node_iterator_t* it = node_iterator_create(tree->children);
-                    node_t* node;
+                    it = node_iterator_create(tree->children);
                     while ((node = node_iterator_next(it))) {
-                        typeCheck(node);
+                        typeCheck(node, scope);
                     }
                     return 0;
             }
@@ -496,9 +537,9 @@ int typeCheck(node_t* tree) {
     exit(3);
 }
 
-typeErr(node_t* operatorTree, int type, int type2) {
+void typeErr(node_t* operatorTree, type_t* type, type_t* type2) {
     token_t* first = getFirstTerminal(operatorTree)->data;
-    if (type2 == 0) {
+    if (type2 == NULL) {
         // unary
         fprintf(stderr, "%s:%d Type %s is not compatible with operator %s\n", first->filename, first->lineno, getTypeName(type), first->text);
     }
@@ -509,61 +550,40 @@ typeErr(node_t* operatorTree, int type, int type2) {
     exit(3);
 }
 
-int isCompatibleType(int operator, int type1, int type2) {
-    switch (operator) {
+type_t* isCompatibleType(type_t* operator, type_t* type1, type_t* type2) {
+    switch (operator->type) {
+        case ',':
         case '=':
-            if (type1 == type2) return type1;
+            if (type_obj_equals(type1, type2)) return type1;
             else return 0;
         case LLT:
         case LLE:
         case LGT:
         case LGE:
         case LEQ:
-            if ((type1 == type2) && (type1 == INT_TYPE || type1 == FLOAT64_TYPE || type1 == BOOL_TYPE || type1 == RUNE_TYPE)) return type1;
+            if ((type_obj_equals(type1, type2)) && (type1->type == INT_TYPE || type1->type == FLOAT64_TYPE || type1->type == BOOL_TYPE || type1->type ==RUNE_TYPE)) return type_obj_create(BOOL_TYPE);
             else return 0;
-
+        case LANDAND:
+        case LOROR:
+            if (type_obj_equals(type1, type2) && type1->type == BOOL_TYPE) return type_obj_create(BOOL_TYPE);
+            else return 0;
         case '+':
-            if (type1 == type2 && (type1 == INT_TYPE || type1 == FLOAT64_TYPE || type1 == STRING_TYPE)) return type1;
+        case LPLASN:
+            if (type_obj_equals(type1, type2) && (type1->type == INT_TYPE || type1->type == FLOAT64_TYPE || type1->type == STRING_TYPE)) return type1;
             else return 0;
+        case LMIASN:
         case '-':
         case '*':
         case '/':
-            if (type1 == type2 && (type1 == INT_TYPE || type1 == FLOAT64_TYPE)) return type1;
+            if (type_obj_equals(type1, type2) && (type1->type == INT_TYPE || type1->type == FLOAT64_TYPE)) return type1;
             else return 0;
-        
+        case '!':
+            if (type1->type == BOOL_TYPE) return type_obj_create(BOOL_TYPE);
+            else return 0;
+        default:
+            fprintf(stderr, "Unknown operator: %i\n", operator->type);
+            exit(3);
     }
-}
-
-int getLeafType(node_t* leaf) {
-    if (!leaf) return 0;
-    if (leaf->count > 0) return 0;
-
-    token_t* token = leaf->data;
-
-    if (token->category == LLITERAL) {
-        // Probably a variable
-        
-    }
-
-}
-
-char* getTypeName(int typeInt) {
-    switch (typeInt) {
-        case LINT:
-        case INT_TYPE:
-            return "Int";
-        case LFLOAT:
-        case FLOAT64_TYPE:
-            return "Float64";
-        case LLITERAL:
-        case STRING_TYPE:
-            return "String";
-        case LBOOL:
-        case BOOL_TYPE:
-            return "Boolean";
-        case LRUNE:
-        case RUNE_TYPE:
-            return "Rune";
-    }
-
+    
+    return 0;
 }
