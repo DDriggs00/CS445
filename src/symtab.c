@@ -374,15 +374,22 @@ varToken_t** getImports(node_t* tree, char* scope) {
             case tag_import:
                 token = node->children->begin->next->data;
                 if (!strcmp(token->text, "\"fmt\"")) {
-                    vts[pos] = varToken_create_func("fmt", "Println", token->lineno, cfuhash_new());
+                    cfuhash_table_t* ht = cfuhash_new();
+                    cfuhash_put(ht, "Println", varToken_create_func("fmt", "Println", token->lineno, cfuhash_new()));
+                    cfuhash_put(ht, "Scan", varToken_create_func("fmt", "Scan", token->lineno, cfuhash_new()));
+                    vts[pos] = varToken_create_lib("main", "fmt", token->lineno, ht);
                     pos++;
                 }
                 else if (!strcmp(token->text, "\"time\"")) {
-                    vts[pos] = varToken_create_func("time", "Now", token->lineno, cfuhash_new());
+                    cfuhash_table_t* ht = cfuhash_new();
+                    cfuhash_put(ht, "Now", varToken_create_func("time", "Now", token->lineno, cfuhash_new()));
+                    vts[pos] = varToken_create_lib("main", "time", token->lineno, ht);
                     pos++;
                 }
                 else if (!strcmp(token->text, "\"math/rand\"")) {
-                    vts[pos] = varToken_create_func("rand", "Intn", token->lineno, cfuhash_new());
+                    cfuhash_table_t* ht = cfuhash_new();
+                    cfuhash_put(ht, "Intn", varToken_create_func("rand", "Intn", token->lineno, cfuhash_new()));
+                    vts[pos] = varToken_create_lib("main", "rand", token->lineno, ht);
                     pos++;
 
                 }
