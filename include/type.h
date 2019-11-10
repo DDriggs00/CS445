@@ -11,6 +11,7 @@
 #define FUNC_TYPE    10005
 #define MAP_TYPE     10006
 #define MAIN_TYPE    10007
+#define LIB_TYPE     10008
 #define INT_TYPE     10266
 #define STRING_TYPE  10267
 #define BOOL_TYPE    10268

@@ -93,6 +93,16 @@ varToken_t* varToken_create_func(char* scope, char* name, int line, cfuhash_tabl
     return vt;
 }
 
+varToken_t* varToken_create_lib(char* scope, char* name, int line, cfuhash_table_t* ht) {
+    varToken_t* vt = varToken_create(scope, name, LIB_TYPE, line);
+
+    vt->isConst = true;
+    vt->isInitialized = true;
+    vt->symTab = ht;
+
+    return vt;
+}
+
 // Assign the given value to the given variable.
 // Returns true upon success, false upon failure.
 bool varToken_set_int(varToken_t* token, int val) {
