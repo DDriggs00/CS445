@@ -44,7 +44,7 @@ bool varToken_set_symTab(varToken_t* token, cfuhash_table_t* ht);
 
 // Prints token details
 void varToken_print(varToken_t* token);
-char* varToken_typeString(varToken_t* token);
+
 // Removes the token
 void varToken_remove();
 
