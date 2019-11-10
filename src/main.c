@@ -49,16 +49,16 @@ bool hasExtention(const char* filename);
 // TODO find varaible usages
 
 int main(int argc, char* argv[]) {
-    
+
     int returnval = 0;
     int nonFileArguments = 1;
     bool printSymTab = false;
     bool printTree = false;
- 
+
     // ========================================
     // ===== Step 0: File list generation =====
     // ========================================
-   
+
     if (argc == 1){
         fprintf(stderr, "No files were given\n");
         return -1;
@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
     // For each filename, parse file
     for (int i = 0; i < argc - nonFileArguments; i++) {
         yylineno = 1; // Reset line counter to 0
-        
+
         // Prepare and validate input file
         currentFile = fileNames[i]; //Needed for yylex
         yyin = fopen(currentFile, "r");
@@ -110,10 +110,10 @@ int main(int argc, char* argv[]) {
 
     // Create table of hashtable pointers
     cfuhash_table_t** hashTables = calloc(sizeof(cfuhash_table_t*), (argc - nonFileArguments));
-    
+
     // Parse out variables and put them into hashtables
     for (int i = 0; i < argc - nonFileArguments; i++) {
-        
+
         hashTables[i] = genSymTab(treeRoots[i]);
         // Generate symbol tables
 
@@ -179,7 +179,7 @@ void treePrint(node_t* root, int tag) {
     node_iterator_t* it = node_iterator_create(root->children);
     while ((node = node_iterator_next(it))) {
         node->depth = root->depth + 1;
-        
+
         if (tag == 0 || tag == root->tag) {
             treePrint(node, 0);
         }
@@ -191,7 +191,7 @@ void treePrint(node_t* root, int tag) {
 }
 
 void symTabPrint(cfuhash_table_t* ht, bool subTable) {
-    
+
     varToken_t* token = NULL;
     char* name = NULL;
     size_t y = 0, z = 0;
@@ -211,7 +211,7 @@ void symTabPrint(cfuhash_table_t* ht, bool subTable) {
     y = z = 0;
     x = cfuhash_each_data(ht, (void**)(&name), &y, (void**)(&token), &z);
     do {
-        if (token->type == FUNC_TYPE || token->type == STRUCT_TYPE) {
+        if (token->type->type == FUNC_TYPE || token->type->type == STRUCT_TYPE) {
             symTabPrint(token->symTab, true);
         }
     } while (cfuhash_next_data(ht, (void**)(&name), &y, (void**)(&token), &z));
