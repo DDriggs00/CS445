@@ -10,7 +10,7 @@
 #include "list.h"           // For a list of hashtables
 #include "nodeTypes.h"      // For easier navigation of the tree
 #include "vgo.tab.h"        // For the yytokentype enum
-#include "traversals.h"     
+#include "traversals.h"
 #include "varToken.h"
 #include "type.h"
 
@@ -68,7 +68,7 @@ cfuhash_table_t* genSymTab(node_t* tree) {
                     fprintf(stderr, "%s:%i: Error: Redeclaration of function %s\n", firstToken->filename, firstToken->lineno, name);
                     exit(3);
                 }
-                
+
                 break;
             case tag_structtype:
                 name = getStructName(node);
@@ -78,7 +78,7 @@ cfuhash_table_t* genSymTab(node_t* tree) {
                 }
 
                 firstToken = getFirstTerminal(node)->data;
-                
+
                 // Create own hashtable
                 ht = cfuhash_new();
 
@@ -95,12 +95,12 @@ cfuhash_table_t* genSymTab(node_t* tree) {
                     fprintf(stderr, "%s:%i: Error: Redeclaration of struct %s\n", firstToken->filename, firstToken->lineno, name);
                     exit(3);
                 }
-                
+
                 break;
             default:
                 break;
         }
-        
+
     }
 
     return htTree;
@@ -145,10 +145,10 @@ char* getStructName(node_t* tree) {
     node_t* nodeTemp;   // Will be used throughout
 
     nodeTemp = getSibling(tree, -1);
-    
+
     // if sibling did not exist
     if (!nodeTemp) return NULL;
-    
+
     // if node is not the correct node;
     if (nodeTemp->children->begin->tag != LNAME) return NULL;
 
@@ -160,7 +160,7 @@ void populateHashtableMain(node_t* tree, cfuhash_table_t* ht, char* scope) {
     node_t* node;
     node_iterator_full_t* it = node_iterator_full_create(tree);
     varToken_t** newVars;
-    
+
     newVars = getImports(tree, scope);
     node = node_iterator_full_next(it);
     for (int i = 0; newVars[i] != NULL; i++) {
@@ -205,7 +205,7 @@ void populateHashtableMain(node_t* tree, cfuhash_table_t* ht, char* scope) {
         }
         node = node_iterator_full_next(it);
     }
-    
+
 }
 
 // Fills a function or struct's hashtable
@@ -279,29 +279,23 @@ varToken_t** parseVarDcl(node_t* tree, char* scope, bool isConst) {
     // count names
     int numVars;
     for (numVars = 0; names[numVars] != NULL; numVars++);
-    
+
     // get variable type
     node = node->next;
     int type = node->tag;
     int subTypeA = 0, subTypeB = 0;
-    if(type == tag_othertype) {
-        switch (node->children->begin->tag) {
-            case '[':
-                // Array
-                type = ARRAY_TYPE;
-                subTypeA = node->children->begin->next->next->next->tag;
-                break;
-            case LMAP:
-                type = MAP_TYPE;
-                subTypeA = node->children->begin->next->next->tag;
-                subTypeB = node->children->begin->next->next->next->next->tag;
-                break;
-            default:
-                break;
-        }
+    if(type == tag_othertype_arr) {
+        // Array
+        type = ARRAY_TYPE;
+        subTypeA = node->children->begin->next->next->next->tag;
+    }
+    else if(type == tag_othertype_map) {
+        type = MAP_TYPE;
+        subTypeA = node->children->begin->next->next->tag;
+        subTypeB = node->children->begin->next->next->next->next->tag;
     }
 
-    varToken_t** vts = calloc(sizeof(varToken_t*), (numVars + 1));
+    varToken_t** vts = calloc(numVars + 1, sizeof(varToken_t*));
     for (int i = 0; names[i] != NULL; i++) {
         if (type == ARRAY_TYPE) {
             vts[i] = varToken_create_arr(scope, names[i], subTypeA, line);
@@ -368,11 +362,11 @@ char** parseDclNameList(node_t* tree) {
 }
 
 varToken_t** getImports(node_t* tree, char* scope) {
-    
+
     varToken_t** vts = calloc(sizeof(char*), 4);
     u_int8_t pos = 0;
     token_t* token;
-    
+
     node_t* node;
     node_iterator_full_t* it = node_iterator_full_create(tree);
     while((node = node_iterator_full_next(it))) {
@@ -472,14 +466,23 @@ type_t* typeCheck(node_t* tree, char* scope) {
     // These need to be declared outside the switch
     node_iterator_t* it;
     node_t* node;
-    
-    printf("%i\n", tree->tag);
+    int arraylen;
+
     switch (tree->tag) {
         case tag_uexpr:     // Unary expression (Operator typeval)
             // OP VAL
             t1 = typeCheck(tree->children->end, scope);
             op = typeCheck(tree->children->begin, scope);
-            
+
+            if (isCompatibleType(op, t1, 0)) {free(op); return t1;}
+            else typeErr(tree->children->begin, t1, NULL);
+
+            break;
+        case tag_simple_stmt:   // ++, --
+            // VAL OP
+            t1 = typeCheck(tree->children->begin, scope);
+            op = typeCheck(tree->children->end, scope);
+
             if (isCompatibleType(op, t1, 0)) {free(op); return t1;}
             else typeErr(tree->children->begin, t1, NULL);
 
@@ -489,14 +492,14 @@ type_t* typeCheck(node_t* tree, char* scope) {
         case tag_assignment:    // Assignment
         case tag_simple_stmt2:  // +=, -=
             // VAL OP VAL
-            
+
             t1 = typeCheck(tree->children->begin, scope);
             op = typeCheck(tree->children->begin->next, scope);
             t2 = typeCheck(tree->children->end, scope);
-            
+
             returnType = isCompatibleType(op, t1, t2);
             if (returnType)  {free(t2); free(op); return returnType;}
-            else typeErr(tree->children->begin, t1, t2);
+            else typeErr(tree->children->begin->next, t1, t2);
 
             break;
         case tag_vardcl_init:
@@ -511,13 +514,56 @@ type_t* typeCheck(node_t* tree, char* scope) {
             else typeErr(tree->children->begin, t1, t2);
 
             break;
+        case tag_othertype_arr:
+            // [ VAL ] VAL
+            t1 = typeCheck(tree->children->begin->next, scope); // Index
+            t2 = typeCheck(tree->children->end, scope);         // ArrayType
+            if (!t1) {
+                token_t* first = getFirstTerminal(tree)->data;
+                fprintf(stderr, "%s:%i Array initializer must have size (dynamic array NYI)\n", first->filename, first->lineno);
+                exit(3);
+            }
+            if (t1->type != INT_TYPE) typeErr(tree->children->begin, t1, NULL);
+            if (t2->type != INT_TYPE
+                && t2->type != FLOAT64_TYPE
+                && t2->type != RUNE_TYPE
+                && t2->type != BOOL_TYPE
+                && t2->type != STRING_TYPE ) typeErr(tree->children->begin, t1, NULL);
+
+            arraylen = ((token_t*)(getFirstTerminal(tree->children->begin->next)->data))->ival;
+            returnType = type_obj_createArr(t2->type, arraylen);
+            free(t1);
+            free(t2);
+            return returnType;
+        case tag_othertype_map:
+            // Fluff [ VAL ] VAL
+
+            t1 = typeCheck(tree->children->begin->next->next, scope);   // FromType
+            t2 = typeCheck(tree->children->end, scope);                 // ToType
+
+            if (!t1) {
+                token_t* first = getFirstTerminal(tree)->data;
+                fprintf(stderr, "%s:%i Map initializer must have \"from\" value\n", first->filename, first->lineno);
+                exit(3);
+            }
+            if (t1->type != INT_TYPE
+                && t1->type != FLOAT64_TYPE
+                && t1->type != RUNE_TYPE
+                && t1->type != BOOL_TYPE
+                && t1->type != STRING_TYPE ) typeErr(tree->children->begin, t1, t2);
+            if (t2->type != INT_TYPE
+                && t2->type != FLOAT64_TYPE
+                && t2->type != RUNE_TYPE
+                && t2->type != BOOL_TYPE
+                && t2->type != STRING_TYPE ) typeErr(tree->children->begin, t1, t2);
+
+            returnType = type_obj_createMap(t1->type, t2->type);
+            free(t1);
+            free(t2);
+            return returnType;
         case tag_xfndcl:
             scope = getFuncName(tree);
             // No break here
-        case tag_othertype_arr:
-            // [ VAL ] VAL
-        case tag_othertype_map:
-            // Fluff [ VAL ] VAL
         default:
             // node didn't need checked (but it's children might)
             switch (tree->count) {
@@ -531,7 +577,7 @@ type_t* typeCheck(node_t* tree, char* scope) {
                     return 0;
             }
             break;
-                    
+
     }
     fprintf(stderr, "Error Occured (Impossible state reached during type checking)\n");
     exit(3);
@@ -541,17 +587,21 @@ void typeErr(node_t* operatorTree, type_t* type, type_t* type2) {
     token_t* first = getFirstTerminal(operatorTree)->data;
     if (type2 == NULL) {
         // unary
-        fprintf(stderr, "%s:%d Type %s is not compatible with operator %s\n", first->filename, first->lineno, getTypeName(type), first->text);
+        fprintf(stderr, "%s:%d Type %s is not compatible with operator '%s'\n", first->filename, first->lineno, getTypeName(type), first->text);
     }
     else {
         // Binary
-        fprintf(stderr, "%s:%d Type %s is not compatible with type %s using operator %s\n", first->filename, first->lineno, getTypeName(type), getTypeName(type2), first->text);
+        fprintf(stderr, "%s:%d Type %s is not compatible with type %s using operator '%s'\n", first->filename, first->lineno, getTypeName(type), getTypeName(type2), first->text);
     }
     exit(3);
 }
 
 type_t* isCompatibleType(type_t* operator, type_t* type1, type_t* type2) {
     switch (operator->type) {
+        case LINC:
+        case LDEC:
+            if (type1->type == INT_TYPE) return type1;
+            else return 0;
         case ',':
         case '=':
             if (type_obj_equals(type1, type2)) return type1;
@@ -584,6 +634,6 @@ type_t* isCompatibleType(type_t* operator, type_t* type1, type_t* type2) {
             fprintf(stderr, "Unknown operator: %i\n", operator->type);
             exit(3);
     }
-    
+
     return 0;
 }
