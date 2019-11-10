@@ -27,6 +27,7 @@ typedef struct type_t {
 type_t* type_obj_create(int type);
 type_t* type_obj_createArr(int type, int size);
 type_t* type_obj_createMap(int typeFrom, int typeTo);
+type_t* type_obj_copy(type_t* source);
 
 // returns the string representing the typename
 char* getTypeName(type_t* type);

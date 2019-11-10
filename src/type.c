@@ -32,6 +32,14 @@ type_t* type_obj_createMap(int typeFrom, int typeTo) {
     return typeObj;
 }
 
+type_t* type_obj_copy(type_t* source) {
+    type_t* typeObj = malloc(sizeof(type_t));
+    typeObj->type = source->type;
+    typeObj->subType1 = source->subType1;
+    typeObj->subType2 = source->subType2;
+    typeObj->arrSize = source->arrSize;
+    return typeObj;
+}
 
 type_t* getLeafType(node_t* leaf, char* scope) {
 
@@ -55,20 +63,19 @@ type_t* getLeafType(node_t* leaf, char* scope) {
             if (scope) {
                 func = cfuhash_get(hashTable, scope);
                 vt = cfuhash_get(func->symTab, token->text);
-                if (vt) return vt->type;
+                if (vt) return type_obj_copy(vt->type);
             }
             vt = cfuhash_get(hashTable, token->text);
             if (!vt) {
                 printf("%s\n", token->text);
                 return NULL;
             }
-            return vt->type;
+            return type_obj_copy(vt->type);
         default:        return type_obj_create(token->category);
     }
 
     // impossible state
     return 0;
-
 }
 
 char* getTypeName(type_t* type) {
