@@ -199,8 +199,7 @@ void symTabPrint(cfuhash_table_t* ht, bool subTable) {
     if (x == 0) return;
     printf("--- Symbol table for: %s ---\n", token->scope);
     do {
-        printf("%10s %s\n", name, varToken_typeString(token));
-        // varToken_print(token);
+        printf("%10s %s\n", name, getTypeName(token->type));
     } while (cfuhash_next_data(ht, (void**)(&name), &y, (void**)(&token), &z));
 
     printf("---\n");
@@ -211,7 +210,7 @@ void symTabPrint(cfuhash_table_t* ht, bool subTable) {
     y = z = 0;
     x = cfuhash_each_data(ht, (void**)(&name), &y, (void**)(&token), &z);
     do {
-        if (token->type->type == FUNC_TYPE || token->type->type == STRUCT_TYPE) {
+        if (token->type->type == FUNC_TYPE || token->type->type == STRUCT_TYPE || token->type->type == LIB_TYPE) {
             symTabPrint(token->symTab, true);
         }
     } while (cfuhash_next_data(ht, (void**)(&name), &y, (void**)(&token), &z));
