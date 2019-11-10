@@ -110,6 +110,10 @@ char* getTypeName(type_t* type) {
             buffer = strcat(buffer, "Struct");
             break;
 
+        case LIB_TYPE:
+            buffer = strcat(buffer, "Library");
+            break;
+
         case ARRAY_TYPE:
             buffer = strcat(buffer, "Array");
             switch (type->subType1) {
