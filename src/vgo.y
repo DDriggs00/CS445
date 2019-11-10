@@ -299,7 +299,7 @@ caseblock:
 
         // This is the only place in the language where a statement
         // list is not allowed to drop the final semicolon, because
-        // it's the only place where a statement list is not followed 
+        // it's the only place where a statement list is not followed
         // by a closing brace.  Handle the error for pedantry.
 
         // Find the final token of the statement list.
@@ -411,7 +411,6 @@ uexpr:
 pseudocall:
     pexpr '(' ')'	    	    	    	    { $$ = node_create2(NULL, NULL, tag_pseudocall, 3, $1, $2, $3); }
 |	pexpr '(' expr_or_type_list ocomma ')'	    { $$ = node_create2(NULL, NULL, tag_pseudocall, 5, $1, $2, $3, $4, $5); }
-|	pexpr '(' expr_or_type_list LDDD ocomma ')'	{ $$ = node_create2(NULL, NULL, tag_pseudocall, 6, $1, $2, $3, $4, $5, $6); }
     ;
 
 pexpr_no_paren:
@@ -445,7 +444,7 @@ complitexpr:
 
 pexpr:
     pexpr_no_paren	    	{ $$ = $1; }
-|	'(' expr_or_type ')'	{ $$ = node_create2(NULL, NULL, tag_pexpr, 3, $1, $2, $3); }
+|	'(' expr_or_type ')'	{ $$ = $2; }
     ;
 
 expr_or_type:
