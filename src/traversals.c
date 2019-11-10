@@ -23,7 +23,7 @@ node_t* findNode(node_t* tree, int tag) {
         }
     }
     node_iterator_destroy(it);  // Memory leak sometimes caused here
-    
+
     // If no match found, return NULL
     return NULL;
 }

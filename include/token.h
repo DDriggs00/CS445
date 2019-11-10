@@ -1,5 +1,5 @@
 #ifndef TOKEN_H
-#define TOKEN_H 
+#define TOKEN_H
 
 typedef struct token {
     int category;   /* the integer code returned by yylex */
@@ -16,7 +16,7 @@ typedef struct token {
 // Category is the enum for that character, defined in vgo.tab.h
 // text is the text to use as the token body
 // Lineno: The line the text is found on
-// filename: the name of the file 
+// filename: the name of the file
 struct token* tokenNew(int category, char* text, int lineno, char* filename);
 
 // Frees a token

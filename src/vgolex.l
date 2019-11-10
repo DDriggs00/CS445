@@ -40,7 +40,7 @@ void myerror(int category);
         yylval.t = node_create(NULL, tokenNew(';', yytext, yylineno - 1, currentFile), ';');
         return ';';
     }
-}  
+}
 
     /* Reserved words */
 "func"          {nodenize(LFUNC); insertSemicolon = false; return LFUNC;}
@@ -166,7 +166,7 @@ void myerror(int category);
 void nodenize(int category)
 {
     yylval.t = node_create(NULL, tokenNew(category, yytext, yylineno, currentFile), category);
-    
+
 }
 
 void myerror(int category) {

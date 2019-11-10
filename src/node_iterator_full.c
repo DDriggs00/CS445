@@ -80,7 +80,7 @@ struct node_t* node_iterator_full_skip_subtree(struct node_iterator_full_t* iter
     if (iterator->current->parent == NULL) {
         return NULL;
     }
-    
+
     node_iterator_t* it = node_iterator_create(iterator->current->parent->children);
     node_t* temp = iterator->current;
     node_t* temp2;

@@ -10,10 +10,10 @@
 
 char* formatString(char* s) {
     if (!s) return NULL;
-    
+
 	char* iterator = s;
 	char* newString = calloc(sizeof(char), strlen(s) + 1);
-    
+
     int pos = 0;
 	while(*iterator != '\0')
     {
@@ -79,7 +79,7 @@ struct token *tokenNew(int category,
 	strcpy(t->filename, filename);
 
     // Copy value
-    
+
     if (category == LINT) {
         t->ival = atoi(text);
     }
@@ -110,7 +110,7 @@ void tokenPrint(struct token *t) {
     if (!t) return;
 
     printf("%-i\t %-20s\t%-3i\t%-20s\t", t->category, t->text, t->lineno, t->filename);
-        
+
     if (t->category == LINT) {
         printf("content: %i\n", t->ival);
     }
