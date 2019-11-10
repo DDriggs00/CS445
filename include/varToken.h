@@ -7,22 +7,16 @@
 #include "type.h"
 
 typedef struct varToken_t {
-    
+
     char* scope;
 
     char* name;
-    int type;
+    type_t* type;
     int lineDeclared;
-
-    // For array and map
-    int subType1, subType2;
-    int arrSize;
-
-    type_t* type2;
 
     bool isConst;
     bool isInitialized;
-    
+
     int ival;
     char* sval;
     double dval;
@@ -52,7 +46,5 @@ void varToken_print(varToken_t* token);
 char* varToken_typeString(varToken_t* token);
 // Removes the token
 void varToken_remove();
-
-type_t* varToken_getType();
 
 #endif // VARTOKEN_H
