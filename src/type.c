@@ -7,11 +7,14 @@
 #include "token.h"      // for tokens in getLeafType
 #include "varToken.h"   // for tokens in getLeafType#include "cfuhash.h"
 
-extern cfuhash_table_t* hashTable; 
+extern cfuhash_table_t* hashTable;
 
 type_t* type_obj_create(int type) {
     type_t* typeObj = malloc(sizeof(type_t));
     typeObj->type = getProperTypeInt(type);
+    typeObj->subType1 = 0;
+    typeObj->subType2 = 0;
+    typeObj->arrSize = 0;
     return typeObj;
 }
 
@@ -31,14 +34,13 @@ type_t* type_obj_createMap(int typeFrom, int typeTo) {
 
 
 type_t* getLeafType(node_t* leaf, char* scope) {
+
+    // skip if not leaf
     if (!leaf) return NULL;
-    
-    // skip if not leaf 
     if (leaf->count > 0) return NULL;
 
+    // skip empty leaves
     token_t* token = leaf->data;
-
-    // skip empty nodes
     if (!token) return NULL;
 
     varToken_t* vt; // Must be oustide switch
@@ -53,14 +55,14 @@ type_t* getLeafType(node_t* leaf, char* scope) {
             if (scope) {
                 func = cfuhash_get(hashTable, scope);
                 vt = cfuhash_get(func->symTab, token->text);
-                if (vt) return vt->type2;
+                if (vt) return vt->type;
             }
             vt = cfuhash_get(hashTable, token->text);
             if (!vt) {
                 printf("%s\n", token->text);
                 return NULL;
             }
-            return vt->type2;
+            return vt->type;
         default:        return type_obj_create(token->category);
     }
 
@@ -105,22 +107,22 @@ char* getTypeName(type_t* type) {
             buffer = strcat(buffer, "Array");
             switch (type->subType1) {
                 case INT_TYPE:
-                    buffer = strcat(buffer, " (int)");
+                    buffer = strcat(buffer, " int)");
                     break;
                 case FLOAT64_TYPE:
-                    buffer = strcat(buffer, " (float)");
+                    buffer = strcat(buffer, "(float)");
                     break;
                 case STRING_TYPE:
-                    buffer = strcat(buffer, " (str)");
+                    buffer = strcat(buffer, "(str)");
                     break;
                 case RUNE_TYPE:
-                    buffer = strcat(buffer, " (rune)");
+                    buffer = strcat(buffer, "(rune)");
                     break;
                 case BOOL_TYPE:
-                    buffer = strcat(buffer, " (bool)");
+                    buffer = strcat(buffer, "(bool)");
                     break;
                 default:
-                    printf(" (typedef'd other)");
+                    buffer = strcat(buffer, "(typedef'd other)");
             }
             break;
 
@@ -128,22 +130,22 @@ char* getTypeName(type_t* type) {
             buffer = strcat(buffer, "Map");
             switch (type->subType1) {
                 case INT_TYPE:
-                    buffer = strcat(buffer, " (int->");
+                    buffer = strcat(buffer, "(int->");
                     break;
                 case FLOAT64_TYPE:
-                    buffer = strcat(buffer, " (float->");
+                    buffer = strcat(buffer, "(float->");
                     break;
                 case STRING_TYPE:
-                    buffer = strcat(buffer, " (str->");
+                    buffer = strcat(buffer, "(str->");
                     break;
                 case RUNE_TYPE:
-                    buffer = strcat(buffer, " (rune->");
+                    buffer = strcat(buffer, "(rune->");
                     break;
                 case BOOL_TYPE:
-                    buffer = strcat(buffer, " (bool->");
+                    buffer = strcat(buffer, "(bool->");
                     break;
                 default:
-                    printf(" (typedef'd other->");
+                    buffer = strcat(buffer, "(typedef'd other->");
             }
             switch (type->subType2) {
                 case INT_TYPE:
@@ -162,7 +164,7 @@ char* getTypeName(type_t* type) {
                     buffer = strcat(buffer, "bool)");
                     break;
                 default:
-                    printf("typedef'd other)");
+                    buffer = strcat(buffer, "typedef'd other)");
             }
             break;
     }
@@ -179,11 +181,13 @@ bool type_obj_equals(type_t* a, type_t* b) {
 
 int getProperTypeInt(int oldType) {
     switch (oldType) {
-        case 266: return INT_TYPE;
-        case 267: return STRING_TYPE;
-        case 268: return BOOL_TYPE;
-        case 269: return FLOAT64_TYPE;
-        case 270: return RUNE_TYPE;
-        default:  return oldType;
+        case 266:   return INT_TYPE;
+        case 267:   return STRING_TYPE;
+        case 268:   return BOOL_TYPE;
+        case 269:   return FLOAT64_TYPE;
+        case 270:   return RUNE_TYPE;
+        case 1136:  return MAP_TYPE;
+        case 1135:  return ARRAY_TYPE;
+        default:    return oldType;
     }
 }
