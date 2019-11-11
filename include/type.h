@@ -12,6 +12,7 @@
 #define MAP_TYPE     10006
 #define MAIN_TYPE    10007
 #define LIB_TYPE     10008
+#define STRUCT_INSTANCE_TYPE 10009
 #define INT_TYPE     10266
 #define STRING_TYPE  10267
 #define BOOL_TYPE    10268
@@ -23,11 +24,13 @@ typedef struct type_t {
     int subType1;   // The primary subtype (INT array, map FROM string)
     int subType2;   // Secondary subtype (map TO int)
     int arrSize;
+    char* structName;
 } type_t;
 
 type_t* type_obj_create(int type);
 type_t* type_obj_createArr(int type, int size);
 type_t* type_obj_createMap(int typeFrom, int typeTo);
+type_t* type_obj_createStruct(char* structName);
 type_t* type_obj_copy(type_t* source);
 
 // returns the string representing the typename

@@ -15,6 +15,7 @@ type_t* type_obj_create(int type) {
     typeObj->subType1 = 0;
     typeObj->subType2 = 0;
     typeObj->arrSize = 0;
+    typeObj->structName = NULL;
     return typeObj;
 }
 
@@ -29,6 +30,14 @@ type_t* type_obj_createMap(int typeFrom, int typeTo) {
     type_t* typeObj = type_obj_create(ARRAY_TYPE);
     typeObj->subType1 = getProperTypeInt(typeFrom);
     typeObj->subType2 = getProperTypeInt(typeTo);
+    return typeObj;
+}
+
+type_t* type_obj_createStruct(char* structName) {
+    type_t* typeObj = type_obj_create(ARRAY_TYPE);
+    char* name = calloc(strlen(structName), sizeof(char));
+    strcpy(name, structName);
+    typeObj->structName = name;
     return typeObj;
 }
 
