@@ -19,11 +19,13 @@ type person struct {
 
 func main() {
 	var q int
+	var ps person
 	q = 5
 	z = false
+
 	var n1 float64
 	fmt.Println(n1)
-	q = (4 + 5) - 10 + (2 + q)
+	q = (4 + 5) - 10 + (ps.age + q)
 	if q == 5 {
 		q = 1
 	}
