@@ -417,8 +417,8 @@ pexpr_no_paren:
     literal	    	    	    	    	{ $$ = $1; }
 |	name	    	    	    	    	{ $$ = $1; }
 |	pexpr '.' sym	    	    	    	{ $$ = node_create2(NULL, NULL, tag_pexpr_no_paren_dot, 3, $1, $2, $3); }
-|	pexpr '.' '(' expr_or_type ')'	    	{ $$ = node_create2(NULL, NULL, tag_pexpr_no_paren_dot, 5, $1, $2, $3, $4, $5); }
-|	pexpr '.' '(' LTYPE ')'	    	    	{ $$ = node_create2(NULL, NULL, tag_pexpr_no_paren_dot, 5, $1, $2, $3, $4, $5); }
+ /* |	pexpr '.' '(' expr_or_type ')'	    	{ $$ = node_create2(NULL, NULL, tag_pexpr_no_paren_dot, 5, $1, $2, $3, $4, $5); } */
+ /* |	pexpr '.' '(' LTYPE ')'	    	    	{ $$ = node_create2(NULL, NULL, tag_pexpr_no_paren_dot, 5, $1, $2, $3, $4, $5); } */
 |	pexpr '[' expr ']'	    	    	    { $$ = node_create2(NULL, NULL, tag_pexpr_no_paren, 4, $1, $2, $3, $4); }
 |	pexpr '[' oexpr ':' oexpr ']'	    	{ $$ = node_create2(NULL, NULL, tag_pexpr_no_paren, 6, $1, $2, $3, $4, $5, $6); }
 |	pexpr '[' oexpr ':' oexpr ':' oexpr ']'	{ $$ = node_create2(NULL, NULL, tag_pexpr_no_paren, 8, $1, $2, $3, $4, $5, $6, $7, $8); }
