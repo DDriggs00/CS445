@@ -83,6 +83,16 @@ varToken_t* varToken_create_struct(char* scope, char* name, int line, cfuhash_ta
     return vt;
 }
 
+varToken_t* varToken_create_struct_instance(char* scope, char* name, int line, cfuhash_table_t* ht) {
+    varToken_t* vt = varToken_create(scope, name, STRUCT_INSTANCE_TYPE, line);
+
+    vt->isConst = false;
+    vt->isInitialized = true;
+    vt->symTab = ht;
+
+    return vt;
+}
+
 varToken_t* varToken_create_func(char* scope, char* name, int line, cfuhash_table_t* ht) {
     varToken_t* vt = varToken_create(scope, name, FUNC_TYPE, line);
 

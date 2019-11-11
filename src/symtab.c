@@ -14,6 +14,8 @@
 #include "varToken.h"
 #include "type.h"
 
+extern cfuhash_table_t* hashTable;
+
 cfuhash_table_t* genSymTab(node_t* tree) {
     if (!tree) return NULL;
     // Initialize root
@@ -284,15 +286,19 @@ varToken_t** parseVarDcl(node_t* tree, char* scope, bool isConst) {
     node = node->next;
     int type = node->tag;
     int subTypeA = 0, subTypeB = 0;
-    if(type == tag_othertype_arr) {
+    if (type == tag_othertype_arr) {
         // Array
         type = ARRAY_TYPE;
         subTypeA = node->children->begin->next->next->next->tag;
     }
-    else if(type == tag_othertype_map) {
+    else if (type == tag_othertype_map) {
         type = MAP_TYPE;
         subTypeA = node->children->begin->next->next->tag;
         subTypeB = node->children->begin->next->next->next->next->tag;
+    }
+    else if (type == tag_dotname) {
+        type = STRUCT_INSTANCE_TYPE;
+        char* sName = ((token_t*)(getFirstTerminal(node)->data))->text;
     }
 
     varToken_t** vts = calloc(numVars + 1, sizeof(varToken_t*));
@@ -302,6 +308,10 @@ varToken_t** parseVarDcl(node_t* tree, char* scope, bool isConst) {
         }
         else if (type == MAP_TYPE) {
             vts[i] = varToken_create_map(scope, names[i], subTypeA, subTypeB, line);
+
+        }
+        else if (type == STRUCT_INSTANCE_TYPE) {
+            vts[i] = varToken_create_struct(scope, names[i], subTypeA, subTypeB, line);
 
         }
         else {
@@ -429,6 +439,29 @@ void detectUndeclaredVars(node_t* tree, cfuhash_table_t* rootHT, cfuhash_table_t
                 else if(cfuhash_exists(rootHT, token->text)) {
                     vt = cfuhash_get(rootHT, token->text);
                 }
+                else if (hasParent(node, tag_pexpr_no_paren_dot)) {
+                    node = node->parent;
+                    if (node->tag != tag_pexpr_no_paren_dot) {
+                        node = node->parent;
+                    }
+                    char* htName = ((token_t*)(getFirstTerminal(node->children->begin)->data))->text;
+                    char* fName = ((token_t*)(getFirstTerminal(node->children->end)->data))->text;
+                    vt = cfuhash_get(rootHT, htName);
+                    if (!vt) {
+                        fprintf(stderr, "%s:%i Error: Undeclared dot operator scope: %s\n", token->filename, token->lineno, htName);
+                        exit(3);
+                    }
+                    if (vt->type->type != LIB_TYPE && vt->type->type != STRUCT_TYPE ) {
+                        fprintf(stderr, "%s:%i Error: %s is not a valid scope\n", token->filename, token->lineno, htName);
+                        exit(3);
+                    }
+                    
+                    vt = cfuhash_get(vt->symTab, fName);
+                    if (!vt) {
+                        fprintf(stderr, "%s:%i Error: %s is not a valid member of %s\n", token->filename, token->lineno, fName, htName);
+                        exit(3);
+                    }
+                }
                 else if (hasParent(node, tag_package)) {
                     break;
                 }
@@ -438,14 +471,12 @@ void detectUndeclaredVars(node_t* tree, cfuhash_table_t* rootHT, cfuhash_table_t
                 else if (hasParent(node, tag_typedcl)) {
                     break;
                 }
-                else if (hasParent(node, tag_pexpr_no_paren_dot)) {
-                    break;
-                }
+                
                 else {
                     fprintf(stderr, "%s:%i Error: Usage of variable %s before declaration\n", token->filename, token->lineno, token->text);
                     exit(3);
                 }
-                if (vt->lineDeclared > token->lineno) {
+                if (!vt || vt->lineDeclared > token->lineno) {
                     fprintf(stderr, "%s:%i Error: Usage of variable %s before declaration\n", token->filename, token->lineno, token->text);
                     exit(3);
                 }
@@ -469,6 +500,7 @@ type_t* typeCheck(node_t* tree, char* scope) {
     type_t* t2;
     type_t* op;
     type_t* returnType;
+    varToken_t* vt;
 
     // These need to be declared outside the switch
     node_iterator_t* it;
@@ -568,6 +600,12 @@ type_t* typeCheck(node_t* tree, char* scope) {
             free(t1);
             free(t2);
             return returnType;
+        case tag_pexpr_no_paren_dot:
+            // Lib/Struct DOT Func
+            vt = cfuhash_get(hashTable, ((token_t*)(getFirstTerminal(tree->children->begin)->data))->text);
+            vt = cfuhash_get(vt->symTab, ((token_t*)(getFirstTerminal(tree->children->end)->data))->text);
+            return type_obj_copy(vt->type);
+
         case tag_xfndcl:
             scope = getFuncName(tree);
             // No break here
