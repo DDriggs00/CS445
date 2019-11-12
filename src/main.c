@@ -25,8 +25,6 @@ extern int yylineno;        // For resetting lineno in each new file
 
 struct node_t* yytree;      // For receiving the tree from bison
 
-cfuhash_table_t* hashTable; // For easier type checking
-
 char** fileNames;
 char* currentFile;
 bool insertSemicolon = false;
@@ -36,7 +34,6 @@ void treeFix(node_t* root);
 void treePrint(node_t* root, int name);
 void symTabPrint(cfuhash_table_t* ht, bool subTable);
 void createFileList(int count, char** args, int* nonFileArgs);
-bool hasExtention(const char* filename);
 
 // Return Codes:
 // 0: Success
@@ -125,8 +122,7 @@ int main(int argc, char* argv[]) {
 
     // Check each file for type issues
     for (int i = 0; i < argc - nonFileArguments; i++) {
-        hashTable = hashTables[i];
-        typeCheck(treeRoots[i], NULL);
+        typeCheck(treeRoots[i], hashTables[i], NULL);
     }
 
     // ========================================
@@ -142,7 +138,6 @@ int main(int argc, char* argv[]) {
             printf("\nFILE: %s\n\n", fileNames[i]);
             symTabPrint(hashTables[i], false);
         }
-
     }
 
     // ========================================
