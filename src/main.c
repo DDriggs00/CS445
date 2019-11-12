@@ -18,6 +18,7 @@
 #include "nodeTypes.h"      // For more easily navigating the tree
 #include "cfuhash.h"        // For symbol tables
 #include "varToken.h"
+#include "strutils.h"
 
 extern FILE *yyin;          // For sending the file to flex+bison
 extern int yylineno;        // For resetting lineno in each new file
@@ -35,7 +36,6 @@ void treeFix(node_t* root);
 void treePrint(node_t* root, int name);
 void symTabPrint(cfuhash_table_t* ht, bool subTable);
 void createFileList(int count, char** args, int* nonFileArgs);
-bool endsWith(const char *str, const char *suffix);
 bool hasExtention(const char* filename);
 
 // Return Codes:
@@ -257,24 +257,4 @@ void createFileList(int count, char** args, int* nonFileArgs) {
             fileNames[i - 1] = strcat(fileNames[i - 1], ".go");
         }
     }
-}
-
-// https://stackoverflow.com/questions/744766
-bool endsWith(const char *str, const char *suffix) {
-    if (!str || !suffix)
-        return false;
-    size_t lenstr = strlen(str);
-    size_t lensuffix = strlen(suffix);
-    if (lensuffix >  lenstr)
-        return false;
-    return strncmp(str + lenstr - lensuffix, suffix, lensuffix) == 0;
-}
-
-// derived from https://stackoverflow.com/questions/5309471/
-bool hasExtention(const char* filename) {
-    const char* dot = strrchr(filename, '.');
-    if (!dot || dot == filename) return false;
-    char* pPosition = strchr(dot + 1, '/');
-    if (pPosition) return false;
-    return true;
 }
