@@ -32,6 +32,7 @@ varToken_t* varToken_create_float(char* scope, char* name, double val, int line,
 varToken_t* varToken_create_arr(char* scope, char* name, int type, int line);
 varToken_t* varToken_create_map(char* scope, char* name, int from, int to, int line);
 varToken_t* varToken_create_struct(char* scope, char* name, int line, cfuhash_table_t* ht);
+varToken_t* varToken_create_struct_instance(char* scope, char* name, char* structName, int line, cfuhash_table_t* ht);
 varToken_t* varToken_create_func(char* scope, char* name, int line, cfuhash_table_t* ht);
 varToken_t* varToken_create_lib(char* scope, char* name, int line, cfuhash_table_t* ht);
 

@@ -7,8 +7,6 @@
 #include "token.h"      // for tokens in getLeafType
 #include "varToken.h"   // for tokens in getLeafType#include "cfuhash.h"
 
-extern cfuhash_table_t* hashTable;
-
 type_t* type_obj_create(int type) {
     type_t* typeObj = malloc(sizeof(type_t));
     typeObj->type = getProperTypeInt(type);
@@ -50,7 +48,7 @@ type_t* type_obj_copy(type_t* source) {
     return typeObj;
 }
 
-type_t* getLeafType(node_t* leaf, char* scope) {
+type_t* getLeafType(node_t* leaf, cfuhash_table_t* rootHT, char* scope) {
 
     // skip if not leaf
     if (!leaf) return NULL;
@@ -70,13 +68,12 @@ type_t* getLeafType(node_t* leaf, char* scope) {
         case LRUNE:     return type_obj_create(RUNE_TYPE);
         case LNAME:
             if (scope) {
-                func = cfuhash_get(hashTable, scope);
+                func = cfuhash_get(rootHT, scope);
                 vt = cfuhash_get(func->symTab, token->text);
                 if (vt) return type_obj_copy(vt->type);
             }
-            vt = cfuhash_get(hashTable, token->text);
+            vt = cfuhash_get(rootHT, token->text);
             if (!vt) {
-                printf("%s\n", token->text);
                 return NULL;
             }
             return type_obj_copy(vt->type);
@@ -117,6 +114,10 @@ char* getTypeName(type_t* type) {
 
         case STRUCT_TYPE:
             buffer = strcat(buffer, "Struct");
+            break;
+
+        case STRUCT_INSTANCE_TYPE:
+            buffer = strcat(buffer, type->structName);
             break;
 
         case LIB_TYPE:

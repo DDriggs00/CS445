@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "node.h"
+#include "cfuhash.h"
 
 #define NULL_TYPE    10000
 #define STRUCT_TYPE  10002
@@ -37,7 +38,7 @@ type_t* type_obj_copy(type_t* source);
 char* getTypeName(type_t* type);
 
 // returns the datatype of the leaf node
-type_t* getLeafType(node_t* leaf, char* scope);
+type_t* getLeafType(node_t* leaf, cfuhash_table_t* rootHT, char* scope);
 
 // Converts flex symbol to proper value
 int getProperTypeInt(int oldType);

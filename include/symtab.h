@@ -24,10 +24,10 @@ char* getStructName(node_t* tree);
 void populateHashtableMain(node_t* tree, cfuhash_table_t* ht, char* scope);
 
 // Fills a function or struct's hashtable
-void populateHashtable(node_t* tree, cfuhash_table_t* ht, char* scope);
+void populateHashtable(node_t* tree, cfuhash_table_t* rootHT, cfuhash_table_t* ht, char* scope);
 
 // returns a list of varTokens given a tree rooted at a vardcl
-varToken_t** parseVarDcl(node_t* tree, char* scope, bool isConst);
+varToken_t** parseVarDcl(node_t* tree, cfuhash_table_t* rootHT, char* scope, bool isConst);
 
 // returns a list of varTokens given a tree rooted at a vardcllist
 varToken_t** parseVarDclList(node_t* tree, char* scope, bool isConst);
@@ -45,7 +45,7 @@ void parseFuncArgList(node_t* tree, cfuhash_table_t* ht, char* scope);
 void detectUndeclaredVars(node_t* tree, cfuhash_table_t* rootHT, cfuhash_table_t* funcHT);
 
 // Do the type checking
-type_t* typeCheck(node_t* tree, char* scope);
+type_t* typeCheck(node_t* tree, cfuhash_table_t* rootHT, char* scope);
 
 // Given two types and an operator, returns the output type.
 // If operation is illegal, returns NULL
