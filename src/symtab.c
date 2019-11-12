@@ -311,8 +311,11 @@ varToken_t** parseVarDcl(node_t* tree, char* scope, bool isConst) {
 
         }
         else if (type == STRUCT_INSTANCE_TYPE) {
-            vts[i] = varToken_create_struct(scope, names[i], subTypeA, subTypeB, line);
-
+            char* htName = ((token_t*)(getFirstTerminal(node)->data))->text;
+            cfuhash_table_t* oldHT = cfuhash_get(hashTable, htName);
+            cfuhash_table_t* newHT;
+            cfuhash_copy(oldHT, newHT);
+            vts[i] = varToken_create_struct(scope, names[i], line, newHT);
         }
         else {
             vts[i] = varToken_create(scope, names[i], type, line);
