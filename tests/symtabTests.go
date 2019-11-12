@@ -29,9 +29,10 @@ func main() {
 	if q == 5 {
 		q = 1
 	}
-
+	y = f2(1.5, 1.8, 1, 2)
 }
 
-func f2(x1, x2 float64, y1, y2 int) {
+func f2(x1, x2 float64, y1, y2 int) float64 {
 	var y float64
+	return 2.5
 }
