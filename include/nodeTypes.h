@@ -39,7 +39,7 @@ enum nodeTypes {
     tag_for_stmt                    = 1034,
     tag_if_header                   = 1035,
     tag_if_stmt                     = 1036,
-    tag_non_dcl_stmt                = 1037,
+    tag_return                      = 1037,
     tag_interfacedcl                = 1038,
     tag_keyval                      = 1039,
     tag_labelname                   = 1040,
@@ -139,6 +139,7 @@ enum nodeTypes {
     tag_vardcl_init                 = 1134,
     tag_othertype_arr               = 1135,
     tag_othertype_map               = 1136,
+    tag_common_dcl_2                = 1137,
     tag_empty                       = 2000
 };
 
