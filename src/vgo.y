@@ -91,10 +91,9 @@ int yyerror(char* s);
 %type <t>	expr_or_type import_package import_safety import_there
 %type <t>	fndcl hidden_fndcl fnliteral lconst
 %type <t>	for_body for_header for_stmt if_header if_stmt non_dcl_stmt
-%type <t>	interfacedcl keyval labelname name
+%type <t>	interfacedcl keyval name
 %type <t>	name_or_type non_expr_type
 %type <t>	new_name dcl_name oexpr typedclname
-%type <t>	onew_name
 %type <t>	osimple_stmt pexpr pexpr_no_paren
 %type <t>	pseudocall range_stmt select_stmt
 %type <t>	simple_stmt
@@ -456,11 +455,6 @@ dcl_name:
     sym	{ $$ = node_create2(NULL, NULL, tag_dcl_name, 1, $1); }
     ;
 
-onew_name:
-    %empty      { $$ = node_create(NULL, NULL, tag_empty); }
-|   new_name	{ $$ = $1; }
-    ;
-
 sym:
     LNAME	            { $$ = $1; }
 |   hidden_importsym	{ $$ = $1; }
@@ -474,10 +468,6 @@ hidden_importsym:
 
 name:
     sym	{ $$ = node_create2(NULL, NULL, tag_name, 1, $1); }	%prec NotParen
-    ;
-
-labelname:
-    new_name	{ $$ = $1; }
     ;
 
 ntype:
