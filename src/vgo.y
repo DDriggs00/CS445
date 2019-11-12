@@ -105,7 +105,7 @@ int yyerror(char* s);
 %type <t>	new_name_list expr_list keyval_list braced_keyval_list expr_or_type_list xdcl_list
 %type <t>	oexpr_list caseblock_list elseif elseif_list else stmt_list oarg_type_list_ocomma arg_type_list
 %type <t>	interfacedcl_list vardcl vardcl_list structdcl structdcl_list
-%type <t>	common_dcl constdcl constdcl1 constdcl_list typedcl_list
+%type <t>	common_dcl constdcl constdcl_list typedcl_list
 
 %type <t>	convtype comptype
 %type <t>	indcl interfacetype structtype ptrtype
@@ -160,17 +160,17 @@ package:
         yyerror("package statement must be first");
         exit(2);
     }
-|	LPACKAGE sym ';'	{ $$ = node_create2(NULL, NULL, tag_package, 3, $1, $2, $3); }
+|   LPACKAGE sym ';'	{ $$ = node_create2(NULL, NULL, tag_package, 3, $1, $2, $3); }
     ;
 
 imports:
     %empty              { $$ = node_create(NULL, NULL, tag_empty); }
-|	imports import ';'	{ $$ = node_create2(NULL, NULL, tag_imports, 3, $1, $2, $3); }
+|   imports import ';'	{ $$ = node_create2(NULL, NULL, tag_imports, 3, $1, $2, $3); }
 
 import:
     LIMPORT import_stmt                     { $$ = node_create2(NULL, NULL, tag_import, 2, $1, $2); }
-|	LIMPORT '(' import_stmt_list osemi ')'  { $$ = node_create2(NULL, NULL, tag_import, 5, $1, $2, $3, $4, $5); }
-|	LIMPORT '(' ')'                         { $$ = node_create2(NULL, NULL, tag_import, 3, $1, $2, $3); }
+|   LIMPORT '(' import_stmt_list osemi ')'  { $$ = node_create2(NULL, NULL, tag_import, 5, $1, $2, $3, $4, $5); }
+|   LIMPORT '(' ')'                         { $$ = node_create2(NULL, NULL, tag_import, 3, $1, $2, $3); }
     ;
 
 import_stmt:
@@ -181,13 +181,13 @@ import_stmt:
 
 import_stmt_list:
     import_stmt
-|	import_stmt_list ';' import_stmt	{ $$ = node_create2(NULL, NULL, tag_import_stmt_list, 3, $1, $2, $3); }
+|   import_stmt_list ';' import_stmt	{ $$ = node_create2(NULL, NULL, tag_import_stmt_list, 3, $1, $2, $3); }
     ;
 
 import_here:
     LLITERAL        { $$ = $1; }
-|	sym LLITERAL    { $$ = node_create2(NULL, NULL, tag_import_here, 2, $1, $2); }
-|	'.' LLITERAL    { $$ = node_create2(NULL, NULL, tag_import_here, 2, $1, $2); }
+|   sym LLITERAL    { $$ = node_create2(NULL, NULL, tag_import_here, 2, $1, $2); }
+|   '.' LLITERAL    { $$ = node_create2(NULL, NULL, tag_import_here, 2, $1, $2); }
     ;
 
 import_package:
@@ -196,7 +196,7 @@ import_package:
 
 import_safety:
     %empty  { $$ = node_create(NULL, NULL, tag_empty); }
-|	LNAME	{ $$ = $1; }
+|   LNAME	{ $$ = $1; }
     ;
 
 import_there:
@@ -210,28 +210,24 @@ xdcl:
         yyerror("empty top-level declaration");
         $$ = 0;
     }
-|	common_dcl	    { $$ = $1; }
-|	xfndcl	    	{ $$ = $1; }
-|	non_dcl_stmt {
+|   common_dcl	    { $$ = $1; }
+|   xfndcl	    	{ $$ = $1; }
+|   non_dcl_stmt {
         yyerror("non-declaration statement outside function body");
         $$ = 0;
     }
-|	error {
+|   error {
         $$ = 0;
     }
     ;
 
 common_dcl:
-    LVAR vardcl	    	    	    	    	    	{ $$ = node_create2(NULL, NULL, tag_common_dcl, 2, $1, $2); }
-|	LVAR '(' vardcl_list osemi ')'	    	    	    { $$ = node_create2(NULL, NULL, tag_common_dcl, 5, $1, $2, $3, $4, $5); }
-|	LVAR '(' ')'	    	    	    	    	    { $$ = node_create2(NULL, NULL, tag_common_dcl, 3, $1, $2, $3); }
-|	lconst constdcl	    	    	    	    	    { $$ = node_create2(NULL, NULL, tag_common_dcl, 2, $1, $2); }
-|	lconst '(' constdcl osemi ')'	    	    	    { $$ = node_create2(NULL, NULL, tag_common_dcl, 5, $1, $2, $3, $4, $5); }
-|	lconst '(' constdcl ';' constdcl_list osemi ')'	    { $$ = node_create2(NULL, NULL, tag_common_dcl, 6, $1, $2, $3, $4, $5, $6); }
-|	lconst '(' ')'	    	    	    	    	    { $$ = node_create2(NULL, NULL, tag_common_dcl, 3, $1, $2, $3); }
-|	LTYPE typedcl	    	    	    	    	    { $$ = node_create2(NULL, NULL, tag_common_dcl, 2, $1, $2); }
-|	LTYPE '(' typedcl_list osemi ')'	    	    	{ $$ = node_create2(NULL, NULL, tag_common_dcl, 5, $1, $2, $3, $4, $5); }
-|	LTYPE '(' ')'	    	    	    	    	    { $$ = node_create2(NULL, NULL, tag_common_dcl, 3, $1, $2, $3); }
+    LVAR vardcl                                         { $$ = node_create2(NULL, NULL, tag_common_dcl, 2, $1, $2); }
+|   lconst constdcl                                     { $$ = node_create2(NULL, NULL, tag_common_dcl, 2, $1, $2); }
+|   LTYPE typedcl                                       { $$ = node_create2(NULL, NULL, tag_common_dcl, 2, $1, $2); }
+|   LVAR '(' vardcl_list osemi ')'                      { $$ = node_create2(NULL, NULL, tag_common_dcl_2, 5, $1, $2, $3, $4, $5); }
+|   lconst '(' constdcl_list osemi ')'                  { $$ = node_create2(NULL, NULL, tag_common_dcl_2, 5, $1, $2, $3, $4, $5); }
+|   LTYPE '(' typedcl_list osemi ')'                    { $$ = node_create2(NULL, NULL, tag_common_dcl_2, 5, $1, $2, $3, $4, $5); }
     ;
 
 lconst:
@@ -239,19 +235,12 @@ lconst:
     ;
 
 vardcl:
-    dcl_name_list ntype	    	    	{ $$ = node_create2(NULL, NULL, tag_vardcl, 2, $1, $2); }
-|	dcl_name_list ntype '=' expr_list	{ $$ = node_create2(NULL, NULL, tag_vardcl_init, 4, $1, $2, $3, $4); }
+    dcl_name_list ntype                 { $$ = node_create2(NULL, NULL, tag_vardcl, 2, $1, $2); }
+|   dcl_name_list ntype '=' expr_list   { $$ = node_create2(NULL, NULL, tag_vardcl_init, 4, $1, $2, $3, $4); }
     ;
 
 constdcl:
-    dcl_name_list ntype '=' expr_list	{ $$ = node_create2(NULL, NULL, tag_constdcl, 4, $1, $2, $3, $4); }
-|	dcl_name_list '=' expr_list	    	{ $$ = node_create2(NULL, NULL, tag_constdcl, 3, $1, $2, $3); }
-    ;
-
-constdcl1:
-    constdcl	    	{ $$ = $1; }
-|	dcl_name_list ntype	{ $$ = node_create2(NULL, NULL, tag_constdcl1, 2, $1, $2); }
-|	dcl_name_list	    { $$ = $1; }
+    dcl_name_list ntype '=' expr_list   { $$ = node_create2(NULL, NULL, tag_constdcl, 4, $1, $2, $3, $4); }
     ;
 
 typedclname:
@@ -259,23 +248,23 @@ typedclname:
     ;
 
 typedcl:
-    typedclname ntype	{ $$ = node_create2(NULL, NULL, tag_typedcl, 2, $1, $2); }
+    typedclname ntype   { $$ = node_create2(NULL, NULL, tag_typedcl, 2, $1, $2); }
     ;
 
 simple_stmt:
-    expr	    	    	    { $$ = $1; }
-|	expr_list '=' expr_list	    { $$ = node_create2(NULL, NULL, tag_assignment, 3, $1, $2, $3); }
-|	expr LINC	    	    	{ $$ = node_create2(NULL, NULL, tag_simple_stmt, 2, $1, $2); }
-|	expr LDEC	    	    	{ $$ = node_create2(NULL, NULL, tag_simple_stmt, 2, $1, $2); }
-|	expr LPLASN expr            { $$ = node_create2(NULL, NULL, tag_simple_stmt2, 3, $1, $2, $3); }
-|	expr LMIASN expr            { $$ = node_create2(NULL, NULL, tag_simple_stmt2, 3, $1, $2, $3); }
+    expr	                    { $$ = $1; }
+|   expr_list '=' expr_list	    { $$ = node_create2(NULL, NULL, tag_assignment, 3, $1, $2, $3); }
+|   expr LINC	            	{ $$ = node_create2(NULL, NULL, tag_simple_stmt, 2, $1, $2); }
+|   expr LDEC	            	{ $$ = node_create2(NULL, NULL, tag_simple_stmt, 2, $1, $2); }
+|   expr LPLASN expr            { $$ = node_create2(NULL, NULL, tag_simple_stmt2, 3, $1, $2, $3); }
+|   expr LMIASN expr            { $$ = node_create2(NULL, NULL, tag_simple_stmt2, 3, $1, $2, $3); }
     ;
 
 case:
-    LCASE expr_or_type_list ':'	    	    { $$ = node_create2(NULL, NULL, tag_case, 3, $1, $2, $3); }
-|	LCASE expr_or_type_list '=' expr ':'	{ $$ = node_create2(NULL, NULL, tag_case, 5, $1, $2, $3, $4, $5); }
-|	LCASE expr_or_type_list LCOLAS expr ':' { $$ = node_create2(NULL, NULL, tag_case, 5, $1, $2, $3, $4, $5); }
-|	LDEFAULT ':'	    	    	    	{ $$ = node_create2(NULL, NULL, tag_case, 2, $1, $2); }
+    LCASE expr_or_type_list ':'	            { $$ = node_create2(NULL, NULL, tag_case, 3, $1, $2, $3); }
+|   LCASE expr_or_type_list '=' expr ':'	{ $$ = node_create2(NULL, NULL, tag_case, 5, $1, $2, $3, $4, $5); }
+|   LCASE expr_or_type_list LCOLAS expr ':' { $$ = node_create2(NULL, NULL, tag_case, 5, $1, $2, $3, $4, $5); }
+|   LDEFAULT ':'	                    	{ $$ = node_create2(NULL, NULL, tag_case, 2, $1, $2); }
     ;
 
 compound_stmt:
@@ -312,7 +301,7 @@ caseblock:
 
 caseblock_list:
     %empty                      { $$ = node_create(NULL, NULL, tag_empty); }
-|	caseblock_list caseblock	{ $$ = node_create2(NULL, NULL, tag_caseblock_list, 2, $1, $2); }
+|   caseblock_list caseblock	{ $$ = node_create2(NULL, NULL, tag_caseblock_list, 2, $1, $2); }
     ;
 
 loop_body:
@@ -321,13 +310,13 @@ loop_body:
 
 range_stmt:
     expr_list '=' LRANGE expr	    { $$ = node_create2(NULL, NULL, tag_range_stmt, 4, $1, $2, $3, $4); }
-|	expr_list LCOLAS LRANGE expr	{ $$ = node_create2(NULL, NULL, tag_range_stmt, 4, $1, $2, $3, $4); }
+|   expr_list LCOLAS LRANGE expr	{ $$ = node_create2(NULL, NULL, tag_range_stmt, 4, $1, $2, $3, $4); }
     ;
 
 for_header:
     osimple_stmt ';' osimple_stmt ';' osimple_stmt	{ $$ = node_create2(NULL, NULL, tag_for_header, 5, $1, $2, $3, $4, $5); }
-|	osimple_stmt	    	    	    	    	{ $$ = $1; }
-|	range_stmt	    	    	    	    	    { $$ = $1; }
+|   osimple_stmt	                            	{ $$ = $1; }
+|   range_stmt	                                    { $$ = $1; }
     ;
 
 for_body:
@@ -339,8 +328,8 @@ for_stmt:
     ;
 
 if_header:
-    osimple_stmt	    	    	{ $$ = $1; }
-|	osimple_stmt ';' osimple_stmt	{ $$ = node_create2(NULL, NULL, tag_if_header, 3, $1, $2, $3); }
+    osimple_stmt	            	{ $$ = $1; }
+|   osimple_stmt ';' osimple_stmt	{ $$ = node_create2(NULL, NULL, tag_if_header, 3, $1, $2, $3); }
     ;
 
 /* IF cond body (ELSE IF cond body)* (ELSE block)? */
@@ -354,12 +343,12 @@ elseif:
 
 elseif_list:
     %empty              { $$ = node_create(NULL, NULL, tag_empty); }
-|	elseif_list elseif	{ $$ = node_create2(NULL, NULL, tag_elseif_list, 2, $1, $2); }
+|   elseif_list elseif	{ $$ = node_create2(NULL, NULL, tag_elseif_list, 2, $1, $2); }
     ;
 
 else:
     %empty              { $$ = node_create(NULL, NULL, tag_empty); }
-|	LELSE compound_stmt	{ $$ = node_create2(NULL, NULL, tag_else, 2, $1, $2); }
+|   LELSE compound_stmt	{ $$ = node_create2(NULL, NULL, tag_else, 2, $1, $2); }
     ;
 
 switch_stmt:
@@ -374,34 +363,34 @@ select_stmt:
  * expressions
  */
 expr:
-    uexpr	    	    { $$ = $1; }
-|	expr LOROR expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
-|	expr LANDAND expr	{ $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
-|	expr LEQ expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
-|	expr LNE expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
-|	expr LLT expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
-|	expr LLE expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
-|	expr LGE expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
-|	expr LGT expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
-|	expr '+' expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
-|	expr '-' expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
-|	expr '*' expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
-|	expr '/' expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
-|	expr '%' expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
-|	expr '&' expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
-|	expr LANDNOT expr	{ $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
-|	expr LLSH expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
-|	expr LRSH expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
+    uexpr	            { $$ = $1; }
+|   expr LOROR expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
+|   expr LANDAND expr	{ $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
+|   expr LEQ expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
+|   expr LNE expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
+|   expr LLT expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
+|   expr LLE expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
+|   expr LGE expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
+|   expr LGT expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
+|   expr '+' expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
+|   expr '-' expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
+|   expr '*' expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
+|   expr '/' expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
+|   expr '%' expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
+|   expr '&' expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
+|   expr LANDNOT expr	{ $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
+|   expr LLSH expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
+|   expr LRSH expr	    { $$ = node_create2(NULL, NULL, tag_expr, 3, $1, $2, $3); }
     ;
 
 uexpr:
     pexpr	    { $$ = node_create2(NULL, NULL, tag_uexpr, 1, $1); }
-|	'*' uexpr	{ $$ = node_create2(NULL, NULL, tag_uexpr, 2, $1, $2); }
-|	'&' uexpr	{ $$ = node_create2(NULL, NULL, tag_uexpr, 2, $1, $2); }
-|	'+' uexpr	{ $$ = node_create2(NULL, NULL, tag_uexpr, 2, $1, $2); }
-|	'-' uexpr	{ $$ = node_create2(NULL, NULL, tag_uexpr, 2, $1, $2); }
-|	'!' uexpr	{ $$ = node_create2(NULL, NULL, tag_uexpr, 2, $1, $2); }
-|	LCOMM uexpr	{ $$ = node_create2(NULL, NULL, tag_uexpr, 2, $1, $2); }
+|   '*' uexpr	{ $$ = node_create2(NULL, NULL, tag_uexpr, 2, $1, $2); }
+|   '&' uexpr	{ $$ = node_create2(NULL, NULL, tag_uexpr, 2, $1, $2); }
+|   '+' uexpr	{ $$ = node_create2(NULL, NULL, tag_uexpr, 2, $1, $2); }
+|   '-' uexpr	{ $$ = node_create2(NULL, NULL, tag_uexpr, 2, $1, $2); }
+|   '!' uexpr	{ $$ = node_create2(NULL, NULL, tag_uexpr, 2, $1, $2); }
+|   LCOMM uexpr	{ $$ = node_create2(NULL, NULL, tag_uexpr, 2, $1, $2); }
     ;
 
 /*
@@ -409,47 +398,47 @@ uexpr:
  * can be preceded by 'defer' and 'go'
  */
 pseudocall:
-    pexpr '(' ')'	    	    	    	    { $$ = node_create2(NULL, NULL, tag_pseudocall, 3, $1, $2, $3); }
-|	pexpr '(' expr_or_type_list ocomma ')'	    { $$ = node_create2(NULL, NULL, tag_pseudocall, 5, $1, $2, $3, $4, $5); }
+    pexpr '(' ')'	                            { $$ = node_create2(NULL, NULL, tag_pseudocall, 3, $1, $2, $3); }
+|   pexpr '(' expr_or_type_list ocomma ')'	    { $$ = node_create2(NULL, NULL, tag_pseudocall, 5, $1, $2, $3, $4, $5); }
     ;
 
 pexpr_no_paren:
-    literal	    	    	    	    	{ $$ = $1; }
-|	name	    	    	    	    	{ $$ = $1; }
-|	pexpr '.' sym	    	    	    	{ $$ = node_create2(NULL, NULL, tag_pexpr_no_paren_dot, 3, $1, $2, $3); }
- /* |	pexpr '.' '(' expr_or_type ')'	    	{ $$ = node_create2(NULL, NULL, tag_pexpr_no_paren_dot, 5, $1, $2, $3, $4, $5); } */
- /* |	pexpr '.' '(' LTYPE ')'	    	    	{ $$ = node_create2(NULL, NULL, tag_pexpr_no_paren_dot, 5, $1, $2, $3, $4, $5); } */
-|	pexpr '[' expr ']'	    	    	    { $$ = node_create2(NULL, NULL, tag_pexpr_no_paren, 4, $1, $2, $3, $4); }
-|	pexpr '[' oexpr ':' oexpr ']'	    	{ $$ = node_create2(NULL, NULL, tag_pexpr_no_paren, 6, $1, $2, $3, $4, $5, $6); }
-|	pexpr '[' oexpr ':' oexpr ':' oexpr ']'	{ $$ = node_create2(NULL, NULL, tag_pexpr_no_paren, 8, $1, $2, $3, $4, $5, $6, $7, $8); }
-|	pseudocall      	    	    	    { $$ = $1; }
-|	convtype '(' expr ocomma ')'	    	{ $$ = node_create2(NULL, NULL, tag_pexpr_no_paren, 5, $1, $2, $3, $4, $5); }
-|	comptype '{' braced_keyval_list '}'     { $$ = node_create2(NULL, NULL, tag_pexpr_no_paren, 4, $1, $2, $3, $4); }
-|	LNAME '{' expr_list '}'                 { $$ = node_create2(NULL, NULL, tag_pexpr_no_paren, 4, $1, $2, $3, $4); }
-|	fnliteral                               { $$ = $1; }
+    literal	                            	{ $$ = $1; }
+|   name	                            	{ $$ = $1; }
+|   pexpr '.' sym	                    	{ $$ = node_create2(NULL, NULL, tag_pexpr_no_paren_dot, 3, $1, $2, $3); }
+ /* |   pexpr '.' '(' expr_or_type ')'	    	{ $$ = node_create2(NULL, NULL, tag_pexpr_no_paren_dot, 5, $1, $2, $3, $4, $5); } */
+ /* |   pexpr '.' '(' LTYPE ')'	            	{ $$ = node_create2(NULL, NULL, tag_pexpr_no_paren_dot, 5, $1, $2, $3, $4, $5); } */
+|   pexpr '[' expr ']'	                    { $$ = node_create2(NULL, NULL, tag_pexpr_no_paren, 4, $1, $2, $3, $4); }
+|   pexpr '[' oexpr ':' oexpr ']'	    	{ $$ = node_create2(NULL, NULL, tag_pexpr_no_paren, 6, $1, $2, $3, $4, $5, $6); }
+|   pexpr '[' oexpr ':' oexpr ':' oexpr ']'	{ $$ = node_create2(NULL, NULL, tag_pexpr_no_paren, 8, $1, $2, $3, $4, $5, $6, $7, $8); }
+|   pseudocall                              { $$ = $1; }
+|   convtype '(' expr ocomma ')'	    	{ $$ = node_create2(NULL, NULL, tag_pexpr_no_paren, 5, $1, $2, $3, $4, $5); }
+|   comptype '{' braced_keyval_list '}'     { $$ = node_create2(NULL, NULL, tag_pexpr_no_paren, 4, $1, $2, $3, $4); }
+|   LNAME '{' expr_list '}'                 { $$ = node_create2(NULL, NULL, tag_pexpr_no_paren, 4, $1, $2, $3, $4); }
+|   fnliteral                               { $$ = $1; }
 
 keyval:
     expr ':' complitexpr	{ $$ = node_create2(NULL, NULL, tag_keyval, 3, $1, $2, $3); }
     ;
 
 bare_complitexpr:
-    expr	    	    	    	    	    { $$ = $1; }
-|	'{' braced_keyval_list '}'	{ $$ = node_create2(NULL, NULL, tag_bare_complicitexpr, 3, $1, $2, $3); }
+    expr	                                    { $$ = $1; }
+|   '{' braced_keyval_list '}'	{ $$ = node_create2(NULL, NULL, tag_bare_complicitexpr, 3, $1, $2, $3); }
     ;
 
 complitexpr:
-    expr	    	    	    	    	    { $$ = $1; }
-|	'{' braced_keyval_list '}'	{ $$ = node_create2(NULL, NULL, tag_complicitexpr, 3, $1, $2, $3); }
+    expr	                                    { $$ = $1; }
+|   '{' braced_keyval_list '}'	{ $$ = node_create2(NULL, NULL, tag_complicitexpr, 3, $1, $2, $3); }
     ;
 
 pexpr:
     pexpr_no_paren	    	{ $$ = $1; }
-|	'(' expr_or_type ')'	{ $$ = $2; }
+|   '(' expr_or_type ')'	{ $$ = $2; }
     ;
 
 expr_or_type:
     expr	    	{ $$ = $1; }
-|	non_expr_type	{ $$ = $1; }	%prec PreferToRightParen
+|   non_expr_type	{ $$ = $1; }	%prec PreferToRightParen
 
 name_or_type:
     ntype	{ $$ = $1; }
@@ -469,18 +458,18 @@ dcl_name:
 
 onew_name:
     %empty      { $$ = node_create(NULL, NULL, tag_empty); }
-|	new_name	{ $$ = $1; }
+|   new_name	{ $$ = $1; }
     ;
 
 sym:
-    LNAME	    	    { $$ = $1; }
-|	hidden_importsym	{ $$ = $1; }
-|	'?'	    	    	{ $$ = $1; }
+    LNAME	            { $$ = $1; }
+|   hidden_importsym	{ $$ = $1; }
+|   '?'	            	{ $$ = $1; }
     ;
 
 hidden_importsym:
     '@' literal '.' LNAME	{ $$ = node_create2(NULL, NULL, tag_hidden_importsym, 4, $1, $2, $3, $4); }
-|	'@' literal '.' '?'	    { $$ = node_create2(NULL, NULL, tag_hidden_importsym, 4, $1, $2, $3, $4); }
+|   '@' literal '.' '?'	    { $$ = node_create2(NULL, NULL, tag_hidden_importsym, 4, $1, $2, $3, $4); }
     ;
 
 name:
@@ -493,31 +482,31 @@ labelname:
 
 ntype:
     recvchantype	{ $$ = $1; }
-|	fntype	    	{ $$ = $1; }
-|	othertype	    { $$ = $1; }
-|	ptrtype	    	{ $$ = $1; }
-|	dotname	    	{ $$ = $1; }
-|	'(' ntype ')'	{ $$ = node_create2(NULL, NULL, tag_ntype, 3, $1, $2, $3); }
+|   fntype	    	{ $$ = $1; }
+|   othertype	    { $$ = $1; }
+|   ptrtype	    	{ $$ = $1; }
+|   dotname	    	{ $$ = $1; }
+|   '(' ntype ')'	{ $$ = node_create2(NULL, NULL, tag_ntype, 3, $1, $2, $3); }
     ;
 
 non_expr_type:
     recvchantype	    { $$ = $1; }
-|	fntype	    	    { $$ = $1; }
-|	othertype	    	{ $$ = $1; }
-|	'*' non_expr_type	{ $$ = node_create2(NULL, NULL, tag_non_expr_type, 2, $1, $2); }
+|   fntype	            { $$ = $1; }
+|   othertype	    	{ $$ = $1; }
+|   '*' non_expr_type	{ $$ = node_create2(NULL, NULL, tag_non_expr_type, 2, $1, $2); }
     ;
 
 non_recvchantype:
     fntype	    	{ $$ = $1; }
-|	othertype	    { $$ = $1; }
-|	ptrtype	    	{ $$ = $1; }
-|	dotname	    	{ $$ = $1; }
-|	'(' ntype ')'	{ $$ = node_create2(NULL, NULL, tag_non_recvchantype, 3, $1, $2, $3); }
+|   othertype	    { $$ = $1; }
+|   ptrtype	    	{ $$ = $1; }
+|   dotname	    	{ $$ = $1; }
+|   '(' ntype ')'	{ $$ = node_create2(NULL, NULL, tag_non_recvchantype, 3, $1, $2, $3); }
     ;
 
 convtype:
     fntype	    { $$ = $1; }
-|	othertype	{ $$ = $1; }
+|   othertype	{ $$ = $1; }
 
 comptype:
     othertype	{ $$ = $1; }
@@ -525,15 +514,15 @@ comptype:
 
 fnret_type:
     recvchantype	{ $$ = $1; }
-|	fntype	    	{ $$ = $1; }
-|	othertype	    { $$ = $1; }
-|	ptrtype	    	{ $$ = $1; }
-|	dotname	    	{ $$ = $1; }
+|   fntype	    	{ $$ = $1; }
+|   othertype	    { $$ = $1; }
+|   ptrtype	    	{ $$ = $1; }
+|   dotname	    	{ $$ = $1; }
     ;
 
 dotname:
     name	    	{ $$ = node_create2(NULL, NULL, tag_dotname, 1, $1); }
-|	name '.' sym	{ $$ = node_create2(NULL, NULL, tag_dotname, 3, $1, $2, $3); }
+|   name '.' sym	{ $$ = node_create2(NULL, NULL, tag_dotname, 3, $1, $2, $3); }
     ;
 
 othertype:
@@ -543,11 +532,11 @@ othertype:
 |   LTYPESTRING     { $$ = $1; }
 |   LTYPERUNE       { $$ = $1; }
 |   '[' oexpr ']' ntype	    	{ $$ = node_create2(NULL, NULL, tag_othertype_arr, 4, $1, $2, $3, $4); }
-|	LCHAN non_recvchantype	    { $$ = node_create2(NULL, NULL, tag_othertype, 2, $1, $2); }
-|	LCHAN LCOMM ntype	    	{ $$ = node_create2(NULL, NULL, tag_othertype, 3, $1, $2, $3); }
-|	LMAP '[' ntype ']' ntype	{ $$ = node_create2(NULL, NULL, tag_othertype_map, 5, $1, $2, $3, $4, $5); }
-|	structtype	    	    	{ $$ = $1; }
-|	interfacetype	    	    { $$ = $1; }
+|   LCHAN non_recvchantype	    { $$ = node_create2(NULL, NULL, tag_othertype, 2, $1, $2); }
+|   LCHAN LCOMM ntype	    	{ $$ = node_create2(NULL, NULL, tag_othertype, 3, $1, $2, $3); }
+|   LMAP '[' ntype ']' ntype	{ $$ = node_create2(NULL, NULL, tag_othertype_map, 5, $1, $2, $3, $4, $5); }
+|   structtype	            	{ $$ = $1; }
+|   interfacetype	            { $$ = $1; }
     ;
 
 ptrtype:
@@ -560,12 +549,12 @@ recvchantype:
 
 structtype:
     LSTRUCT '{' structdcl_list osemi '}'	{ $$ = node_create2(NULL, NULL, tag_structtype, 5, $1, $2, $3, $4, $5); }
-|	LSTRUCT '{' '}'	    	    	    { $$ = node_create2(NULL, NULL, tag_structtype, 3, $1, $2, $3); }
+|   LSTRUCT '{' '}'	                    { $$ = node_create2(NULL, NULL, tag_structtype, 3, $1, $2, $3); }
     ;
 
 interfacetype:
     LINTERFACE '{' interfacedcl_list osemi '}'	{ $$ = node_create2(NULL, NULL, tag_interfacetype, 5, $1, $2, $3, $4, $5); }
-|	LINTERFACE '{' '}'	    	    	    	{ $$ = node_create2(NULL, NULL, tag_interfacetype, 3, $1, $2, $3); }
+|   LINTERFACE '{' '}'	                    	{ $$ = node_create2(NULL, NULL, tag_interfacetype, 3, $1, $2, $3); }
     ;
 
 /*
@@ -577,13 +566,13 @@ xfndcl:
     ;
 
 fndcl:
-    sym '(' oarg_type_list_ocomma ')' fnres	    	    	    	    	{ $$ = node_create2(NULL, NULL, tag_fndcl, 5, $1, $2, $3, $4, $5); }
-|	'(' oarg_type_list_ocomma ')' sym '(' oarg_type_list_ocomma ')' fnres	{ $$ = node_create2(NULL, NULL, tag_fndcl, 8, $1, $2, $3, $4, $5, $6, $7, $8); }
+    sym '(' oarg_type_list_ocomma ')' fnres	                            	{ $$ = node_create2(NULL, NULL, tag_fndcl, 5, $1, $2, $3, $4, $5); }
+|   '(' oarg_type_list_ocomma ')' sym '(' oarg_type_list_ocomma ')' fnres	{ $$ = node_create2(NULL, NULL, tag_fndcl, 8, $1, $2, $3, $4, $5, $6, $7, $8); }
     ;
 
 hidden_fndcl:
-    hidden_pkg_importsym '(' ohidden_funarg_list ')' ohidden_funres	    	    { $$ = node_create2(NULL, NULL, tag_hidden_fndcl, 5, $1, $2, $3, $4, $5); }
-|	'(' hidden_funarg_list ')' sym '(' ohidden_funarg_list ')' ohidden_funres	{ $$ = node_create2(NULL, NULL, tag_hidden_fndcl, 8, $1, $2, $3, $4, $5, $6, $7, $8); }
+    hidden_pkg_importsym '(' ohidden_funarg_list ')' ohidden_funres	            { $$ = node_create2(NULL, NULL, tag_hidden_fndcl, 5, $1, $2, $3, $4, $5); }
+|   '(' hidden_funarg_list ')' sym '(' ohidden_funarg_list ')' ohidden_funres	{ $$ = node_create2(NULL, NULL, tag_hidden_fndcl, 8, $1, $2, $3, $4, $5, $6, $7, $8); }
     ;
 
 fntype:
@@ -592,13 +581,13 @@ fntype:
 
 fnbody:
     %empty              { $$ = node_create(NULL, NULL, tag_empty); }
-|	'{' stmt_list '}'	{ $$ = node_create2(NULL, NULL, tag_fnbody, 3, $1, $2, $3); }
+|   '{' stmt_list '}'	{ $$ = node_create2(NULL, NULL, tag_fnbody, 3, $1, $2, $3); }
     ;
 
 fnres:
     %prec NotParen %empty           { $$ = node_create(NULL, NULL, tag_empty); }
-|	fnret_type	    	    	    { $$ = $1; }
-|	'(' oarg_type_list_ocomma ')'	{ $$ = node_create2(NULL, NULL, tag_fnres, 3, $1, $2, $3); }
+|   fnret_type	                    { $$ = $1; }
+|   '(' oarg_type_list_ocomma ')'	{ $$ = node_create2(NULL, NULL, tag_fnres, 3, $1, $2, $3); }
     ;
 
 fnlitdcl:
@@ -607,7 +596,7 @@ fnlitdcl:
 
 fnliteral:
     fnlitdcl '{' stmt_list '}'	{ $$ = node_create2(NULL, NULL, tag_fnliteral, 4, $1, $2, $3, $4); }
-|	fnlitdcl error	    	    	{ $$ = node_create2(NULL, NULL, tag_fnliteral, 2, $1, $2); }
+|   fnlitdcl error	            	{ $$ = node_create2(NULL, NULL, tag_fnliteral, 2, $1, $2); }
     ;
 
 /*
@@ -617,46 +606,46 @@ fnliteral:
  */
 xdcl_list:
     %empty              { $$ = node_create(NULL, NULL, tag_empty); }
-|	xdcl_list xdcl ';'	{ $$ = node_create2(NULL, NULL, tag_xdcl_list, 3, $1, $2, $3); }
+|   xdcl_list xdcl ';'	{ $$ = node_create2(NULL, NULL, tag_xdcl_list, 3, $1, $2, $3); }
     ;
 
 vardcl_list:
-    vardcl	    	    	{ $$ = $1; }
-|	vardcl_list ';' vardcl	{ $$ = node_create2(NULL, NULL, tag_vardcl_list, 3, $1, $2, $3); }
+    vardcl	            	{ $$ = $1; }
+|   vardcl_list ';' vardcl	{ $$ = node_create2(NULL, NULL, tag_vardcl_list, 3, $1, $2, $3); }
     ;
 
 constdcl_list:
-    constdcl1	    	    	{ $$ = $1; }
-|	constdcl_list ';' constdcl1	{ $$ = node_create2(NULL, NULL, tag_constdcl_list, 3, $1, $2, $3); }
+    constdcl                    { $$ = $1; }
+|   constdcl_list ';' constdcl  { $$ = node_create2(NULL, NULL, tag_constdcl_list, 3, $1, $2, $3); }
     ;
 
 typedcl_list:
-    typedcl	    	    	    { $$ = $1; }
-|	typedcl_list ';' typedcl	{ $$ = node_create2(NULL, NULL, tag_typedcl_list, 3, $1, $2, $3); }
+    typedcl	                    { $$ = $1; }
+|   typedcl_list ';' typedcl	{ $$ = node_create2(NULL, NULL, tag_typedcl_list, 3, $1, $2, $3); }
     ;
 
 structdcl_list:
-    structdcl	    	    	    { $$ = $1; }
-|	structdcl_list ';' structdcl	{ $$ = node_create2(NULL, NULL, tag_structdcl_list, 3, $1, $2, $3); }
+    structdcl	                    { $$ = $1; }
+|   structdcl_list ';' structdcl	{ $$ = node_create2(NULL, NULL, tag_structdcl_list, 3, $1, $2, $3); }
     ;
 
 interfacedcl_list:
-    interfacedcl	    	    	    { $$ = $1; }
-|	interfacedcl_list ';' interfacedcl	{ $$ = node_create2(NULL, NULL, tag_interfacedcl_list, 3, $1, $2, $3); }
+    interfacedcl	                    { $$ = $1; }
+|   interfacedcl_list ';' interfacedcl	{ $$ = node_create2(NULL, NULL, tag_interfacedcl_list, 3, $1, $2, $3); }
     ;
 
 structdcl:
     new_name_list ntype oliteral	{ $$ = node_create2(NULL, NULL, tag_structdcl, 3, $1, $2, $3); }
-|	embed oliteral	    	    	{ $$ = node_create2(NULL, NULL, tag_structdcl, 2, $1, $2); }
-|	'(' embed ')' oliteral	    	{ $$ = node_create2(NULL, NULL, tag_structdcl, 4, $1, $2, $3, $4); }
-|	'*' embed oliteral	    	    { $$ = node_create2(NULL, NULL, tag_structdcl, 3, $1, $2, $3); }
-|	'(' '*' embed ')' oliteral	    { $$ = node_create2(NULL, NULL, tag_structdcl, 5, $1, $2, $3, $4, $5); }
-|	'*' '(' embed ')' oliteral	    { $$ = node_create2(NULL, NULL, tag_structdcl, 5, $1, $2, $3, $4, $5); }
+|   embed oliteral	            	{ $$ = node_create2(NULL, NULL, tag_structdcl, 2, $1, $2); }
+|   '(' embed ')' oliteral	    	{ $$ = node_create2(NULL, NULL, tag_structdcl, 4, $1, $2, $3, $4); }
+|   '*' embed oliteral	            { $$ = node_create2(NULL, NULL, tag_structdcl, 3, $1, $2, $3); }
+|   '(' '*' embed ')' oliteral	    { $$ = node_create2(NULL, NULL, tag_structdcl, 5, $1, $2, $3, $4, $5); }
+|   '*' '(' embed ')' oliteral	    { $$ = node_create2(NULL, NULL, tag_structdcl, 5, $1, $2, $3, $4, $5); }
     ;
 
 packname:
     LNAME	    	{ $$ = $1; }
-|	LNAME '.' sym	{ $$ = node_create2(NULL, NULL, tag_packname, 3, $1, $2, $3); }
+|   LNAME '.' sym	{ $$ = node_create2(NULL, NULL, tag_packname, 3, $1, $2, $3); }
     ;
 
 embed:
@@ -665,8 +654,8 @@ embed:
 
 interfacedcl:
     new_name indcl	    { $$ = node_create2(NULL, NULL, tag_interfacedcl, 2, $1, $2); }
-|	packname	    	{ $$ = $1; }
-|	'(' packname ')'	{ $$ = node_create2(NULL, NULL, tag_interfacedcl, 3, $1, $2, $3); }
+|   packname	    	{ $$ = $1; }
+|   '(' packname ')'	{ $$ = node_create2(NULL, NULL, tag_interfacedcl, 3, $1, $2, $3); }
     ;
 
 indcl:
@@ -681,13 +670,13 @@ arg_type:
     ;
 
 arg_type_list:
-    arg_type	    	    	{ $$ = $1; }
-|	arg_type_list ',' arg_type	{ $$ = node_create2(NULL, NULL, tag_arg_type_list, 3, $1, $2, $3); }
+    arg_type	            	{ $$ = $1; }
+|   arg_type_list ',' arg_type	{ $$ = node_create2(NULL, NULL, tag_arg_type_list, 3, $1, $2, $3); }
     ;
 
 oarg_type_list_ocomma:
     %empty                  { $$ = node_create(NULL, NULL, tag_empty); }
-|	arg_type_list ocomma	{ $$ = node_create2(NULL, NULL, tag_arg_type_list_ocomma, 2, $1, $2); }
+|   arg_type_list ocomma	{ $$ = node_create2(NULL, NULL, tag_arg_type_list_ocomma, 2, $1, $2); }
     ;
 
 /*
@@ -695,10 +684,10 @@ oarg_type_list_ocomma:
  */
 stmt:
     %empty          { $$ = node_create(NULL, NULL, tag_empty); }
-|	compound_stmt	{ $$ = $1; }
-|	common_dcl	    { $$ = $1; }
-|	non_dcl_stmt	{ $$ = $1; }
-|	error	    	{ $$ = $1; }
+|   compound_stmt	{ $$ = $1; }
+|   common_dcl	    { $$ = $1; }
+|   non_dcl_stmt	{ $$ = $1; }
+|   error	    	{ $$ = $1; }
     ;
 
 literal:
@@ -714,58 +703,51 @@ literal:
 
 non_dcl_stmt:
     simple_stmt	    	{ $$ = $1; }
-|	for_stmt	    	{ $$ = $1; }
-|	switch_stmt	    	{ $$ = $1; }
-|	select_stmt	    	{ $$ = $1; }
-|	if_stmt	    	    { $$ = $1; }
-|	labelname ':' stmt  { $$ = node_create2(NULL, NULL, tag_non_dcl_stmt, 2, $1, $2); }
-|	LFALL	    	    { $$ = $1; }
-|	LBREAK onew_name	{ $$ = node_create2(NULL, NULL, tag_non_dcl_stmt, 2, $1, $2); }
-|	LCONTINUE onew_name	{ $$ = node_create2(NULL, NULL, tag_non_dcl_stmt, 2, $1, $2); }
-|	LGO pseudocall	    { $$ = node_create2(NULL, NULL, tag_non_dcl_stmt, 2, $1, $2); }
-|	LDEFER pseudocall	{ $$ = node_create2(NULL, NULL, tag_non_dcl_stmt, 2, $1, $2); }
-|	LGOTO new_name	    { $$ = node_create2(NULL, NULL, tag_non_dcl_stmt, 2, $1, $2); }
-|	LRETURN oexpr_list	{ $$ = node_create2(NULL, NULL, tag_non_dcl_stmt, 2, $1, $2); }
+|   for_stmt	    	{ $$ = $1; }
+|   switch_stmt	    	{ $$ = $1; }
+|   select_stmt	    	{ $$ = $1; }
+|   if_stmt	            { $$ = $1; }
+|   LRETURN oexpr_list	{ $$ = node_create2(NULL, NULL, tag_return, 2, $1, $2); }
     ;
 
 stmt_list:
-    stmt	    	    { $$ = $1; }
-|	stmt_list ';' stmt	{ $$ = node_create2(NULL, NULL, tag_stmt_list, 3, $1, $2, $3); }
+    stmt	            { $$ = $1; }
+|   stmt_list ';' stmt	{ $$ = node_create2(NULL, NULL, tag_stmt_list, 3, $1, $2, $3); }
     ;
 
 new_name_list:
-    new_name	    	    	{ $$ = $1; }
-|	new_name_list ',' new_name	{ $$ = node_create2(NULL, NULL, tag_new_name_list, 3, $1, $2, $3); }
+    new_name	            	{ $$ = $1; }
+|   new_name_list ',' new_name	{ $$ = node_create2(NULL, NULL, tag_new_name_list, 3, $1, $2, $3); }
     ;
 
 dcl_name_list:
-    dcl_name	    	    	{ $$ = $1; }
-|	dcl_name_list ',' dcl_name	{ $$ = node_create2(NULL, NULL, tag_dcl_name_list, 3, $1, $2, $3); }
+    dcl_name	            	{ $$ = $1; }
+|   dcl_name_list ',' dcl_name	{ $$ = node_create2(NULL, NULL, tag_dcl_name_list, 3, $1, $2, $3); }
     ;
 
 expr_list:
-    expr	    	    { $$ = $1; }
-|	expr_list ',' expr	{ $$ = node_create2(NULL, NULL, tag_expr_list, 3, $1, $2, $3); }
+    expr	            { $$ = $1; }
+|   expr_list ',' expr	{ $$ = node_create2(NULL, NULL, tag_expr_list, 3, $1, $2, $3); }
     ;
 
 expr_or_type_list:
-    expr_or_type	    	    	    { $$ = $1; }
-|	expr_or_type_list ',' expr_or_type	{ $$ = node_create2(NULL, NULL, tag_expr_or_type_list, 3, $1, $2, $3); }
+    expr_or_type	                    { $$ = $1; }
+|   expr_or_type_list ',' expr_or_type	{ $$ = node_create2(NULL, NULL, tag_expr_or_type_list, 3, $1, $2, $3); }
     ;
 
 /*
  * list of combo of keyval and val
  */
 keyval_list:
-    keyval	    	    	    	    { $$ = $1; }
-|	bare_complitexpr	    	    	{ $$ = $1; }
-|	keyval_list ',' keyval	    	    { $$ = node_create2(NULL, NULL, tag_keyval_list, 3, $1, $2, $3); }
-|	keyval_list ',' bare_complitexpr	{ $$ = node_create2(NULL, NULL, tag_keyval_list, 3, $1, $2, $3); }
+    keyval	                            { $$ = $1; }
+|   bare_complitexpr	            	{ $$ = $1; }
+|   keyval_list ',' keyval	            { $$ = node_create2(NULL, NULL, tag_keyval_list, 3, $1, $2, $3); }
+|   keyval_list ',' bare_complitexpr	{ $$ = node_create2(NULL, NULL, tag_keyval_list, 3, $1, $2, $3); }
     ;
 
 braced_keyval_list:
     %empty              { $$ = node_create(NULL, NULL, tag_empty); }
-|	keyval_list ocomma	{ $$ = node_create2(NULL, NULL, tag_bracedkeyval_list, 2, $1, $2); }
+|   keyval_list ocomma	{ $$ = node_create2(NULL, NULL, tag_bracedkeyval_list, 2, $1, $2); }
     ;
 
 /*
@@ -773,59 +755,59 @@ braced_keyval_list:
  */
 osemi:
     %empty  { $$ = node_create(NULL, NULL, tag_empty); }
-|	';'     { $$ = $1; }
+|   ';'     { $$ = $1; }
     ;
 
 ocomma:
     %empty  { $$ = node_create(NULL, NULL, tag_empty); }
-|	','     { $$ = $1; }
+|   ','     { $$ = $1; }
     ;
 
 oexpr:
     %empty  { $$ = node_create(NULL, NULL, tag_empty); }
-|	expr    { $$ = $1; }
+|   expr    { $$ = $1; }
     ;
 
 oexpr_list:
     %empty      { $$ = node_create(NULL, NULL, tag_empty); }
-|	expr_list   { $$ = $1; }
+|   expr_list   { $$ = $1; }
     ;
 
 osimple_stmt:
     %empty      { $$ = node_create(NULL, NULL, tag_empty); }
-|	simple_stmt { $$ = $1; }
+|   simple_stmt { $$ = $1; }
     ;
 
 ohidden_funarg_list:
     %empty              { $$ = node_create(NULL, NULL, tag_empty); }
-|	hidden_funarg_list  { $$ = $1; }
+|   hidden_funarg_list  { $$ = $1; }
     ;
 
 ohidden_structdcl_list:
     %empty                  { $$ = node_create(NULL, NULL, tag_empty); }
-|	hidden_structdcl_list   { $$ = $1; }
+|   hidden_structdcl_list   { $$ = $1; }
     ;
 
 ohidden_interfacedcl_list:
     %empty                      { $$ = node_create(NULL, NULL, tag_empty); }
-|	hidden_interfacedcl_list    { $$ = $1; }
+|   hidden_interfacedcl_list    { $$ = $1; }
     ;
 
 oliteral:
     %empty  { $$ = node_create(NULL, NULL, tag_empty); }
-|	literal { $$ = $1; }
+|   literal { $$ = $1; }
     ;
 
 /*
  * import syntax from package header
  */
 hidden_import:
-    LIMPORT LNAME literal ';'	    	    	    	    	    { $$ = node_create2(NULL, NULL, tag_hidden_import, 4, $1, $2, $3, $4); }
-|	LVAR hidden_pkg_importsym hidden_type ';'	    	    	    { $$ = node_create2(NULL, NULL, tag_hidden_import, 4, $1, $2, $3, $4); }
-|	LCONST hidden_pkg_importsym '=' hidden_constant ';'	    	    { $$ = node_create2(NULL, NULL, tag_hidden_import, 5, $1, $2, $3, $4, $5); }
-|	LCONST hidden_pkg_importsym hidden_type '=' hidden_constant ';'	{ $$ = node_create2(NULL, NULL, tag_hidden_import, 6, $1, $2, $3, $4, $5, $6); }
-|	LTYPE hidden_pkgtype hidden_type ';'	    	    	    	{ $$ = node_create2(NULL, NULL, tag_hidden_import, 4, $1, $2, $3, $4); }
-|	LFUNC hidden_fndcl fnbody ';'	    	    	    	    	{ $$ = node_create2(NULL, NULL, tag_hidden_import, 4, $1, $2, $3, $4); }
+    LIMPORT LNAME literal ';'	                                    { $$ = node_create2(NULL, NULL, tag_hidden_import, 4, $1, $2, $3, $4); }
+|   LVAR hidden_pkg_importsym hidden_type ';'	                    { $$ = node_create2(NULL, NULL, tag_hidden_import, 4, $1, $2, $3, $4); }
+|   LCONST hidden_pkg_importsym '=' hidden_constant ';'	            { $$ = node_create2(NULL, NULL, tag_hidden_import, 5, $1, $2, $3, $4, $5); }
+|   LCONST hidden_pkg_importsym hidden_type '=' hidden_constant ';'	{ $$ = node_create2(NULL, NULL, tag_hidden_import, 6, $1, $2, $3, $4, $5, $6); }
+|   LTYPE hidden_pkgtype hidden_type ';'	                    	{ $$ = node_create2(NULL, NULL, tag_hidden_import, 4, $1, $2, $3, $4); }
+|   LFUNC hidden_fndcl fnbody ';'	                            	{ $$ = node_create2(NULL, NULL, tag_hidden_import, 4, $1, $2, $3, $4); }
     ;
 
 hidden_pkg_importsym:
@@ -842,27 +824,27 @@ hidden_pkgtype:
 
 hidden_type:
     hidden_type_misc	    { $$ = $1; }
-|	hidden_type_recv_chan	{ $$ = $1; }
-|	hidden_type_func	    { $$ = $1; }
+|   hidden_type_recv_chan	{ $$ = $1; }
+|   hidden_type_func	    { $$ = $1; }
     ;
 
 hidden_type_non_recv_chan:
     hidden_type_misc	    { $$ = $1; }
-|	hidden_type_func	    { $$ = $1; }
+|   hidden_type_func	    { $$ = $1; }
     ;
 
 hidden_type_misc:
-    hidden_importsym	    	    	    	    { $$ = $1; }
-|	LNAME	    	    	    	    	    	{ $$ = $1; }
-|	'[' ']' hidden_type	    	    	    	    { $$ = node_create2(NULL, NULL, tag_hidden_type_misc, 3, $1, $2, $3); }
-|	'[' literal ']' hidden_type	    	    	    { $$ = node_create2(NULL, NULL, tag_hidden_type_misc, 4, $1, $2, $3, $4); }
-|	LMAP '[' hidden_type ']' hidden_type	    	{ $$ = node_create2(NULL, NULL, tag_hidden_type_misc, 5, $1, $2, $3, $4, $5); }
-|	LSTRUCT '{' ohidden_structdcl_list '}'	    	{ $$ = node_create2(NULL, NULL, tag_hidden_type_misc, 4, $1, $2, $3, $4); }
-|	LINTERFACE '{' ohidden_interfacedcl_list '}'	{ $$ = node_create2(NULL, NULL, tag_hidden_type_misc, 4, $1, $2, $3, $4); }
-|	'*' hidden_type	    	    	    	    	{ $$ = node_create2(NULL, NULL, tag_hidden_type_misc, 2, $1, $2); }
-|	LCHAN hidden_type_non_recv_chan	    	    	{ $$ = node_create2(NULL, NULL, tag_hidden_type_misc, 2, $1, $2); }
-|	LCHAN '(' hidden_type_recv_chan ')'	    	    { $$ = node_create2(NULL, NULL, tag_hidden_type_misc, 4, $1, $2, $3, $4); }
-|	LCHAN LCOMM hidden_type	    	    	    	{ $$ = node_create2(NULL, NULL, tag_hidden_type_misc, 3, $1, $2, $3); }
+    hidden_importsym	                            { $$ = $1; }
+|   LNAME	                                    	{ $$ = $1; }
+|   '[' ']' hidden_type	                            { $$ = node_create2(NULL, NULL, tag_hidden_type_misc, 3, $1, $2, $3); }
+|   '[' literal ']' hidden_type	                    { $$ = node_create2(NULL, NULL, tag_hidden_type_misc, 4, $1, $2, $3, $4); }
+|   LMAP '[' hidden_type ']' hidden_type	    	{ $$ = node_create2(NULL, NULL, tag_hidden_type_misc, 5, $1, $2, $3, $4, $5); }
+|   LSTRUCT '{' ohidden_structdcl_list '}'	    	{ $$ = node_create2(NULL, NULL, tag_hidden_type_misc, 4, $1, $2, $3, $4); }
+|   LINTERFACE '{' ohidden_interfacedcl_list '}'	{ $$ = node_create2(NULL, NULL, tag_hidden_type_misc, 4, $1, $2, $3, $4); }
+|   '*' hidden_type	                            	{ $$ = node_create2(NULL, NULL, tag_hidden_type_misc, 2, $1, $2); }
+|   LCHAN hidden_type_non_recv_chan	            	{ $$ = node_create2(NULL, NULL, tag_hidden_type_misc, 2, $1, $2); }
+|   LCHAN '(' hidden_type_recv_chan ')'	            { $$ = node_create2(NULL, NULL, tag_hidden_type_misc, 4, $1, $2, $3, $4); }
+|   LCHAN LCOMM hidden_type	                    	{ $$ = node_create2(NULL, NULL, tag_hidden_type_misc, 3, $1, $2, $3); }
     ;
 
 hidden_type_recv_chan:
@@ -875,7 +857,7 @@ hidden_type_func:
 
 hidden_funarg:
     sym hidden_type oliteral	    { $$ = node_create2(NULL, NULL, tag_hidden_funarg, 3, $1, $2, $3); }
-|	sym LDDD hidden_type oliteral	{ $$ = node_create2(NULL, NULL, tag_hidden_funarg, 4, $1, $2, $3, $4); }
+|   sym LDDD hidden_type oliteral	{ $$ = node_create2(NULL, NULL, tag_hidden_funarg, 4, $1, $2, $3, $4); }
     ;
 
 hidden_structdcl:
@@ -884,17 +866,17 @@ hidden_structdcl:
 
 hidden_interfacedcl:
     sym '(' ohidden_funarg_list ')' ohidden_funres	{ $$ = node_create2(NULL, NULL, tag_hidden_interfacedcl, 5, $1, $2, $3, $4, $5); }
-|	hidden_type	    	    	    	    	    { $$ = $1; }
+|   hidden_type	                                    { $$ = $1; }
     ;
 
 ohidden_funres:
     %empty          { $$ = node_create(NULL, NULL, tag_empty); }
-|	hidden_funres   { $$ = $1; }
+|   hidden_funres   { $$ = $1; }
     ;
 
 hidden_funres:
     '(' ohidden_funarg_list ')'	{ $$ = node_create2(NULL, NULL, tag_hidden_funrees, 3, $1, $2, $3); }
-|	hidden_type	    	    	{ $$ = $1; }
+|   hidden_type	            	{ $$ = $1; }
     ;
 
 /*
@@ -903,33 +885,33 @@ hidden_funres:
 
 hidden_literal:
     literal	    { $$ = $1; }
-|	'-' literal	{ $$ = node_create2(NULL, NULL, tag_hidden_literal, 2, $1, $2); }
-|	sym	    	{ $$ = $1; }
+|   '-' literal	{ $$ = node_create2(NULL, NULL, tag_hidden_literal, 2, $1, $2); }
+|   sym	    	{ $$ = $1; }
     ;
 
 hidden_constant:
-    hidden_literal	    	    	    	    { $$ = $1; }
-|	'(' hidden_literal '+' hidden_literal ')'	{ $$ = node_create2(NULL, NULL, tag_hidden_constant, 5, $1, $2, $3, $4, $5); }
+    hidden_literal	                            { $$ = $1; }
+|   '(' hidden_literal '+' hidden_literal ')'	{ $$ = node_create2(NULL, NULL, tag_hidden_constant, 5, $1, $2, $3, $4, $5); }
     ;
 
 hidden_import_list:
     %empty                              { $$ = node_create(NULL, NULL, tag_empty); }
-|	hidden_import_list hidden_import	{ $$ = node_create2(NULL, NULL, tag_hidden_import_list, 2, $1, $2); }
+|   hidden_import_list hidden_import	{ $$ = node_create2(NULL, NULL, tag_hidden_import_list, 2, $1, $2); }
     ;
 
 hidden_funarg_list:
-    hidden_funarg	    	    	    	{ $$ = $1; }
-|	hidden_funarg_list ',' hidden_funarg	{ $$ = node_create2(NULL, NULL, tag_hidden_funarg_list, 3, $1, $2, $3); }
+    hidden_funarg	                    	{ $$ = $1; }
+|   hidden_funarg_list ',' hidden_funarg	{ $$ = node_create2(NULL, NULL, tag_hidden_funarg_list, 3, $1, $2, $3); }
     ;
 
 hidden_structdcl_list:
-    hidden_structdcl	    	    	    	{ $$ = $1; }
-|	hidden_structdcl_list ';' hidden_structdcl	{ $$ = node_create2(NULL, NULL, tag_hidden_structdcl_list, 3, $1, $2, $3); }
+    hidden_structdcl	                    	{ $$ = $1; }
+|   hidden_structdcl_list ';' hidden_structdcl	{ $$ = node_create2(NULL, NULL, tag_hidden_structdcl_list, 3, $1, $2, $3); }
     ;
 
 hidden_interfacedcl_list:
-    hidden_interfacedcl	    	    	    	    	{ $$ = $1; }
-|	hidden_interfacedcl_list ';' hidden_interfacedcl	{ $$ = node_create2(NULL, NULL, tag_hidden_interfacedcl_list, 3, $1, $2, $3); }
+    hidden_interfacedcl	                            	{ $$ = $1; }
+|   hidden_interfacedcl_list ';' hidden_interfacedcl	{ $$ = node_create2(NULL, NULL, tag_hidden_interfacedcl_list, 3, $1, $2, $3); }
     ;
 
 %%
