@@ -5,7 +5,6 @@
 #include "cfuhash.h"        // For symbol tables
 #include "token.h"          // For reading the tree's leaf tokens
 #include "node.h"           // For using the tree
-// #include "node_iterator.h"  // For using the tree
 #include "node_iterator_full.h"  // For using the tree
 #include "list.h"           // For a list of hashtables
 #include "nodeTypes.h"      // For easier navigation of the tree
@@ -13,8 +12,7 @@
 #include "traversals.h"
 #include "varToken.h"
 #include "type.h"
-
-extern cfuhash_table_t* hashTable;
+#include "strutils.h"
 
 cfuhash_table_t* genSymTab(node_t* tree) {
     if (!tree) return NULL;
@@ -58,7 +56,7 @@ cfuhash_table_t* genSymTab(node_t* tree) {
                 ht = cfuhash_new();
 
                 // Populate own hashtable
-                populateHashtable(node, ht, name);
+                populateHashtable(node, htTree, ht, name);
 
                 // Check ht for undeclared variables
                 detectUndeclaredVars(node, htTree, ht);
@@ -85,7 +83,7 @@ cfuhash_table_t* genSymTab(node_t* tree) {
                 ht = cfuhash_new();
 
                 // Populate own hashtable
-                populateHashtable(node, ht, name);
+                populateHashtable(node, htTree, ht, name);
 
                 // Check ht for undeclared variables
                 detectUndeclaredVars(node, htTree, ht);
@@ -114,8 +112,9 @@ char* getPackageName(node_t* tree) {
     nodeTemp = findNode(tree, tag_package);
     nodeTemp = findNode(nodeTemp, LNAME);
 
-    char* mainPkgName = calloc(sizeof(char), (strlen(((token_t*)(nodeTemp->data))->text) + 1));
-    strcpy(mainPkgName, ((token_t*)(nodeTemp->data))->text);
+    char* mainPkgName = calloc(sizeof(char), (strlen(((token_t*)(nodeTemp->data))->text) + 1 + sizeof("package ")));
+    strcpy(mainPkgName, "package ");
+    strcat(mainPkgName, ((token_t*)(nodeTemp->data))->text);
 
     return mainPkgName;
 }
@@ -176,7 +175,7 @@ void populateHashtableMain(node_t* tree, cfuhash_table_t* ht, char* scope) {
     while (node) {
         switch (node->tag) {
             case tag_constdcl:
-                newVars = parseVarDcl(node, scope, true);
+                newVars = parseVarDcl(node, ht, scope, true);
                 for (int i = 0; newVars[i] != NULL; i++) {
                     if (cfuhash_put(ht, newVars[i]->name, newVars[i])) {
                         // Key already existed
@@ -189,7 +188,7 @@ void populateHashtableMain(node_t* tree, cfuhash_table_t* ht, char* scope) {
                 break;
             case tag_vardcl:
             case tag_vardcl_init:
-                newVars = parseVarDcl(node, scope, false);
+                newVars = parseVarDcl(node, ht, scope, false);
                 for (int i = 0; newVars[i] != NULL; i++) {
                     if (cfuhash_put(ht, newVars[i]->name, newVars[i])) {
                         // Key already existed
@@ -211,7 +210,7 @@ void populateHashtableMain(node_t* tree, cfuhash_table_t* ht, char* scope) {
 }
 
 // Fills a function or struct's hashtable
-void populateHashtable(node_t* tree, cfuhash_table_t* ht, char* scope) {
+void populateHashtable(node_t* tree, cfuhash_table_t* rootHT, cfuhash_table_t* ht, char* scope) {
     node_t* node;
     node_iterator_full_t* it = node_iterator_full_create(tree);
     varToken_t** newVars;
@@ -224,7 +223,7 @@ void populateHashtable(node_t* tree, cfuhash_table_t* ht, char* scope) {
     while (node) {
         switch (node->tag) {
             case tag_constdcl:
-                newVars = parseVarDcl(node, scope, true);
+                newVars = parseVarDcl(node, rootHT, scope, true);
                 for (int i = 0; newVars[i] != NULL; i++) {
                     if (cfuhash_put(ht, newVars[i]->name, newVars[i])) {
                         // Key already existed
@@ -238,7 +237,7 @@ void populateHashtable(node_t* tree, cfuhash_table_t* ht, char* scope) {
             case tag_arg_type:
             case tag_vardcl:
             case tag_vardcl_init:
-                newVars = parseVarDcl(node, scope, false);
+                newVars = parseVarDcl(node, rootHT, scope, false);
                 for (int i = 0; newVars[i] != NULL; i++) {
                     if (cfuhash_put(ht, newVars[i]->name, newVars[i])) {
                         // Key already existed
@@ -262,7 +261,7 @@ void populateHashtable(node_t* tree, cfuhash_table_t* ht, char* scope) {
     }
 }
 
-varToken_t** parseVarDcl(node_t* tree, char* scope, bool isConst) {
+varToken_t** parseVarDcl(node_t* tree, cfuhash_table_t* rootHT, char* scope, bool isConst) {
     if (!tree) return NULL;
     if (tree->tag != tag_vardcl
         && tree->tag != tag_vardcl_init
@@ -286,36 +285,30 @@ varToken_t** parseVarDcl(node_t* tree, char* scope, bool isConst) {
     node = node->next;
     int type = node->tag;
     int subTypeA = 0, subTypeB = 0;
-    if (type == tag_othertype_arr) {
-        // Array
-        type = ARRAY_TYPE;
-        subTypeA = node->children->begin->next->next->next->tag;
-    }
-    else if (type == tag_othertype_map) {
-        type = MAP_TYPE;
-        subTypeA = node->children->begin->next->next->tag;
-        subTypeB = node->children->begin->next->next->next->next->tag;
-    }
-    else if (type == tag_dotname) {
-        type = STRUCT_INSTANCE_TYPE;
-        char* sName = ((token_t*)(getFirstTerminal(node)->data))->text;
-    }
 
     varToken_t** vts = calloc(numVars + 1, sizeof(varToken_t*));
     for (int i = 0; names[i] != NULL; i++) {
-        if (type == ARRAY_TYPE) {
+        if (type == tag_othertype_arr) {    // Array
+            subTypeA = node->children->begin->next->next->next->tag;
             vts[i] = varToken_create_arr(scope, names[i], subTypeA, line);
         }
-        else if (type == MAP_TYPE) {
+        else if (type == tag_othertype_map) {   // Map
+            subTypeA = node->children->begin->next->next->tag;
+            subTypeB = node->children->begin->next->next->next->next->tag;
             vts[i] = varToken_create_map(scope, names[i], subTypeA, subTypeB, line);
 
         }
-        else if (type == STRUCT_INSTANCE_TYPE) {
+        else if (type == tag_dotname) {     // Struct Instance
             char* htName = ((token_t*)(getFirstTerminal(node)->data))->text;
-            cfuhash_table_t* oldHT = cfuhash_get(hashTable, htName);
-            cfuhash_table_t* newHT;
-            cfuhash_copy(oldHT, newHT);
-            vts[i] = varToken_create_struct(scope, names[i], line, newHT);
+            varToken_t* vt = cfuhash_get(rootHT, htName);
+            if (!vt || !vt->symTab){
+                fprintf(stderr, "test\n");
+                exit(3);
+            }
+            cfuhash_table_t* ht = vt->symTab;
+            cfuhash_table_t* newHT = cfuhash_new();
+            cfuhash_copy(ht, newHT);
+            vts[i] = varToken_create_struct_instance(scope, names[i], htName, line, newHT);
         }
         else {
             vts[i] = varToken_create(scope, names[i], type, line);
@@ -449,16 +442,22 @@ void detectUndeclaredVars(node_t* tree, cfuhash_table_t* rootHT, cfuhash_table_t
                     }
                     char* htName = ((token_t*)(getFirstTerminal(node->children->begin)->data))->text;
                     char* fName = ((token_t*)(getFirstTerminal(node->children->end)->data))->text;
-                    vt = cfuhash_get(rootHT, htName);
+                    if (funcHT) {
+                        vt = cfuhash_get(funcHT, htName);
+                        if (!vt) vt = cfuhash_get(rootHT, htName);
+                    }
+                    else {
+                        vt = cfuhash_get(rootHT, htName);
+                    }
                     if (!vt) {
                         fprintf(stderr, "%s:%i Error: Undeclared dot operator scope: %s\n", token->filename, token->lineno, htName);
                         exit(3);
                     }
-                    if (vt->type->type != LIB_TYPE && vt->type->type != STRUCT_TYPE ) {
+                    if (vt->type->type != LIB_TYPE && vt->type->type != STRUCT_TYPE && vt->type->type != STRUCT_INSTANCE_TYPE ) {
                         fprintf(stderr, "%s:%i Error: %s is not a valid scope\n", token->filename, token->lineno, htName);
                         exit(3);
                     }
-                    
+
                     vt = cfuhash_get(vt->symTab, fName);
                     if (!vt) {
                         fprintf(stderr, "%s:%i Error: %s is not a valid member of %s\n", token->filename, token->lineno, fName, htName);
@@ -474,7 +473,7 @@ void detectUndeclaredVars(node_t* tree, cfuhash_table_t* rootHT, cfuhash_table_t
                 else if (hasParent(node, tag_typedcl)) {
                     break;
                 }
-                
+
                 else {
                     fprintf(stderr, "%s:%i Error: Usage of variable %s before declaration\n", token->filename, token->lineno, token->text);
                     exit(3);
@@ -494,16 +493,17 @@ void detectUndeclaredVars(node_t* tree, cfuhash_table_t* rootHT, cfuhash_table_t
 }
 
 // Do the type checking
-type_t* typeCheck(node_t* tree, char* scope) {
+type_t* typeCheck(node_t* tree, cfuhash_table_t* rootHT, char* scope) {
     if (!tree) return NULL;
 
-    if (tree->count == 1) return typeCheck(tree->children->begin, scope);
+    if (tree->count == 1) return typeCheck(tree->children->begin, rootHT, scope);
 
     type_t* t1;
     type_t* t2;
     type_t* op;
     type_t* returnType;
     varToken_t* vt;
+    cfuhash_table_t* ht = NULL;
 
     // These need to be declared outside the switch
     node_iterator_t* it;
@@ -511,55 +511,69 @@ type_t* typeCheck(node_t* tree, char* scope) {
     int arraylen;
 
     switch (tree->tag) {
+        case tag_return:        // return VAL
+        case tag_common_dcl:    // variable declaration wrapper without parentheses
+            // Fluff VAL
+            return typeCheck(tree->children->begin->next, rootHT, scope);
+
+        case tag_common_dcl_2:  // variable declaration wrapper with parentheses
+            // Fluff Fluff VAL
+            return typeCheck(tree->children->begin->next->next, rootHT, scope);
+
         case tag_uexpr:     // Unary expression (Operator typeval)
             // OP VAL
-            t1 = typeCheck(tree->children->end, scope);
-            op = typeCheck(tree->children->begin, scope);
+            t1 = typeCheck(tree->children->end, rootHT, scope);
+            op = typeCheck(tree->children->begin, rootHT, scope);
 
             if (isCompatibleType(op, t1, 0)) {free(op); return t1;}
             else typeErr(tree->children->begin, t1, NULL);
 
-            break;
+            break;  // impossible state
+
         case tag_simple_stmt:   // ++, --
             // VAL OP
-            t1 = typeCheck(tree->children->begin, scope);
-            op = typeCheck(tree->children->end, scope);
+            t1 = typeCheck(tree->children->begin, rootHT, scope);
+            op = typeCheck(tree->children->end, rootHT, scope);
 
             if (isCompatibleType(op, t1, 0)) {free(op); return t1;}
             else typeErr(tree->children->begin, t1, NULL);
 
-            break;
+            break;  // impossible state
+
         case tag_expr_list:     // Chain of normal expressions
         case tag_expr:          // Normal Expression
         case tag_assignment:    // Assignment
         case tag_simple_stmt2:  // +=, -=
             // VAL OP VAL
 
-            t1 = typeCheck(tree->children->begin, scope);
-            op = typeCheck(tree->children->begin->next, scope);
-            t2 = typeCheck(tree->children->end, scope);
+            t1 = typeCheck(tree->children->begin, rootHT, scope);
+            op = typeCheck(tree->children->begin->next, rootHT, scope);
+            t2 = typeCheck(tree->children->end, rootHT, scope);
 
             returnType = isCompatibleType(op, t1, t2);
             if (returnType)  {free(t2); free(op); return returnType;}
             else typeErr(tree->children->begin->next, t1, t2);
 
-            break;
+            break;  // impossible state
+
         case tag_vardcl_init:
             // FLUFF VAL OP VAL
 
-            t1 = typeCheck(tree->children->begin->next, scope);
-            op = typeCheck(tree->children->begin->next->next, scope);
-            t2 = typeCheck(tree->children->end, scope);
+            t1 = typeCheck(tree->children->begin->next, rootHT, scope);
+            op = typeCheck(tree->children->begin->next->next, rootHT, scope);
+            t2 = typeCheck(tree->children->end, rootHT, scope);
 
             returnType = isCompatibleType(op, t1, t2);
+
             if (returnType)  {free(t2); free(op); return returnType;}
             else typeErr(tree->children->begin, t1, t2);
 
-            break;
+            break;  // impossible state
+
         case tag_othertype_arr:
-            // [ VAL ] VAL
-            t1 = typeCheck(tree->children->begin->next, scope); // Index
-            t2 = typeCheck(tree->children->end, scope);         // ArrayType
+            // [ VAL ] VAL (Array Operator)
+            t1 = typeCheck(tree->children->begin->next, rootHT, scope); // Index
+            t2 = typeCheck(tree->children->end, rootHT, scope);         // ArrayType
             if (!t1) {
                 token_t* first = getFirstTerminal(tree)->data;
                 fprintf(stderr, "%s:%i Array initializer must have size (dynamic array NYI)\n", first->filename, first->lineno);
@@ -577,11 +591,12 @@ type_t* typeCheck(node_t* tree, char* scope) {
             free(t1);
             free(t2);
             return returnType;
-        case tag_othertype_map:
-            // Fluff [ VAL ] VAL
 
-            t1 = typeCheck(tree->children->begin->next->next, scope);   // FromType
-            t2 = typeCheck(tree->children->end, scope);                 // ToType
+        case tag_othertype_map:
+            // Fluff [ VAL ] VAL (Map operator)
+
+            t1 = typeCheck(tree->children->begin->next->next, rootHT, scope);   // FromType
+            t2 = typeCheck(tree->children->end, rootHT, scope);                 // ToType
 
             if (!t1) {
                 token_t* first = getFirstTerminal(tree)->data;
@@ -603,28 +618,46 @@ type_t* typeCheck(node_t* tree, char* scope) {
             free(t1);
             free(t2);
             return returnType;
+
         case tag_pexpr_no_paren_dot:
             // Lib/Struct DOT Func
-            vt = cfuhash_get(hashTable, ((token_t*)(getFirstTerminal(tree->children->begin)->data))->text);
+            if (startsWith(scope, "package ")) {
+                vt = cfuhash_get(rootHT, ((token_t*)(getFirstTerminal(tree)->data))->text);
+            }
+            else {
+                ht = ((varToken_t*)cfuhash_get(rootHT, scope))->symTab;
+                vt = cfuhash_get(ht, ((token_t*)(getFirstTerminal(tree)->data))->text);
+                if (!vt) vt = cfuhash_get(rootHT, ((token_t*)(getFirstTerminal(tree)->data))->text);
+            }
             vt = cfuhash_get(vt->symTab, ((token_t*)(getFirstTerminal(tree->children->end)->data))->text);
             return type_obj_copy(vt->type);
 
         case tag_xfndcl:
+            // FLUFF VAL CHECK_NOT_USE
             scope = getFuncName(tree);
-            // No break here
+
+            typeCheck(tree->children->end, rootHT, scope);
+            return typeCheck(tree->children->begin->next, rootHT, scope);
+        case tag_fndcl:
+            // CHECK_NOT_USE* VAL
+            it = node_iterator_create(tree->children);
+            while ((node = node_iterator_next(it))) {
+                typeCheck(node, rootHT, scope);
+            }
+            return typeCheck(tree->children->end, rootHT, scope);
         default:
             // node didn't need checked (but it's children might)
             switch (tree->count) {
-                case 0: return getLeafType(tree, scope);
-                case 1: return typeCheck(tree->children->begin, scope);
+                case 0: return getLeafType(tree, rootHT, scope);
+                case 1: return typeCheck(tree->children->begin, rootHT, scope);
                 default:
                     it = node_iterator_create(tree->children);
                     while ((node = node_iterator_next(it))) {
-                        typeCheck(node, scope);
+                        typeCheck(node, rootHT, scope);
                     }
-                    return 0;
+                    return NULL;
             }
-            break;
+            break;  // impossible state
 
     }
     fprintf(stderr, "Error Occured (Impossible state reached during type checking)\n");
