@@ -6,7 +6,7 @@
 #include "node.h"
 #include "cfuhash.h"
 
-#define NULL_TYPE    10000
+#define VOID_TYPE    10000
 #define STRUCT_TYPE  10002
 #define ARRAY_TYPE   10003
 #define FUNC_TYPE    10005
@@ -26,6 +26,7 @@ typedef struct type_t {
     int subType2;   // Secondary subtype (map TO int)
     int arrSize;
     char* structName;
+    void* funcType;
 } type_t;
 
 type_t* type_obj_create(int type);
@@ -38,7 +39,7 @@ type_t* type_obj_copy(type_t* source);
 char* getTypeName(type_t* type);
 
 // returns the datatype of the leaf node
-type_t* getLeafType(node_t* leaf, cfuhash_table_t* rootHT, char* scope);
+type_t* getType(node_t* leaf, cfuhash_table_t* rootHT, char* scope);
 
 // Converts flex symbol to proper value
 int getProperTypeInt(int oldType);

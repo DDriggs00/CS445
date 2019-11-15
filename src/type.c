@@ -4,8 +4,9 @@
 
 #include "type.h"
 #include "vgo.tab.h"    // For lexing tokens
-#include "token.h"      // for tokens in getLeafType
-#include "varToken.h"   // for tokens in getLeafType#include "cfuhash.h"
+#include "nodeTypes.h"  // for types
+#include "token.h"      // for tokens in getType
+#include "varToken.h"   // for tokens in getType
 
 type_t* type_obj_create(int type) {
     type_t* typeObj = malloc(sizeof(type_t));
@@ -14,6 +15,7 @@ type_t* type_obj_create(int type) {
     typeObj->subType2 = 0;
     typeObj->arrSize = 0;
     typeObj->structName = NULL;
+    typeObj->funcType = NULL;
     return typeObj;
 }
 
@@ -25,17 +27,23 @@ type_t* type_obj_createArr(int type, int size) {
 }
 
 type_t* type_obj_createMap(int typeFrom, int typeTo) {
-    type_t* typeObj = type_obj_create(ARRAY_TYPE);
+    type_t* typeObj = type_obj_create(MAP_TYPE);
     typeObj->subType1 = getProperTypeInt(typeFrom);
     typeObj->subType2 = getProperTypeInt(typeTo);
     return typeObj;
 }
 
 type_t* type_obj_createStruct(char* structName) {
-    type_t* typeObj = type_obj_create(ARRAY_TYPE);
+    type_t* typeObj = type_obj_create(STRUCT_INSTANCE_TYPE);
     char* name = calloc(strlen(structName), sizeof(char));
     strcpy(name, structName);
     typeObj->structName = name;
+    return typeObj;
+}
+
+type_t* type_obj_createFunc(type_t* funcType) {
+    type_t* typeObj = type_obj_create(FUNC_TYPE);
+    typeObj->funcType = funcType;
     return typeObj;
 }
 
@@ -45,28 +53,42 @@ type_t* type_obj_copy(type_t* source) {
     typeObj->subType1 = source->subType1;
     typeObj->subType2 = source->subType2;
     typeObj->arrSize = source->arrSize;
+    typeObj->funcType = source->funcType;
     return typeObj;
 }
 
-type_t* getLeafType(node_t* leaf, cfuhash_table_t* rootHT, char* scope) {
+type_t* getType(node_t* leaf, cfuhash_table_t* rootHT, char* scope) {
 
     // skip if not leaf
     if (!leaf) return NULL;
-    if (leaf->count > 0) return NULL;
+    // if (leaf->count > 0) return NULL;
 
     // skip empty leaves
-    token_t* token = leaf->data;
-    if (!token) return NULL;
+    token_t* token = leaf->data;;
 
     varToken_t* vt; // Must be oustide switch
     varToken_t* func; // Must be oustide switch
-    switch (token->category) {
-        case LINT:      return type_obj_create(INT_TYPE);
-        case LFLOAT:    return type_obj_create(FLOAT64_TYPE);
-        case LLITERAL:  return type_obj_create(STRING_TYPE);
-        case LBOOL:     return type_obj_create(BOOL_TYPE);
-        case LRUNE:     return type_obj_create(RUNE_TYPE);
+
+    switch (leaf->tag) {
+        // Base types
+        case LTYPEINT:
+        case LINT:          return type_obj_create(INT_TYPE);
+        case LTYPEFLOAT64:
+        case LFLOAT:        return type_obj_create(FLOAT64_TYPE);
+        case LTYPESTRING:
+        case LLITERAL:      return type_obj_create(STRING_TYPE);
+        case LTYPEBOOL:
+        case LBOOL:         return type_obj_create(BOOL_TYPE);
+        case LTYPERUNE:
+        case LRUNE:         return type_obj_create(RUNE_TYPE);
+        
+        case tag_empty:     return type_obj_create(VOID_TYPE);
+        
+        
+        // structs and imports
         case LNAME:
+            if (!token) return NULL;
+
             if (scope) {
                 func = cfuhash_get(rootHT, scope);
                 vt = cfuhash_get(func->symTab, token->text);
@@ -76,8 +98,13 @@ type_t* getLeafType(node_t* leaf, cfuhash_table_t* rootHT, char* scope) {
             if (!vt) {
                 return NULL;
             }
-            return type_obj_copy(vt->type);
-        default:        return type_obj_create(token->category);
+            if (vt->type->type == FUNC_TYPE) return type_obj_copy(vt->type->funcType);
+            else return type_obj_copy(vt->type);
+        
+        // functions
+        default:  
+            if (!token) return NULL;      
+            return type_obj_create(token->category);
     }
 
     // impossible state
@@ -88,6 +115,10 @@ char* getTypeName(type_t* type) {
     char* buffer = calloc(sizeof(char), 50);
 
     switch(type->type) {
+        case VOID_TYPE:
+            buffer = strcat(buffer, "Void");
+            break;
+
         case INT_TYPE:
             buffer = strcat(buffer, "Integer");
             break;
@@ -109,7 +140,9 @@ char* getTypeName(type_t* type) {
             break;
 
         case FUNC_TYPE:
-            buffer = strcat(buffer, "Function");
+            buffer = strcat(buffer, "Function (");
+            buffer = strcat(buffer, getTypeName(type->funcType));
+            buffer = strcat(buffer, ")");
             break;
 
         case STRUCT_TYPE:
