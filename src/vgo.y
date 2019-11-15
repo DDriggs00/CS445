@@ -86,7 +86,7 @@ int yyerror(char* s);
 %type <t>	import_here sym packname oliteral
 %type <t>	stmt ntype file package imports import import_stmt
 %type <t>	arg_type hidden_import ocomma osemi fnlitdcl error
-%type <t>	case caseblock hidden_import_list import_stmt_list
+%type <t>	hidden_import_list import_stmt_list
 %type <t>	compound_stmt dotname embed expr complitexpr bare_complitexpr
 %type <t>	expr_or_type import_package import_safety import_there
 %type <t>	fndcl hidden_fndcl fnliteral lconst
@@ -95,14 +95,13 @@ int yyerror(char* s);
 %type <t>	name_or_type non_expr_type
 %type <t>	new_name dcl_name oexpr typedclname
 %type <t>	osimple_stmt pexpr pexpr_no_paren
-%type <t>	pseudocall range_stmt select_stmt
-%type <t>	simple_stmt
-%type <t>	switch_stmt uexpr
+%type <t>	pseudocall range_stmt
+%type <t>	uexpr simple_stmt
 %type <t>	xfndcl typedcl
 
 %type <t>	xdcl fnbody fnres loop_body dcl_name_list
 %type <t>	new_name_list expr_list keyval_list braced_keyval_list expr_or_type_list xdcl_list
-%type <t>	oexpr_list caseblock_list elseif elseif_list else stmt_list oarg_type_list_ocomma arg_type_list
+%type <t>	oexpr_list elseif elseif_list else stmt_list oarg_type_list_ocomma arg_type_list
 %type <t>	interfacedcl_list vardcl vardcl_list structdcl structdcl_list
 %type <t>	common_dcl constdcl constdcl_list typedcl_list
 
@@ -259,48 +258,8 @@ simple_stmt:
 |   expr LMIASN expr            { $$ = node_create2(NULL, NULL, tag_simple_stmt2, 3, $1, $2, $3); }
     ;
 
-case:
-    LCASE expr_or_type_list ':'	            { $$ = node_create2(NULL, NULL, tag_case, 3, $1, $2, $3); }
-|   LCASE expr_or_type_list '=' expr ':'	{ $$ = node_create2(NULL, NULL, tag_case, 5, $1, $2, $3, $4, $5); }
-|   LCASE expr_or_type_list LCOLAS expr ':' { $$ = node_create2(NULL, NULL, tag_case, 5, $1, $2, $3, $4, $5); }
-|   LDEFAULT ':'	                    	{ $$ = node_create2(NULL, NULL, tag_case, 2, $1, $2); }
-    ;
-
 compound_stmt:
     '{' stmt_list '}'	{ $$ = node_create2(NULL, NULL, tag_compound_stmt, 3, $1, $2, $3); }
-    ;
-
-caseblock:
-    case
-    {
-        // If the last token read by the lexer was consumed
-        // as part of the case, clear it (parser has cleared yychar).
-        // If the last token read by the lexer was the lookahead
-        // leave it alone (parser has it cached in yychar).
-        // This is so that the stmt_list action doesn't look at
-        // the case tokens if the stmt_list is empty.
-        // yylast = yychar;
-    }
-    stmt_list
-    {
-        // int last;
-
-        // This is the only place in the language where a statement
-        // list is not allowed to drop the final semicolon, because
-        // it's the only place where a statement list is not followed
-        // by a closing brace.  Handle the error for pedantry.
-
-        // Find the final token of the statement list.
-        // yylast is lookahead; yyprev is last of stmt_list
-        // last = yyprev;
-
-        // if(last > 0 && last != ';' && yychar != '}')
-        // 	yyerror("missing statement after label");
-    }
-
-caseblock_list:
-    %empty                      { $$ = node_create(NULL, NULL, tag_empty); }
-|   caseblock_list caseblock	{ $$ = node_create2(NULL, NULL, tag_caseblock_list, 2, $1, $2); }
     ;
 
 loop_body:
@@ -350,14 +309,6 @@ else:
 |   LELSE compound_stmt	{ $$ = node_create2(NULL, NULL, tag_else, 2, $1, $2); }
     ;
 
-switch_stmt:
-    LSWITCH if_header '{' caseblock_list '}'    { $$ = node_create2(NULL, NULL, tag_switch_stmt, 5, $1, $2, $3, $4, $5); }
-    ;
-
-select_stmt:
-    LSELECT '{' caseblock_list '}'	{ $$ = node_create2(NULL, NULL, tag_select_stmt, 4, $1, $2, $3, $4); }
-    ;
-
 /*
  * expressions
  */
@@ -398,15 +349,13 @@ uexpr:
  */
 pseudocall:
     pexpr '(' ')'	                            { $$ = node_create2(NULL, NULL, tag_pseudocall, 3, $1, $2, $3); }
-|   pexpr '(' expr_or_type_list ocomma ')'	    { $$ = node_create2(NULL, NULL, tag_pseudocall, 5, $1, $2, $3, $4, $5); }
+|   pexpr '(' expr_or_type_list ocomma ')'	    { $$ = node_create2(NULL, NULL, tag_pseudocall_args, 5, $1, $2, $3, $4, $5); }
     ;
 
 pexpr_no_paren:
     literal	                            	{ $$ = $1; }
 |   name	                            	{ $$ = $1; }
 |   pexpr '.' sym	                    	{ $$ = node_create2(NULL, NULL, tag_pexpr_no_paren_dot, 3, $1, $2, $3); }
- /* |   pexpr '.' '(' expr_or_type ')'	    	{ $$ = node_create2(NULL, NULL, tag_pexpr_no_paren_dot, 5, $1, $2, $3, $4, $5); } */
- /* |   pexpr '.' '(' LTYPE ')'	            	{ $$ = node_create2(NULL, NULL, tag_pexpr_no_paren_dot, 5, $1, $2, $3, $4, $5); } */
 |   pexpr '[' expr ']'	                    { $$ = node_create2(NULL, NULL, tag_pexpr_no_paren, 4, $1, $2, $3, $4); }
 |   pexpr '[' oexpr ':' oexpr ']'	    	{ $$ = node_create2(NULL, NULL, tag_pexpr_no_paren, 6, $1, $2, $3, $4, $5, $6); }
 |   pexpr '[' oexpr ':' oexpr ':' oexpr ']'	{ $$ = node_create2(NULL, NULL, tag_pexpr_no_paren, 8, $1, $2, $3, $4, $5, $6, $7, $8); }
@@ -694,8 +643,6 @@ literal:
 non_dcl_stmt:
     simple_stmt	    	{ $$ = $1; }
 |   for_stmt	    	{ $$ = $1; }
-|   switch_stmt	    	{ $$ = $1; }
-|   select_stmt	    	{ $$ = $1; }
 |   if_stmt	            { $$ = $1; }
 |   LRETURN oexpr_list	{ $$ = node_create2(NULL, NULL, tag_return, 2, $1, $2); }
     ;
