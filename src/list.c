@@ -21,10 +21,20 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+// Heavily modified by Devin Driggs - Same license
+
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "list.h"
+
+list_t* list_create() {
+	list_t* list = malloc(sizeof(list_t));
+	list->data = NULL;
+	list->next = NULL;
+	list->prev = NULL;
+	return  list;
+}
 
 void list_init(list_t* list) {
 	list->next = NULL;
@@ -38,10 +48,19 @@ void list_destroy(list_t* list) {
 	}
 }
 
-int list_add(list_t* list, object_t* object) {
-	return -1;
+void list_add(list_t* list, void* data) {
+	list_t* next = list_create();
+	next->data = data;
+	list_t* l2 = list;
+	while(l2->next) l2 = l2->next;
+	l2->next = next;
+	next->prev = l2;
 }
 
-int list_remove(list_t* list, object_t* object) {
-	return -1;
+void list_remove(list_t* list) {
+	list_t* prev = list->prev;
+	list_t* next = list->next;
+	if (prev) prev->next = next;
+	if (next) next->prev = prev;
+	list_destroy(list);
 }
