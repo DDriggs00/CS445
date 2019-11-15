@@ -2,6 +2,8 @@
 #include <stdlib.h>
 
 #include "symtab.h"
+
+#include "varToken.h"       // Used throughout
 #include "cfuhash.h"        // For symbol tables
 #include "token.h"          // For reading the tree's leaf tokens
 #include "node.h"           // For using the tree
@@ -9,10 +11,9 @@
 #include "list.h"           // For a list of hashtables
 #include "nodeTypes.h"      // For easier navigation of the tree
 #include "vgo.tab.h"        // For the yytokentype enum
-#include "traversals.h"
-#include "varToken.h"
-#include "type.h"
-#include "strutils.h"
+#include "traversals.h"     // Mostly for getFirstTerminal
+#include "type.h"           // For type checking
+#include "strutils.h"       // For checking if scope starts with package
 
 cfuhash_table_t* genSymTab(node_t* tree) {
     if (!tree) return NULL;
@@ -63,12 +64,14 @@ cfuhash_table_t* genSymTab(node_t* tree) {
 
                 // populate function return type
                 type_t* t = typeCheck(node->children->begin->next->children->end, htTree, packageName);
+                
+                // populate function arguments
+                
 
                 // Create entry in main hashtable
                 vt = varToken_create_func(packageName, name, t, firstToken->lineno, ht);
 
 
-                // populate function arguments
 
                 if (cfuhash_put(htTree, name, vt)) {
                     // Key already existed
@@ -692,46 +695,4 @@ void typeErr(node_t* operatorTree, type_t* type, type_t* type2) {
         fprintf(stderr, "%s:%d Type %s is not compatible with type %s using operator '%s'\n", first->filename, first->lineno, getTypeName(type), getTypeName(type2), first->text);
     }
     exit(3);
-}
-
-type_t* isCompatibleType(type_t* operator, type_t* type1, type_t* type2) {
-    switch (operator->type) {
-        case LINC:
-        case LDEC:
-            if (type1->type == INT_TYPE) return type1;
-            else return 0;
-        case ',':
-        case '=':
-            if (type_obj_equals(type1, type2)) return type1;
-            else return 0;
-        case LLT:
-        case LLE:
-        case LGT:
-        case LGE:
-        case LEQ:
-            if ((type_obj_equals(type1, type2)) && (type1->type == INT_TYPE || type1->type == FLOAT64_TYPE || type1->type == BOOL_TYPE || type1->type ==RUNE_TYPE)) return type_obj_create(BOOL_TYPE);
-            else return 0;
-        case LANDAND:
-        case LOROR:
-            if (type_obj_equals(type1, type2) && type1->type == BOOL_TYPE) return type_obj_create(BOOL_TYPE);
-            else return 0;
-        case '+':
-        case LPLASN:
-            if (type_obj_equals(type1, type2) && (type1->type == INT_TYPE || type1->type == FLOAT64_TYPE || type1->type == STRING_TYPE)) return type1;
-            else return 0;
-        case LMIASN:
-        case '-':
-        case '*':
-        case '/':
-            if (type_obj_equals(type1, type2) && (type1->type == INT_TYPE || type1->type == FLOAT64_TYPE)) return type1;
-            else return 0;
-        case '!':
-            if (type1->type == BOOL_TYPE) return type_obj_create(BOOL_TYPE);
-            else return 0;
-        default:
-            fprintf(stderr, "Unknown operator: %i\n", operator->type);
-            exit(3);
-    }
-
-    return 0;
 }

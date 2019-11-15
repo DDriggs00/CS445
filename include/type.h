@@ -44,6 +44,11 @@ type_t* getType(node_t* leaf, cfuhash_table_t* rootHT, char* scope);
 // Converts flex symbol to proper value
 int getProperTypeInt(int oldType);
 
+// compares two types, returns true if they are equal
 bool type_obj_equals(type_t* a, type_t* b);
+
+// Given two types and an operator, returns the output type.
+// If operation is illegal, returns NULL
+type_t* isCompatibleType(type_t* operator, type_t* type1, type_t* type2);
 
 #endif // TYPE_H

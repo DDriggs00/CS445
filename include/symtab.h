@@ -47,10 +47,6 @@ void detectUndeclaredVars(node_t* tree, cfuhash_table_t* rootHT, cfuhash_table_t
 // Do the type checking
 type_t* typeCheck(node_t* tree, cfuhash_table_t* rootHT, char* scope);
 
-// Given two types and an operator, returns the output type.
-// If operation is illegal, returns NULL
-type_t* isCompatibleType(type_t* operator, type_t* type1, type_t* type2);
-
 // Exist and prints an error message.
 // To error with only 1 type, set the second type to zero
 void typeErr(node_t* tree, type_t* type, type_t* type2);

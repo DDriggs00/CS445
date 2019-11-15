@@ -245,3 +245,45 @@ int getProperTypeInt(int oldType) {
         default:    return oldType;
     }
 }
+
+type_t* isCompatibleType(type_t* operator, type_t* type1, type_t* type2) {
+    switch (operator->type) {
+        case LINC:
+        case LDEC:
+            if (type1->type == INT_TYPE) return type1;
+            else return 0;
+        case ',':
+        case '=':
+            if (type_obj_equals(type1, type2)) return type1;
+            else return 0;
+        case LLT:
+        case LLE:
+        case LGT:
+        case LGE:
+        case LEQ:
+            if ((type_obj_equals(type1, type2)) && (type1->type == INT_TYPE || type1->type == FLOAT64_TYPE || type1->type == BOOL_TYPE || type1->type ==RUNE_TYPE)) return type_obj_create(BOOL_TYPE);
+            else return 0;
+        case LANDAND:
+        case LOROR:
+            if (type_obj_equals(type1, type2) && type1->type == BOOL_TYPE) return type_obj_create(BOOL_TYPE);
+            else return 0;
+        case '+':
+        case LPLASN:
+            if (type_obj_equals(type1, type2) && (type1->type == INT_TYPE || type1->type == FLOAT64_TYPE || type1->type == STRING_TYPE)) return type1;
+            else return 0;
+        case LMIASN:
+        case '-':
+        case '*':
+        case '/':
+            if (type_obj_equals(type1, type2) && (type1->type == INT_TYPE || type1->type == FLOAT64_TYPE)) return type1;
+            else return 0;
+        case '!':
+            if (type1->type == BOOL_TYPE) return type_obj_create(BOOL_TYPE);
+            else return 0;
+        default:
+            fprintf(stderr, "Unknown operator: %i\n", operator->type);
+            exit(3);
+    }
+
+    return 0;
+}
