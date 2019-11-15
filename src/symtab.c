@@ -61,8 +61,15 @@ cfuhash_table_t* genSymTab(node_t* tree) {
                 // Check ht for undeclared variables
                 detectUndeclaredVars(node, htTree, ht);
 
+                // populate function return type
+                type_t* t = typeCheck(node->children->begin->next->children->end, htTree, packageName);
+
                 // Create entry in main hashtable
-                vt = varToken_create_func(packageName, name, firstToken->lineno, ht);
+                vt = varToken_create_func(packageName, name, t, firstToken->lineno, ht);
+
+
+                // populate function arguments
+
                 if (cfuhash_put(htTree, name, vt)) {
                     // Key already existed
                     fprintf(stderr, "%s:%i: Error: Redeclaration of function %s\n", firstToken->filename, firstToken->lineno, name);
@@ -381,20 +388,20 @@ varToken_t** getImports(node_t* tree, char* scope) {
                 token = node->children->begin->next->data;
                 if (!strcmp(token->text, "\"fmt\"")) {
                     cfuhash_table_t* ht = cfuhash_new();
-                    cfuhash_put(ht, "Println", varToken_create_func("fmt", "Println", token->lineno, cfuhash_new()));
-                    cfuhash_put(ht, "Scan", varToken_create_func("fmt", "Scan", token->lineno, cfuhash_new()));
+                    cfuhash_put(ht, "Println", varToken_create_func("fmt", "Println", type_obj_create(VOID_TYPE), token->lineno, cfuhash_new()));
+                    cfuhash_put(ht, "Scan", varToken_create_func("fmt", "Scan", type_obj_create(STRING_TYPE), token->lineno, cfuhash_new()));
                     vts[pos] = varToken_create_lib("main", "fmt", token->lineno, ht);
                     pos++;
                 }
                 else if (!strcmp(token->text, "\"time\"")) {
                     cfuhash_table_t* ht = cfuhash_new();
-                    cfuhash_put(ht, "Now", varToken_create_func("time", "Now", token->lineno, cfuhash_new()));
+                    cfuhash_put(ht, "Now", varToken_create_func("time", "Now", type_obj_create(INT_TYPE), token->lineno, cfuhash_new()));
                     vts[pos] = varToken_create_lib("main", "time", token->lineno, ht);
                     pos++;
                 }
                 else if (!strcmp(token->text, "\"math/rand\"")) {
                     cfuhash_table_t* ht = cfuhash_new();
-                    cfuhash_put(ht, "Intn", varToken_create_func("rand", "Intn", token->lineno, cfuhash_new()));
+                    cfuhash_put(ht, "Intn", varToken_create_func("rand", "Intn", type_obj_create(INT_TYPE), token->lineno, cfuhash_new()));
                     vts[pos] = varToken_create_lib("main", "rand", token->lineno, ht);
                     pos++;
 
@@ -511,16 +518,19 @@ type_t* typeCheck(node_t* tree, cfuhash_table_t* rootHT, char* scope) {
     int arraylen;
 
     switch (tree->tag) {
-        case tag_return:        // return VAL
-        case tag_common_dcl:    // variable declaration wrapper without parentheses
-            // Fluff VAL
-            return typeCheck(tree->children->begin->next, rootHT, scope);
+        case tag_pseudocall:            // function call (no args)
+            // VAL FLUFF*
+            return typeCheck(tree->children->begin, rootHT, scope);
+        case tag_return:                // return value
+        case tag_common_dcl:            // variable declaration wrapper without parentheses
+            // Fluff* VAL
+            return typeCheck(tree->children->end, rootHT, scope);
 
-        case tag_common_dcl_2:  // variable declaration wrapper with parentheses
-            // Fluff Fluff VAL
+        case tag_common_dcl_2:          // variable declaration wrapper with parentheses
+            // Fluff Fluff VAL FLUFF*
             return typeCheck(tree->children->begin->next->next, rootHT, scope);
 
-        case tag_uexpr:     // Unary expression (Operator typeval)
+        case tag_uexpr:                 // Unary expression
             // OP VAL
             t1 = typeCheck(tree->children->end, rootHT, scope);
             op = typeCheck(tree->children->begin, rootHT, scope);
@@ -530,7 +540,7 @@ type_t* typeCheck(node_t* tree, cfuhash_table_t* rootHT, char* scope) {
 
             break;  // impossible state
 
-        case tag_simple_stmt:   // ++, --
+        case tag_simple_stmt:           // ++, --
             // VAL OP
             t1 = typeCheck(tree->children->begin, rootHT, scope);
             op = typeCheck(tree->children->end, rootHT, scope);
@@ -540,10 +550,10 @@ type_t* typeCheck(node_t* tree, cfuhash_table_t* rootHT, char* scope) {
 
             break;  // impossible state
 
-        case tag_expr_list:     // Chain of normal expressions
-        case tag_expr:          // Normal Expression
-        case tag_assignment:    // Assignment
-        case tag_simple_stmt2:  // +=, -=
+        case tag_expr_list:             // Chain of normal expressions
+        case tag_expr:                  // Normal Expression
+        case tag_assignment:            // Assignment
+        case tag_simple_stmt2:          // +=, -=
             // VAL OP VAL
 
             t1 = typeCheck(tree->children->begin, rootHT, scope);
@@ -556,7 +566,7 @@ type_t* typeCheck(node_t* tree, cfuhash_table_t* rootHT, char* scope) {
 
             break;  // impossible state
 
-        case tag_vardcl_init:
+        case tag_vardcl_init:           // Initialized variable declaration
             // FLUFF VAL OP VAL
 
             t1 = typeCheck(tree->children->begin->next, rootHT, scope);
@@ -570,8 +580,8 @@ type_t* typeCheck(node_t* tree, cfuhash_table_t* rootHT, char* scope) {
 
             break;  // impossible state
 
-        case tag_othertype_arr:
-            // [ VAL ] VAL (Array Operator)
+        case tag_othertype_arr:         // Array reference
+            // [ VAL ] VAL
             t1 = typeCheck(tree->children->begin->next, rootHT, scope); // Index
             t2 = typeCheck(tree->children->end, rootHT, scope);         // ArrayType
             if (!t1) {
@@ -592,8 +602,8 @@ type_t* typeCheck(node_t* tree, cfuhash_table_t* rootHT, char* scope) {
             free(t2);
             return returnType;
 
-        case tag_othertype_map:
-            // Fluff [ VAL ] VAL (Map operator)
+        case tag_othertype_map:         // Map reference
+            // Fluff [ VAL ] VAL
 
             t1 = typeCheck(tree->children->begin->next->next, rootHT, scope);   // FromType
             t2 = typeCheck(tree->children->end, rootHT, scope);                 // ToType
@@ -619,7 +629,7 @@ type_t* typeCheck(node_t* tree, cfuhash_table_t* rootHT, char* scope) {
             free(t2);
             return returnType;
 
-        case tag_pexpr_no_paren_dot:
+        case tag_pexpr_no_paren_dot:    // Struct and Library Reference
             // Lib/Struct DOT Func
             if (startsWith(scope, "package ")) {
                 vt = cfuhash_get(rootHT, ((token_t*)(getFirstTerminal(tree)->data))->text);
@@ -632,23 +642,30 @@ type_t* typeCheck(node_t* tree, cfuhash_table_t* rootHT, char* scope) {
             vt = cfuhash_get(vt->symTab, ((token_t*)(getFirstTerminal(tree->children->end)->data))->text);
             return type_obj_copy(vt->type);
 
-        case tag_xfndcl:
+        case tag_xfndcl:                // Function declaration Inner
             // FLUFF VAL CHECK_NOT_USE
             scope = getFuncName(tree);
 
             typeCheck(tree->children->end, rootHT, scope);
             return typeCheck(tree->children->begin->next, rootHT, scope);
-        case tag_fndcl:
+        case tag_fndcl:                 // Function Declaration Outer
             // CHECK_NOT_USE* VAL
             it = node_iterator_create(tree->children);
             while ((node = node_iterator_next(it))) {
                 typeCheck(node, rootHT, scope);
             }
             return typeCheck(tree->children->end, rootHT, scope);
+
+        case tag_pseudocall_args:       // function call with args
+            // VAL FLUFF CHECK_NOT_USE FLUFF*
+            typeCheck(tree->children->begin->next->next, rootHT, scope);
+
+            return typeCheck(tree->children->begin, rootHT, scope);
+
         default:
             // node didn't need checked (but it's children might)
             switch (tree->count) {
-                case 0: return getLeafType(tree, rootHT, scope);
+                case 0: return getType(tree, rootHT, scope);
                 case 1: return typeCheck(tree->children->begin, rootHT, scope);
                 default:
                     it = node_iterator_create(tree->children);
