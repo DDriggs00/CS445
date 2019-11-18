@@ -615,7 +615,7 @@ arg_type_list:
 
 oarg_type_list_ocomma:
     %empty                  { $$ = node_create(NULL, NULL, tag_empty); }
-|   arg_type_list ocomma	{ $$ = node_create2(NULL, NULL, tag_arg_type_list_ocomma, 2, $1, $2); }
+|   arg_type_list ocomma	{ $$ = $1; }
     ;
 
 /*
