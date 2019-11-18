@@ -5,6 +5,7 @@
 
 #include "cfuhash.h"
 #include "type.h"
+#include "list.h"
 
 typedef struct varToken_t {
 
@@ -21,6 +22,7 @@ typedef struct varToken_t {
     char* sval;
     double dval;
     cfuhash_table_t* symTab;
+    list_t* funcArgs;
 
 } varToken_t;
 
@@ -33,7 +35,7 @@ varToken_t* varToken_create_arr(char* scope, char* name, int type, int line);
 varToken_t* varToken_create_map(char* scope, char* name, int from, int to, int line);
 varToken_t* varToken_create_struct(char* scope, char* name, int line, cfuhash_table_t* ht);
 varToken_t* varToken_create_struct_instance(char* scope, char* name, char* structName, int line, cfuhash_table_t* ht);
-varToken_t* varToken_create_func(char* scope, char* name, type_t* returnType, int line, cfuhash_table_t* ht);
+varToken_t* varToken_create_func(char* scope, char* name, type_t* returnType, int line, cfuhash_table_t* ht, list_t* args);
 varToken_t* varToken_create_lib(char* scope, char* name, int line, cfuhash_table_t* ht);
 
 // Assign the given value to the given variable.

@@ -27,6 +27,7 @@ varToken_t* varToken_create(char* scope, char* name, int type, int line) {
     vt->dval = 0.0f;
     vt->sval = NULL;
     vt->symTab = NULL;
+    vt->funcArgs = NULL;
 
     return vt;
 }
@@ -95,13 +96,14 @@ varToken_t* varToken_create_struct_instance(char* scope, char* name, char* struc
     return vt;
 }
 
-varToken_t* varToken_create_func(char* scope, char* name, type_t* returnType, int line, cfuhash_table_t* ht) {
+varToken_t* varToken_create_func(char* scope, char* name, type_t* returnType, int line, cfuhash_table_t* ht, list_t* args) {
     varToken_t* vt = varToken_create(scope, name, FUNC_TYPE, line);
 
     vt->isConst = false;
     vt->isInitialized = true;
     vt->symTab = ht;
     vt->type->funcType = returnType;
+    vt->funcArgs = args;
 
     return vt;
 }
