@@ -32,6 +32,7 @@ typedef struct list_t {
 	void* prev;
 } list_t;
 
+list_t* list_create(void* data);
 void list_init(struct list_t* list);
 void list_destroy(struct list_t* list);
 

@@ -28,9 +28,9 @@
 
 #include "list.h"
 
-list_t* list_create() {
+list_t* list_create(void* data) {
 	list_t* list = malloc(sizeof(list_t));
-	list->data = NULL;
+	list->data = data;
 	list->next = NULL;
 	list->prev = NULL;
 	return  list;
@@ -49,8 +49,7 @@ void list_destroy(list_t* list) {
 }
 
 void list_add(list_t* list, void* data) {
-	list_t* next = list_create();
-	next->data = data;
+	list_t* next = list_create(data);
 	list_t* l2 = list;
 	while(l2->next) l2 = l2->next;
 	l2->next = next;
