@@ -58,6 +58,7 @@ int node_list_add(node_list_t* list, node_t* node) {
 	node->next = NULL;
 	node->prev = last;
 
+	if (!list->begin) list->begin = node;
 	// Set the next element of our old "last" element
 	if (last) {
 		// but only if the node list is not empty
