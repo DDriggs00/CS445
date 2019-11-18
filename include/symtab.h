@@ -30,7 +30,7 @@ void populateHashtable(node_t* tree, cfuhash_table_t* rootHT, cfuhash_table_t* h
 varToken_t** parseVarDcl(node_t* tree, cfuhash_table_t* rootHT, char* scope, bool isConst);
 
 // returns a list of varTokens given a tree rooted at a vardcllist
-varToken_t** parseVarDclList(node_t* tree, char* scope, bool isConst);
+varToken_t** parseVarDclList(node_t* tree, cfuhash_table_t* rootHT, char* scope, bool isConst);
 
 // returns a list of strings given a tree rooted at a DclName or DclNameList
 char** parseDclNameList(node_t* tree);

@@ -35,11 +35,16 @@ cfuhash_table_t* genSymTab(node_t* tree) {
 
     // Find function declarations and structs
     node_iterator_full_t* it = node_iterator_full_create(tree);
+
+    // variables used in loop
     node_t* node;
     char* name;
     varToken_t* vt;
+    varToken_t** funcArgsArray;
     token_t* firstToken;
     cfuhash_table_t* ht;
+    list_t* funcArgList;
+
     while ((node = node_iterator_full_next(it))) {
         switch (node->tag) {
             case tag_xfndcl:
@@ -66,10 +71,31 @@ cfuhash_table_t* genSymTab(node_t* tree) {
                 type_t* t = typeCheck(node->children->begin->next->children->end, htTree, packageName);
                 
                 // populate function arguments
-                
+                node = node->children->begin->next->children->begin->next->next;
+                // node == first oarg_type_list
+                if (node->tag != tag_empty) {
+                    funcArgsArray = parseVarDclList(node, htTree, name, false);
+                    
+                    funcArgList = list_create(funcArgsArray[0]);
+
+                    for (int i = 1; funcArgsArray[i] != NULL; i++) {
+                        list_add(funcArgList, funcArgsArray[i]);
+                    }
+                    
+                    while (node && node->children && node->children->end) {
+                        node = node->children->end;
+                        funcArgsArray = parseVarDcl(node->children->end, htTree, name, false);
+                        for (int i = 0; funcArgsArray[i] != NULL; i++) {
+                            list_add(funcArgList, funcArgsArray[i]);
+                        }
+                    }
+                }
+                else {
+                    funcArgList = NULL;
+                }
 
                 // Create entry in main hashtable
-                vt = varToken_create_func(packageName, name, t, firstToken->lineno, ht);
+                vt = varToken_create_func(packageName, name, t, firstToken->lineno, ht, funcArgList);
 
 
 
@@ -338,9 +364,27 @@ varToken_t** parseVarDcl(node_t* tree, cfuhash_table_t* rootHT, char* scope, boo
     return vts;
 }
 
-varToken_t** parseVarDclList(node_t* tree, char* scope, bool isConst) {
+varToken_t** parseVarDclList(node_t* tree, cfuhash_table_t* rootHT, char* scope, bool isConst) {
     if (!tree) return NULL;
-    if (tree->tag != tag_vardcl_list) return NULL;
+
+    // If list is actually just a single item
+    if (tree->tag == tag_vardcl
+        || tree->tag == tag_vardcl_init
+        || tree->tag == tag_constdcl
+        || tree->tag == tag_structdcl
+        || tree->tag == tag_arg_type) return parseVarDcl(tree, rootHT, scope, isConst);
+
+    if (tree->tag != tag_vardcl_list
+        && tree->tag != tag_arg_type_list) return NULL;
+
+    varToken_t** base = parseVarDcl(tree->children->end, rootHT, scope, isConst);
+    varToken_t** list = parseVarDcl(tree->children->begin, rootHT, scope, isConst);
+
+    // count the entries
+    int i, j;  
+    for (i = 0; base[i] != NULL; i++);
+    for (j = 0; list[j] != NULL; j++);
+
     return NULL; //TODO
 }
 
@@ -391,20 +435,20 @@ varToken_t** getImports(node_t* tree, char* scope) {
                 token = node->children->begin->next->data;
                 if (!strcmp(token->text, "\"fmt\"")) {
                     cfuhash_table_t* ht = cfuhash_new();
-                    cfuhash_put(ht, "Println", varToken_create_func("fmt", "Println", type_obj_create(VOID_TYPE), token->lineno, cfuhash_new()));
-                    cfuhash_put(ht, "Scan", varToken_create_func("fmt", "Scan", type_obj_create(STRING_TYPE), token->lineno, cfuhash_new()));
+                    cfuhash_put(ht, "Println", varToken_create_func("fmt", "Println", type_obj_create(VOID_TYPE), token->lineno, cfuhash_new(), NULL)); //TODO args
+                    cfuhash_put(ht, "Scan", varToken_create_func("fmt", "Scan", type_obj_create(STRING_TYPE), token->lineno, cfuhash_new(), NULL)); //TODO
                     vts[pos] = varToken_create_lib("main", "fmt", token->lineno, ht);
                     pos++;
                 }
                 else if (!strcmp(token->text, "\"time\"")) {
                     cfuhash_table_t* ht = cfuhash_new();
-                    cfuhash_put(ht, "Now", varToken_create_func("time", "Now", type_obj_create(INT_TYPE), token->lineno, cfuhash_new()));
+                    cfuhash_put(ht, "Now", varToken_create_func("time", "Now", type_obj_create(INT_TYPE), token->lineno, cfuhash_new(), NULL)); //TODO args
                     vts[pos] = varToken_create_lib("main", "time", token->lineno, ht);
                     pos++;
                 }
                 else if (!strcmp(token->text, "\"math/rand\"")) {
                     cfuhash_table_t* ht = cfuhash_new();
-                    cfuhash_put(ht, "Intn", varToken_create_func("rand", "Intn", type_obj_create(INT_TYPE), token->lineno, cfuhash_new()));
+                    cfuhash_put(ht, "Intn", varToken_create_func("rand", "Intn", type_obj_create(INT_TYPE), token->lineno, cfuhash_new(), NULL)); // TODO args
                     vts[pos] = varToken_create_lib("main", "rand", token->lineno, ht);
                     pos++;
 
@@ -665,6 +709,10 @@ type_t* typeCheck(node_t* tree, cfuhash_table_t* rootHT, char* scope) {
 
             return typeCheck(tree->children->begin, rootHT, scope);
 
+        case tag_expr_or_type_list:     // Function with parameters
+            // 1. get function name
+            // 2. get function hashtable
+            // 3. compare number and type of args
         default:
             // node didn't need checked (but it's children might)
             switch (tree->count) {
