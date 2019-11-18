@@ -20,9 +20,11 @@ type person struct {
 func add(x1, x2 float64) float64 {
 	return x1 + x2
 }
+
 func ret1() int {
 	return 1
 }
+
 func main() {
 	var q int
 	var ps person
@@ -30,7 +32,7 @@ func main() {
 
 	var n1 float64
 	fmt.Println(n1)
-	// q = (4 + 5) - 10 + (ps.age + q)
+	q = (4 + 5) - 10 + (ps.age + q)
 	if q == 5 {
 		q = 1
 	}
