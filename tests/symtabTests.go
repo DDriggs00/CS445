@@ -36,6 +36,6 @@ func main() {
 	if q == 5 {
 		q = 1
 	}
-	y = add(1.5, '1')
+	y = add(1.5, 2.5)
 	q = ret1()
 }
