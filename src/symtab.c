@@ -81,14 +81,6 @@ cfuhash_table_t* genSymTab(node_t* tree) {
                     for (int i = 1; funcArgsArray[i] != NULL; i++) {
                         list_add(funcArgList, funcArgsArray[i]);
                     }
-                    
-                    while (node && node->children && node->children->end) {
-                        node = node->children->end;
-                        funcArgsArray = parseVarDcl(node->children->end, htTree, name, false);
-                        for (int i = 0; funcArgsArray[i] != NULL; i++) {
-                            list_add(funcArgList, funcArgsArray[i]);
-                        }
-                    }
                 }
                 else {
                     funcArgList = NULL;
@@ -377,15 +369,24 @@ varToken_t** parseVarDclList(node_t* tree, cfuhash_table_t* rootHT, char* scope,
     if (tree->tag != tag_vardcl_list
         && tree->tag != tag_arg_type_list) return NULL;
 
+    varToken_t** list = parseVarDclList(tree->children->begin, rootHT, scope, isConst);
     varToken_t** base = parseVarDcl(tree->children->end, rootHT, scope, isConst);
-    varToken_t** list = parseVarDcl(tree->children->begin, rootHT, scope, isConst);
 
     // count the entries
     int i, j;  
-    for (i = 0; base[i] != NULL; i++);
-    for (j = 0; list[j] != NULL; j++);
+    for (i = 0; list[i] != NULL; i++);
+    for (j = 0; base[j] != NULL; j++);
 
-    return NULL; //TODO
+    varToken_t** returnVal = calloc(i + j + 1, sizeof(varToken_t*));
+
+    for (int k = 0; base[k] != NULL; k++) {
+        returnVal[k] = list[k];
+    }
+    for (int k = 0; base[k] != NULL; k++) {
+        returnVal[i + k] = list[k];
+    }
+
+    return returnVal;
 }
 
 char** parseDclNameList(node_t* tree) {
@@ -563,17 +564,19 @@ type_t* typeCheck(node_t* tree, cfuhash_table_t* rootHT, char* scope) {
     node_iterator_t* it;
     node_t* node;
     int arraylen;
+    list_t* l;
+    list_t* l2;
 
     switch (tree->tag) {
         case tag_pseudocall:            // function call (no args)
             // VAL FLUFF*
             return typeCheck(tree->children->begin, rootHT, scope);
-        case tag_return:                // return value
-        case tag_common_dcl:            // variable declaration wrapper without parentheses
+        case tag_return:                // Return value
+        case tag_common_dcl:            // Variable declaration wrapper without parentheses
             // Fluff* VAL
             return typeCheck(tree->children->end, rootHT, scope);
 
-        case tag_common_dcl_2:          // variable declaration wrapper with parentheses
+        case tag_common_dcl_2:          // Variable declaration wrapper with parentheses
             // Fluff Fluff VAL FLUFF*
             return typeCheck(tree->children->begin->next->next, rootHT, scope);
 
@@ -703,16 +706,52 @@ type_t* typeCheck(node_t* tree, cfuhash_table_t* rootHT, char* scope) {
             }
             return typeCheck(tree->children->end, rootHT, scope);
 
-        case tag_pseudocall_args:       // function call with args
+        case tag_pseudocall_args:       // Function call with args
             // VAL FLUFF CHECK_NOT_USE FLUFF*
             typeCheck(tree->children->begin->next->next, rootHT, scope);
 
             return typeCheck(tree->children->begin, rootHT, scope);
 
-        case tag_expr_or_type_list:     // Function with parameters
+        case tag_expr_or_type_list:     // Function parameter list
             // 1. get function name
-            // 2. get function hashtable
-            // 3. compare number and type of args
+            node = getFirstTerminal(tree->parent);
+            char* name = ((token_t*)(node->data))->text;
+
+            // 2. get function arg list
+            vt = cfuhash_get(rootHT, name);
+            l = vt->funcArgs;
+
+            // 3. get given args
+            l2 = getParamTypeList(tree, rootHT, scope);
+
+            // 4. compare number and type of given args to those of function
+            while (l || l2) {
+                
+                if (l && !l2) {
+                    token_t* first = getFirstTerminal(tree)->data;
+                    fprintf(stderr, "%s:%d Not enough arguments for function %s\n", first->filename, first->lineno, name);
+                    exit(3);
+                }
+                else if (!l && l2) {
+                    token_t* first = getFirstTerminal(tree)->data;
+                    fprintf(stderr, "%s:%d Too many arguments for function %s\n", first->filename, first->lineno, name);
+                    exit(3);
+                }
+
+                t1 = ((varToken_t*)(l->data))->type;
+                t2 = l2->data;
+
+                if (!type_obj_equals(t1, t2)) {
+                    token_t* first = getFirstTerminal(tree)->data;
+                    fprintf(stderr, "%s:%d Argument type mismatch in function %s: Type %s is not compatible with type %s\n", first->filename, first->lineno, name, getTypeName(t1), getTypeName(t2));
+                    exit(3);
+                }
+
+                l = l->next;
+                l2 = l2->next;
+            }
+
+
         default:
             // node didn't need checked (but it's children might)
             switch (tree->count) {
@@ -743,4 +782,21 @@ void typeErr(node_t* operatorTree, type_t* type, type_t* type2) {
         fprintf(stderr, "%s:%d Type %s is not compatible with type %s using operator '%s'\n", first->filename, first->lineno, getTypeName(type), getTypeName(type2), first->text);
     }
     exit(3);
+}
+
+list_t* getParamTypeList(node_t* tree, cfuhash_table_t* rootHT, char* scope) {
+    
+    list_t* list;
+    if (tree->tag == tag_expr_or_type_list) {
+        // process rest of list
+        list = getParamTypeList(tree->children->begin, rootHT, scope);
+
+        // process this list item
+        list_add(list, typeCheck(tree->children->end, rootHT, scope));
+    }
+    else {
+        list = list_create(typeCheck(tree->children->end, rootHT, scope));
+    }
+
+    return list;
 }
