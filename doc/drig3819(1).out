@@ -1,0 +1,162 @@
+CS445 HW4 test run output for drig3819
+------------------------------------------------------------
+	.zip Compiles w/no warnings:         _3/3
+	Exe named vgo Runs on Basic Stuff:   _3/3
+	Valgrind OK:                         _4/4
+	Typecheck Operators:                 _0/5
+	Typecheck Functions+parameters:      _1/5
+	Typecheck structs:                   _0/5
+	Typecheck go stuff:                  _0/5
+	-----------------------------------------
+	Total:                               11/30
+
+	----------------------------------------------------------------------
+
+	(make)
+bison -d src/vgo.y
+src/vgo.y: warning: 1 shift/reduce conflict [-Wconflicts-sr]
+flex src/vgolex.l
+gcc -c -std=c99 -D_POSIX_C_SOURCE=1 -Wall -Iinclude -I. lex.yy.c
+gcc -c -std=c99 -D_POSIX_C_SOURCE=1 -Wall -Iinclude -I. vgo.tab.c
+gcc -c -std=c99 -D_POSIX_C_SOURCE=1 -Wall -Iinclude -I. src/strutils.c
+gcc -c -std=c99 -D_POSIX_C_SOURCE=1 -Wall -Iinclude -I. src/main.c
+gcc -c -std=c99 -D_POSIX_C_SOURCE=1 -Wall -Iinclude -I. src/token.c
+gcc -c -std=c99 -D_POSIX_C_SOURCE=1 -Wall -Iinclude -I. src/list.c
+gcc -c -std=c99 -D_POSIX_C_SOURCE=1 -Wall -Iinclude -I. src/node.c
+gcc -c -std=c99 -D_POSIX_C_SOURCE=1 -Wall -Iinclude -I. src/type.c
+gcc -c -std=c99 -D_POSIX_C_SOURCE=1 -Wall -Iinclude -I. src/iterator.c
+gcc -c -std=c99 -D_POSIX_C_SOURCE=1 -Wall -Iinclude -I. src/node_list.c
+gcc -c -std=c99 -D_POSIX_C_SOURCE=1 -Wall -Iinclude -I. src/node_iterator.c
+gcc -c -std=c99 -D_POSIX_C_SOURCE=1 -Wall -Iinclude -I. src/node_iterator_full.c
+gcc -c -std=c99 -D_POSIX_C_SOURCE=1 -Wall -Iinclude -I. src/cfu.c
+gcc -c -std=c99 -D_POSIX_C_SOURCE=1 -Wall -Iinclude -I. src/cfustring.c
+gcc -c -std=c99 -D_POSIX_C_SOURCE=1 -Wall -Iinclude -I. src/cfuhash.c
+gcc -c -std=c99 -D_POSIX_C_SOURCE=1 -Wall -Iinclude -I. src/traversals.c
+gcc -c -std=c99 -D_POSIX_C_SOURCE=1 -Wall -Iinclude -I. src/symtab.c
+gcc -c -std=c99 -D_POSIX_C_SOURCE=1 -Wall -Iinclude -I. src/varToken.c
+gcc -o vgo lex.yy.o vgo.tab.o strutils.o main.o token.o list.o node.o type.o iterator.o node_list.o node_iterator.o node_iterator_full.o cfu.o cfustring.o cfuhash.o traversals.o symtab.o varToken.o
+	(make done rv=0)
+
+------------------------------------------------------------------------
+
+Executing from: /home/jeffery/submit/445/hw4/drig3819
+	Test#1 Input:
+package main
+var x int
+func main() {
+   x = 5
+   x = x * x
+}
+
+	Test Output:[expect no error]
+	(testrun done rv=0)
+==26057== Memcheck, a memory error detector
+==26057== Copyright (C) 2002-2012, and GNU GPL'd, by Julian Seward et al.
+==26057== Using Valgrind-3.8.1 and LibVEX; rerun with -h for copyright info
+==26057== Command: ./vgo ../basic.go
+==26057== 
+==26057== 
+==26057== HEAP SUMMARY:
+==26057==     in use at exit: 21,995 bytes in 146 blocks
+==26057==   total heap usage: 440 allocs, 294 frees, 48,835 bytes allocated
+==26057== 
+==26057== LEAK SUMMARY:
+==26057==    definitely lost: 3,848 bytes in 74 blocks
+==26057==    indirectly lost: 1,101 bytes in 66 blocks
+==26057==      possibly lost: 0 bytes in 0 blocks
+==26057==    still reachable: 17,046 bytes in 6 blocks
+==26057==         suppressed: 0 bytes in 0 blocks
+==26057== Rerun with --leak-check=full to see details of leaked memory
+==26057== 
+==26057== For counts of detected and suppressed errors, rerun with: -v
+==26057== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 8 from 6)
+exit status: 0 expected 0
+
+------------------------------------------------------------------------
+
+Executing from: /home/jeffery/submit/445/hw4/drig3819
+	Test#2 Input:
+package main
+func fib(i int) int {
+   return 11
+}
+
+func main() int {
+   var i int
+   i = 0 + fib
+   return 0
+}
+
+	Test Output:[expect type error to + on line 8]
+	(testrun done rv=0)
+
+------------------------------------------------------------------------
+
+Executing from: /home/jeffery/submit/445/hw4/drig3819
+	Test#3 Input:
+package main
+func fib(i int) int {
+   return 11
+}
+
+func main() int {
+   var i int
+   i = 0 + fib(main)
+   return 0
+}
+
+	Test Output:[expect type error to param on line 8]
+../typeck-fn.go:8 Error: Usage of variable main before declaration
+	(testrun done rv=0)
+
+------------------------------------------------------------------------
+
+Executing from: /home/jeffery/submit/445/hw4/drig3819
+	Test#4 Input:
+package main
+import "fmt"
+type Foo struct {
+  dd float64
+  }
+
+func mkFoo() Foo {
+  var s Foo
+  s.dd = 5.5
+  return s
+}
+
+func fib(f Foo, i int) float64 {
+   var x float64
+   x = f.dd * 2.0
+   return x
+}
+
+func main() {
+   var f Foo
+   var i float64
+   i = 0.0 + fib(f, 3)
+   i = 5.0
+   i = fib(f, "hello")
+   fmt.Println(i)
+}
+
+	Test Output:[expect type error to method param on line 24]
+	(testrun done rv=0)
+
+------------------------------------------------------------------------
+
+Executing from: /home/jeffery/submit/445/hw4/drig3819
+	Test#4 Input:
+package main
+import "fmt"
+func main() {
+  var m map[string]float64
+  m = make(map[string]float64)
+  m["hello"] = 5.5
+  fmt.Println(m["hello"])
+}
+
+	Test Output:[expect no error]
+../gostuff.go:5 Error: Usage of variable make before declaration
+	(testrun done rv=0)
+
