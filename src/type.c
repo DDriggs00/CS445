@@ -7,6 +7,8 @@
 #include "nodeTypes.h"  // for types
 #include "token.h"      // for tokens in getType
 #include "varToken.h"   // for tokens in getType
+#include "traversals.h"
+#include "strutils.h"
 
 type_t* type_obj_create(int type) {
     type_t* typeObj = malloc(sizeof(type_t));
@@ -89,7 +91,7 @@ type_t* getType(node_t* leaf, cfuhash_table_t* rootHT, char* scope) {
         case LNAME:
             if (!token) return NULL;
 
-            if (scope) {
+            if (scope && !startsWith(scope, "package ")) {
                 func = cfuhash_get(rootHT, scope);
                 vt = cfuhash_get(func->symTab, token->text);
                 if (vt) return type_obj_copy(vt->type);
@@ -98,7 +100,15 @@ type_t* getType(node_t* leaf, cfuhash_table_t* rootHT, char* scope) {
             if (!vt) {
                 return NULL;
             }
-            if (vt->type->type == FUNC_TYPE) return type_obj_copy(vt->type->funcType);
+            if (vt->type->type == FUNC_TYPE) {
+                if (hasParent(leaf, tag_pseudocall) || hasParent(leaf, tag_pseudocall_args) || hasParent(leaf, tag_package) || hasParent(leaf, tag_fndcl)) {
+                    return type_obj_copy(vt->type->funcType);   
+                }
+                else {
+                    fprintf(stderr, "%s:%d: Invalid function call (%s)\n", token->filename, token->lineno, token->text);
+                    exit(3);
+                }
+            }
             else return type_obj_copy(vt->type);
         
         // functions

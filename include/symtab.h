@@ -45,7 +45,7 @@ void parseFuncArgList(node_t* tree, cfuhash_table_t* ht, char* scope);
 void detectUndeclaredVars(node_t* tree, cfuhash_table_t* rootHT, cfuhash_table_t* funcHT);
 
 // Do the type checking
-type_t* typeCheck(node_t* tree, cfuhash_table_t* rootHT, char* scope);
+type_t* typeCheck(node_t* tree, cfuhash_table_t* rootHT, char* scope, bool isFunc);
 
 // type checking for parameter lists
 list_t* getParamTypeList(node_t* tree, cfuhash_table_t* rootHT, char* scope);

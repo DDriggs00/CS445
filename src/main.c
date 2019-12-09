@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
 
     // Check each file for type issues
     for (int i = 0; i < argc - nonFileArguments; i++) {
-        typeCheck(treeRoots[i], hashTables[i], NULL);
+        typeCheck(treeRoots[i], hashTables[i], NULL, false);
     }
 
     // ========================================
