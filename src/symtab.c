@@ -576,6 +576,7 @@ type_t* typeCheck(node_t* tree, cfuhash_table_t* rootHT, char* scope, bool isFun
             // Fluff* VAL
             return typeCheck(tree->children->end, rootHT, scope, isFunc);
 
+        case tag_map_make:              // Make '(' type ')'
         case tag_common_dcl_2:          // Variable declaration wrapper with parentheses
             // Fluff Fluff VAL FLUFF*
             return typeCheck(tree->children->begin->next->next, rootHT, scope, isFunc);
@@ -712,6 +713,26 @@ type_t* typeCheck(node_t* tree, cfuhash_table_t* rootHT, char* scope, bool isFun
 
             return typeCheck(tree->children->begin, rootHT, scope, true);
 
+        case tag_index:
+            // VAL '[' typeOfMapFrom ']'
+            t1 = typeCheck(tree->children->begin, rootHT, scope, true);
+            t2 = typeCheck(tree->children->begin->next->next, rootHT, scope, true);
+
+            if (t1->type == ARRAY_TYPE && t2->type == INT_TYPE) {
+                free(t2);
+                t2 = type_obj_create(t1->subType1);
+                free(t1);
+                return t2;
+            }
+            else if (t1->type == MAP_TYPE && t1->subType1 == t2->type) {
+                free(t2);
+                t2 = type_obj_create(t1->subType2);
+                free(t1);
+                return t2;
+            }
+            typeErr(tree->children->begin->next, t1, t2);
+            exit(3);
+            
         case tag_expr_or_type_list:     // Function parameter list
             // 1. get function name
             node = getFirstTerminal(tree->parent);
@@ -750,7 +771,6 @@ type_t* typeCheck(node_t* tree, cfuhash_table_t* rootHT, char* scope, bool isFun
                 l = l->next;
                 l2 = l2->next;
             }
-
 
         default:
             // node didn't need checked (but it's children might)
@@ -799,4 +819,25 @@ list_t* getParamTypeList(node_t* tree, cfuhash_table_t* rootHT, char* scope) {
     }
 
     return list;
+}
+
+varToken_t* getVarToken(char* varName, char* scope, cfuhash_table_t* rootHT) {
+    if (!rootHT) return NULL;
+
+    varToken_t* vt;
+
+    if (startsWith(scope, "package ")) {
+        // If variable is in root scope, returna the entry from the root hashtable
+        vt = cfuhash_get(rootHT, varName);
+    }
+    else {
+        cfuhash_table_t* ht = ((varToken_t*)cfuhash_get(rootHT, scope))->symTab;
+        vt = cfuhash_get(ht, varName);
+        if (!vt) vt = cfuhash_get(rootHT, varName);
+    }
+    return vt;
+}
+
+char* getFirstText(node_t* tree) {
+    return (((token_t*)(getFirstTerminal(tree)->data))->text);
 }

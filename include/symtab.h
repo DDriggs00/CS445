@@ -54,4 +54,10 @@ list_t* getParamTypeList(node_t* tree, cfuhash_table_t* rootHT, char* scope);
 // To error with only 1 type, set the second type to zero
 void typeErr(node_t* tree, type_t* type, type_t* type2);
 
+// Returns the appropriate variable token, depending on the scope
+varToken_t* getVarToken(char* varName, char* scope, cfuhash_table_t* rootHT);
+
+// Helper function that returns the first terminal's token's text field
+char* getFirstText(node_t* tree);
+
 #endif // SYMTAB_H

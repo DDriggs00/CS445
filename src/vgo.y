@@ -64,7 +64,7 @@ int yyerror(char* s);
 %token <t>	LCONST LELSE LFOR LFUNC LIF LIMPORT LMAP LVAR
 %token <t>  LPACKAGE LRETURN LSTRUCT
 %token <t>  LNAME
-%token <t>  LTYPE LRANGE
+%token <t>  LTYPE LRANGE LMAKE
 
 // Operators
 %token <t>  LANDAND LANDNOT LCOMM LEQ LGE LGT
@@ -83,7 +83,7 @@ int yyerror(char* s);
 %type <t>   literal
 
 // Non-Terminal symbols
-%type <t>	import_here sym packname oliteral
+%type <t>	import_here sym packname oliteral map_make
 %type <t>	stmt ntype file package imports import import_stmt
 %type <t>	arg_type hidden_import ocomma osemi fnlitdcl error
 %type <t>	hidden_import_list import_stmt_list
@@ -309,6 +309,10 @@ else:
 |   LELSE compound_stmt	{ $$ = node_create2(NULL, NULL, tag_else, 2, $1, $2); }
     ;
 
+map_make:
+    LMAKE '(' ntype ')' { $$ = node_create2(NULL, NULL, tag_map_make, 4, $1, $2, $3, $4); }
+    ;
+
 /*
  * expressions
  */
@@ -356,7 +360,7 @@ pexpr_no_paren:
     literal	                            	{ $$ = $1; }
 |   name	                            	{ $$ = $1; }
 |   pexpr '.' sym	                    	{ $$ = node_create2(NULL, NULL, tag_pexpr_no_paren_dot, 3, $1, $2, $3); }
-|   pexpr '[' expr ']'	                    { $$ = node_create2(NULL, NULL, tag_pexpr_no_paren, 4, $1, $2, $3, $4); }
+|   pexpr '[' expr ']'	                    { $$ = node_create2(NULL, NULL, tag_index, 4, $1, $2, $3, $4); }
 |   pexpr '[' oexpr ':' oexpr ']'	    	{ $$ = node_create2(NULL, NULL, tag_pexpr_no_paren, 6, $1, $2, $3, $4, $5, $6); }
 |   pexpr '[' oexpr ':' oexpr ':' oexpr ']'	{ $$ = node_create2(NULL, NULL, tag_pexpr_no_paren, 8, $1, $2, $3, $4, $5, $6, $7, $8); }
 |   pseudocall                              { $$ = $1; }
@@ -364,6 +368,7 @@ pexpr_no_paren:
 |   comptype '{' braced_keyval_list '}'     { $$ = node_create2(NULL, NULL, tag_pexpr_no_paren, 4, $1, $2, $3, $4); }
 |   LNAME '{' expr_list '}'                 { $$ = node_create2(NULL, NULL, tag_pexpr_no_paren, 4, $1, $2, $3, $4); }
 |   fnliteral                               { $$ = $1; }
+|   map_make                                { $$ = $1; }
 
 keyval:
     expr ':' complitexpr	{ $$ = node_create2(NULL, NULL, tag_keyval, 3, $1, $2, $3); }

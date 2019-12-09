@@ -43,6 +43,7 @@ void myerror(int category);
 }
 
     /* Reserved words */
+"make"          {nodenize(LMAKE); insertSemicolon = false; return LMAKE;}
 "func"          {nodenize(LFUNC); insertSemicolon = false; return LFUNC;}
 "map"           {nodenize(LMAP); insertSemicolon = false; return LMAP;}
 "struct"        {nodenize(LSTRUCT); insertSemicolon = false; return LSTRUCT;}

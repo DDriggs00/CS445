@@ -141,6 +141,8 @@ enum nodeTypes {
     tag_othertype_map               = 1136,
     tag_common_dcl_2                = 1137,
     tag_pseudocall_args             = 1138,
+    tag_map_make                    = 1139,
+    tag_index                       = 1140,
     tag_empty                       = 2000
 };
 
