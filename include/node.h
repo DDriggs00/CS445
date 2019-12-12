@@ -25,6 +25,7 @@
 #define NODE_H_
 
 #include "object.h"
+#include "list.h"
 
 #define NODE_TYPE 1;
 
@@ -47,6 +48,7 @@ typedef struct node_t {
 	int tag;
 	char* name;
 	void* data;
+	list_t* tac;
 	unsigned int depth;
 	struct node_t* parent;
 	struct node_list_t* children;

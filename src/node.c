@@ -55,6 +55,7 @@ node_t* node_create(node_t* parent, void* data, int tag) {
 	memset(node, '\0', sizeof(node_t));
 
 	node->data = data;
+	node->tac = NULL;
 	node->depth = 0;
 	node->next = NULL;
 	node->prev = NULL;
@@ -97,7 +98,6 @@ node_t* node_create2(struct node_t* parent, void* data, int tag, int count, ...)
 	va_list va;
 	va_start(va, count);
 	for (int i = 0; i < count; i++) {
-		// struct node_t* child = va_arg(va, node_t*);
 		node_attach(node, va_arg(va, node_t*));
 	}
 
