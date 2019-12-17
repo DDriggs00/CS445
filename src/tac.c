@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include "tac.h"
 
-tac_t* tacGen(int opCode, address_t dest, address_t src1, address_t src2) {
-    tac_t* rv = malloc(sizeof(tac_t));
+instruction_t* tacGen(int opCode, address_t* dest, address_t* src1, address_t* src2) {
+    instruction_t* rv = malloc(sizeof(instruction_t));
     if (rv == NULL) {
         fprintf(stderr, "out of memory\n");
         exit(4);
@@ -19,24 +19,26 @@ tac_t* tacGen(int opCode, address_t dest, address_t src1, address_t src2) {
     return rv;
 }
 
-tac_t* tacCpy(tac_t* src) {
+instruction_t* tacGenChild(int opCode, address_t* dest, address_t* src1, address_t* src2, instruction_t* parent) {
+    instruction_t* child = tacGen(opCode, dest, src1, src2);
+    parent->next = child;
+    return child;
+}
+
+instruction_t* tacCpy(instruction_t* src) {
     if (!src) return NULL;
 
-    tac_t* retVal = gen(src->opcode, src->dest, src->src1, src->src2);
-    retVal->next = copylist(src->next);
+    instruction_t* retVal = tacGen(src->opcode, src->dest, src->src1, src->src2);
+    retVal->next = tacCpy(src->next);
     return retVal;
 }
 
-tac_t* tacCat(tac_t* l1, tac_t* l2) {
+instruction_t* tacCat(instruction_t* l1, instruction_t* l2) {
     if (l1 == NULL) return l2;
-    if (l1 == NULL) return l1;
-    tac_t* ltmp = l1;
+    if (l2 == NULL) return l1;
+
+    instruction_t* ltmp = l1;
     while(ltmp->next != NULL) ltmp = ltmp->next;
     ltmp->next = l2;
     return l1;
-}
-
-tac_t* concat(tac_t* l1, tac_t* l2)
-{
-   return tacCat(copylist(l1), l2);
 }

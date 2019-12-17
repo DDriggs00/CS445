@@ -8,11 +8,11 @@ typedef struct address_t {
     int region, offset;
 } address_t;
 
-typedef struct tac_t {
+typedef struct instruction_t {
     int opcode;
-    address_t dest, src1, src2;
-    struct tac_t* next;
-} tac_t;
+    address_t *dest, *src1, *src2;
+    struct instruction_t* next;
+} instruction_t;
 
 /* Regions: */
 #define R_GLOBAL 2001 /* can assemble as relative to the pc */
@@ -51,8 +51,9 @@ typedef struct tac_t {
 #define D_LABEL 3054
 #define D_END   3055
 
-tac_t* tacGen(int opCode, address_t dest, address_t src1, address_t src2);
-tac_t* tacCat(tac_t* l1, tac_t* l2);
-tac_t* tacCpy(tac_t* src);
+instruction_t* tacGen(int opCode, address_t* dest, address_t* src1, address_t* src2);
+instruction_t* tacGenChild(int opCode, address_t* dest, address_t* src1, address_t* src2, instruction_t* parent);
+instruction_t* tacCat(instruction_t* l1, instruction_t* l2);
+instruction_t* tacCpy(instruction_t* src);
 
 #endif
