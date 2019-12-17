@@ -56,6 +56,7 @@ node_t* node_create(node_t* parent, void* data, int tag) {
 
 	node->data = data;
 	node->tac = NULL;
+	node->address = NULL;
 	node->depth = 0;
 	node->next = NULL;
 	node->prev = NULL;
